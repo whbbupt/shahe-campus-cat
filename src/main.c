@@ -6,7 +6,7 @@
  *   example/rt_device/rgb_led             —— RGB 灯驱动用法（SK6812MINI-HS，PA32，PWMT2 通道1）
  * 板型：sf32lb52-lchspi-ulp（立创·黄山派）。
  *
- * 行为：启动后打印 "Hello world!"，随后 RGB 灯按 红→绿→蓝 依次亮 500ms、灭 500ms，
+ * 行为：启动后打印第三周练习标识，随后 RGB 灯按 红→绿→蓝 依次亮 500ms、灭 500ms，
  *       每个颜色串口打印一行日志。可作为 T0 的编译、烧录和串口取证对象。
  *
  * 新增 .c 文件直接放进 src/ 即可，src/SConscript 会自动收集。
@@ -19,7 +19,7 @@
 #include "drivers/rt_drv_pwm.h"
 
 #define APP_NAME        "course_starter"
-#define APP_VERSION     "0.1.0"
+#define APP_VERSION     "0.1.1"
 
 #define RGBLED_NAME     "rgbled"
 #define BLINK_ON_MS     500
@@ -65,7 +65,7 @@ static void rgb_led_set_color(uint32_t color)
 int main(void)
 {
     rt_kprintf("\n[%s] v%s boot ok\n", APP_NAME, APP_VERSION);
-    rt_kprintf("Hello world!\n");
+    rt_kprintf("Week 03 practice: modified firmware is running.\n");
 
     rgb_led_init();
 
