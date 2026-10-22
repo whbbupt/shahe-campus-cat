@@ -1,0 +1,6 @@
+首次check_all失败后，在尚未修改的同一文档状态复跑check_trace保存诊断原文。
+command: python scripts/check_trace.py
+exit_code: 1
+
+需求追踪：PRD 共 4 条需求。
+  ✗ 方案设计未覆盖需求：REQ-004
