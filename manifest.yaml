@@ -45,33 +45,40 @@ code:
 physical_verification:
   # 每一个物理验证节点都要有对应记录，节点类型见配套文档《Agent协作开发与评审机制》第三节表格
   - item: "REQ-001 / TC-001：v0.1.1首次启动文字片段"
-    required_action: "用户通过CodeKit Download下载当前修改版，在1000000波特率监视器发送reboot并回传真实启动输出，保留随后RGB日志。"
+    required_action: "用户下载当前修改版并回传真实启动输出，核对版本与练习文字；具体复位方式未包含在首段原文中。"
     executed_at: null # 用户片段只有RX时间10:46:27，没有含日期的完整操作时间戳。
     evidence_received_at: "2026-10-22"
     evidence_path: "evidence/week03/boot_20261022_user_excerpt.txt"
-    agent_conclusion: "已确认v0.1.1启动标识、新练习文字及rgb -> red；本片段尚缺green/blue及完整启动观察窗口，第二次启动尚无证据，不据此宣布完整验收通过。"
+    agent_conclusion: "首段版本和练习文字各一次，结合随后取得的第二次复位记录，按原始启动文字判据判TC-001通过。原文缺完整启动边界和green/blue，不宣称全部采集步骤完整或长期稳定。"
   - item: "下载完成和RGB轮换：用户实物反馈"
     required_action: "用户完成Download后观察板卡，反馈实际运行现象。"
     executed_at: null # 用户没有提供下载操作的完整时间戳。
     evidence_received_at: "2026-10-22"
     evidence_path: "evidence/week03/flash_rgb_20261022_user_report.txt"
     agent_conclusion: "用户确认下载成功和LED轮换；未附CodeKit完整输出，不补造工具退出码或写入校验。该反馈不代替两次启动日志。"
+  - item: "REQ-001 / TC-002：发送reboot后的第二次启动"
+    required_action: "用户在1000000波特率监视器发送reboot并回传第二次启动输出。"
+    executed_at: null # 原文仅有时刻标签，未包含操作日期。
+    evidence_received_at: "2026-10-22"
+    observed_time_labels: "TX reboot 10:54:07；启动RX 10:54:09"
+    evidence_path: "evidence/week03/reboot_20261022_user_transcript.txt"
+    agent_conclusion: "发送reboot后出现SFBL和启动输出，第二次启动片段中v0.1.1与新练习文字各一次，TC-002启动文字判据通过；仅有red，无完整green/blue辅助记录，不扩展为其他外设或长期稳定性通过。"
 
 test_results:
   - test_id: "TC-001"
     description: "REQ-001首次真实启动验证"
-    expected: "同次启动包含v0.1.1 boot ok和新练习文字，练习文字本次启动仅一次；保留随后red/green/blue日志。"
-    actual: "收到用户RX 10:46:27片段，版本及练习文字均出现一次，并有red日志；尚缺完整窗口和green/blue记录。"
-    status: "in_progress"
-    pass: null # 尚未最终判定；不将未完成写为false或true。
+    expected: "同次启动包含v0.1.1 boot ok和新练习文字，练习文字本次启动仅一次；记录是否有异常。"
+    actual: "用户RX 10:46:27片段中版本及练习文字各一次，并有red；用户另确认下载成功、LED轮换。源码启动打印在循环前。未见所给片段内新增应用错误；启动边界与green/blue辅助记录不完整，详见测试报告。"
+    status: "passed"
+    pass: true # 仅原测试计划的启动文字判据；不代表辅助采集步骤完整或整体交接完成。
     evidence_path: "evidence/week03/boot_20261022_user_excerpt.txt"
   - test_id: "TC-002"
     description: "REQ-001再次复位启动验证"
     expected: "再次复位后仍出现相同版本和练习文字，本次启动练习文字仅一次。"
-    actual: "尚未取得第二次启动证据。"
-    status: "not_executed"
-    pass: null
-    evidence_path: null
+    actual: "TX 10:54:07发送reboot，随后SFBL与RX 10:54:09启动输出；第二次启动片段内版本和练习文字各一次，随后red。复位前red单独排除，不计入本次启动。未见所给片段内新增应用错误；无green/blue完整辅助记录。"
+    status: "passed"
+    pass: true
+    evidence_path: "evidence/week03/reboot_20261022_user_transcript.txt"
 
 known_issues:
   - "<已知问题1，真实项目通常都有未解决或有局限性的地方，主动说明比隐瞒更可信>"

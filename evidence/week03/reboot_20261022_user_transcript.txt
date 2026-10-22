@@ -1,0 +1,121 @@
+保存日期：2026-10-22（Asia/Shanghai）。来源：用户在当前对话中粘贴的监视器显示文本。
+操作日期未包含在原文中；保留TX/RX时间标签，不据此补造完整操作时间戳。
+以下保留分行、工具栏文字及收发标记，仅去除行末空白；不是AI直接读取串口，也不是完整会话导出。
+“断开”是用户粘贴的界面文字，不作为断线事件。10:54:06的red在reboot之前，第二次启动从10:54:07发送reboot之后核对。
+
+用户原文：
+复位
+断开
+1000000 baud·28 条日志
+10:54:06
+RX
+[course_starter] rgb -> red
+10:54:07
+TX
+reboot
+10:54:07
+RX
+SFBL
+10:54:09
+RX
+Serial:c2,Chip:4,Package:3,Rev:3
+10:54:09
+RX
+  Reason:00000000
+
+
+ \ | /
+- SiFli Corporation
+ / | \     build on Oct 16 2026, 2.5.1 build 421126d9
+ 2020 - 2022 Copyright
+10:54:09
+RX
+ by SiFli team
+aw32001_init ok,
+10:54:09
+RX
+  time consum: 0.00 ms.
+mount /
+10:54:09
+RX
+dev sucess
+[I/drv.rtc] PSCLR=0x
+10:54:09
+RX
+80000100 DivAI=128 DivAF=0 B=256
+[I/drv.rtc] RTC use LXT RTC_CR=00000001
+
+[I/drv.rtc] Init RT
+10:54:09
+RX
+C, wake = 1
+
+10:54:09
+RX
+[I/drv.audprc] init 00 ADC_PATH_
+10:54:09
+RX
+CFG0 0x606
+
+[I/drv.audprc] HAL_AUDPRC_Init res 0
+
+[I/drv.audcodec] HAL_AUDCODEC_Init res 0
+
+[I/drv.rgb] rgbled register su
+10:54:09
+RX
+ccess, supporting 1 LEDs
+[I/TOUCH] Regist touch screen dri
+10:54:09
+RX
+ver, probe=1202740d
+[I/FAL] Flash Abstraction Laye
+10:54:09
+RX
+r (V0.5.99) initialize success.
+10:54:09
+RX
+[0m
+[I/FAL] The FAL MTD NOR device (dfu) created succes
+10:54:09
+RX
+sfully
+[I/FAL] The FAL MTD NOR device (ble) created
+10:54:09
+RX
+ successfully
+10:54:09
+RX
+call par CFG1(3313)
+
+fc 9, xtal
+10:54:09
+RX
+ 2000, pll 2152
+
+call par CFG1(
+10:54:09
+RX
+3313)
+
+fc 7, xtal 2000, pll 172
+10:54:09
+RX
+4
+
+
+[course_starter] v0.1.1 bo
+10:54:09
+RX
+ot ok
+Week 03 practice: modifie
+10:54:09
+RX
+d firmware is running.
+10:54:09
+RX
+[course_starter] rgb -> red
+msh
+10:54:09
+RX
+ />
