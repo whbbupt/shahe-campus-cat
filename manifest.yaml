@@ -79,6 +79,12 @@ physical_verification:
     evidence_path: "evidence/week03/reboot_164319_20261022_user_transcript.txt"
     evidence_note_path: "evidence/week03/reboot_164319_20261022_analysis.md"
     agent_conclusion: "复位后v0.1.2、练习文字、390x450界面创建及显示ON均有日志；用户确认RGB仍轮换且停止刷屏。结合此前实物照片，TC-003通过；TC-004仅复位/启动已确认，实际复位后画面尚待确认，不据初始化日志直接记屏幕通过。"
+  - item: "REQ-002 / TC-004：16:43复位后屏幕内容确认"
+    required_action: "用户观察刚才这次reboot后的实际画面，明确确认项目名、v0.1.2及练习文字仍完整显示。"
+    executed_at: null # 仅有16:43这次复位的时刻关联，操作日期未经用户明确提供。
+    evidence_received_at: "2026-10-22"
+    evidence_path: "evidence/week03/reboot_164319_screen_confirmation_20261022.txt"
+    agent_conclusion: "用户明确回答仍显示相同内容、文字完整；结合本次真实复位日志和此前本版屏幕照片，TC-004通过。复位后未收到第二张照片，保留采集缺口，不把旧图伪装成新图，也不扩展长期稳定性结论。"
 
 test_results:
   - test_id: "TC-001"
@@ -109,13 +115,17 @@ test_results:
   - test_id: "TC-004"
     description: "REQ-002 / v0.1.2再次复位屏幕验证"
     expected: "再次复位后屏幕完整显示相同项目名、v0.1.2和练习文字，串口版本对应，记录异常。"
-    actual: "已取得16:43:19 reboot/SFBL到16:43:21新版启动、UI创建及显示ON日志。复位已执行；复位后实际画面尚需用户明确确认或照片，不以驱动日志替代。"
-    status: "in_progress"
-    pass: null
-    evidence_path: "evidence/week03/reboot_164319_20261022_user_transcript.txt"
+    actual: "16:43复位后新版启动日志与版本对应；用户对这次复位后的实际画面明确回答仍显示相同内容、文字完整。第二张照片未取得，采集缺口保留，不把旧图冒充新图；通过依据是用户实物确认加本次日志。"
+    status: "passed"
+    pass: true
+    evidence_path: "evidence/week03/reboot_164319_screen_confirmation_20261022.txt"
+    supporting_evidence_paths:
+      - "evidence/week03/reboot_164319_20261022_user_transcript.txt"
+      - "evidence/week03/screen_20261022_user_photo.jpg"
 
 known_issues:
-  - "v0.1.1两项串口用例与v0.1.2的TC-003已实测通过；TC-004复位启动已执行，复位后实际画面待用户确认。图形运行时内存与长期稳定性未测。"
+  - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
+  - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
   - "身份、原始会话导出及本人解释等交接材料仍未齐全；未知操作时间戳保持空值。"
 
