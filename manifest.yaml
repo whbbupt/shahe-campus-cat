@@ -44,19 +44,34 @@ code:
 
 physical_verification:
   # 每一个物理验证节点都要有对应记录，节点类型见配套文档《Agent协作开发与评审机制》第三节表格
-  - item: "<验证项名称，例如：固件烧录与串口启动log>"
-    required_action: "<agent当时要求学生具体做什么>"
-    executed_at: "<学生实际执行的时间戳>"
-    evidence_path: "<原始证据文件路径：照片/视频/日志/示波器截图>"
-    agent_conclusion: "<agent基于该证据得出的结论，例如：启动正常，IMU初始化成功>"
+  - item: "REQ-001 / TC-001：v0.1.1首次启动文字片段"
+    required_action: "用户通过CodeKit Download下载当前修改版，在1000000波特率监视器发送reboot并回传真实启动输出，保留随后RGB日志。"
+    executed_at: null # 用户片段只有RX时间10:46:27，没有含日期的完整操作时间戳。
+    evidence_received_at: "2026-10-22"
+    evidence_path: "evidence/week03/boot_20261022_user_excerpt.txt"
+    agent_conclusion: "已确认v0.1.1启动标识、新练习文字及rgb -> red；本片段尚缺green/blue及完整启动观察窗口，第二次启动尚无证据，不据此宣布完整验收通过。"
+  - item: "下载完成和RGB轮换：用户实物反馈"
+    required_action: "用户完成Download后观察板卡，反馈实际运行现象。"
+    executed_at: null # 用户没有提供下载操作的完整时间戳。
+    evidence_received_at: "2026-10-22"
+    evidence_path: "evidence/week03/flash_rgb_20261022_user_report.txt"
+    agent_conclusion: "用户确认下载成功和LED轮换；未附CodeKit完整输出，不补造工具退出码或写入校验。该反馈不代替两次启动日志。"
 
 test_results:
-  - test_id: "<测试编号，例如 TC-01>"
-    description: "<测试内容简述>"
-    expected: "<预期结果>"
-    actual: "<实测结果>"
-    pass: <true 或 false>
-    evidence_path: "<对应的原始数据/截图路径>"
+  - test_id: "TC-001"
+    description: "REQ-001首次真实启动验证"
+    expected: "同次启动包含v0.1.1 boot ok和新练习文字，练习文字本次启动仅一次；保留随后red/green/blue日志。"
+    actual: "收到用户RX 10:46:27片段，版本及练习文字均出现一次，并有red日志；尚缺完整窗口和green/blue记录。"
+    status: "in_progress"
+    pass: null # 尚未最终判定；不将未完成写为false或true。
+    evidence_path: "evidence/week03/boot_20261022_user_excerpt.txt"
+  - test_id: "TC-002"
+    description: "REQ-001再次复位启动验证"
+    expected: "再次复位后仍出现相同版本和练习文字，本次启动练习文字仅一次。"
+    actual: "尚未取得第二次启动证据。"
+    status: "not_executed"
+    pass: null
+    evidence_path: null
 
 known_issues:
   - "<已知问题1，真实项目通常都有未解决或有局限性的地方，主动说明比隐瞒更可信>"

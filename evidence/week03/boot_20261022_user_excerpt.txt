@@ -1,0 +1,12 @@
+保存日期：2026-10-22（Asia/Shanghai）。来源：用户在当前对话中粘贴的串口显示片段。
+RX标签时间为10:46:27，片段没有日期、发送reboot的输入或完整启动边界。
+以下保留用户粘贴的分行、RX展示标记及HTML实体；不是AI直接读取串口，也不是完整原始会话导出。
+
+用户原文：
+000, pll 2153  call par CFG1(
+10:46:27**RX**3313)  fc 7, xtal 2000, pll 172
+10:46:27**RX**4   [course_starter] v0.1.1 bo
+10:46:27**RX**ot ok Week 03 practice: modifie
+10:46:27**RX**d firmware is running.&#x20;
+10:46:27**RX**[course_starter] rgb -> red msh
+10:46:27**RX** />
