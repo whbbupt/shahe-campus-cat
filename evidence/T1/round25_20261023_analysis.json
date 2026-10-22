@@ -1,0 +1,124 @@
+{
+  "evidence_received_at": "2026-10-23",
+  "executed_at": null,
+  "observed_time_labels": [
+    "00:00:18",
+    "00:00:23"
+  ],
+  "source_text": "evidence/T1/round25_000018_20261023_user_transcript.txt",
+  "user_confirmation": "evidence/T1/round25_20261023_user_confirmation.txt",
+  "raw_event_count": 25,
+  "user_confirmed_press_count": 25,
+  "sequence_contiguous": true,
+  "color_sequence_matches": true,
+  "events": [
+    {
+      "press": 1,
+      "color": "green"
+    },
+    {
+      "press": 2,
+      "color": "blue"
+    },
+    {
+      "press": 3,
+      "color": "red"
+    },
+    {
+      "press": 4,
+      "color": "green"
+    },
+    {
+      "press": 5,
+      "color": "blue"
+    },
+    {
+      "press": 6,
+      "color": "red"
+    },
+    {
+      "press": 7,
+      "color": "green"
+    },
+    {
+      "press": 8,
+      "color": "blue"
+    },
+    {
+      "press": 9,
+      "color": "red"
+    },
+    {
+      "press": 10,
+      "color": "green"
+    },
+    {
+      "press": 11,
+      "color": "blue"
+    },
+    {
+      "press": 12,
+      "color": "red"
+    },
+    {
+      "press": 13,
+      "color": "green"
+    },
+    {
+      "press": 14,
+      "color": "blue"
+    },
+    {
+      "press": 15,
+      "color": "red"
+    },
+    {
+      "press": 16,
+      "color": "green"
+    },
+    {
+      "press": 17,
+      "color": "blue"
+    },
+    {
+      "press": 18,
+      "color": "red"
+    },
+    {
+      "press": 19,
+      "color": "green"
+    },
+    {
+      "press": 20,
+      "color": "blue"
+    },
+    {
+      "press": 21,
+      "color": "red"
+    },
+    {
+      "press": 22,
+      "color": "green"
+    },
+    {
+      "press": 23,
+      "color": "blue"
+    },
+    {
+      "press": 24,
+      "color": "red"
+    },
+    {
+      "press": 25,
+      "color": "green"
+    }
+  ],
+  "result_scope": "25 actual presses match 25 logged events; logged color sequence correct. TC-006 remains in progress pending the extra 30 presses and physical-observation details.",
+  "limitations": [
+    "Leading X preserved; no preceding boot/version segment in this paste.",
+    "Date received is known; no full operation date in the pasted log.",
+    "Physical LED correspondence and fast/firm press mix were not separately answered.",
+    "No evidence of count mismatch; do not infer a physical bounce defect.",
+    "Do not relabel the actual 25-press round as a 20-press round."
+  ]
+}

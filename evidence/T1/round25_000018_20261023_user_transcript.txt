@@ -1,0 +1,74 @@
+X
+[t1] press=1 color=green
+00:00:18
+RX
+[t1] press=2 color=blue
+00:00:18
+RX
+[t1] press=3 color=red
+00:00:18
+RX
+[t1] press=4 color=green
+00:00:18
+RX
+[t1] press=5 color=blue
+00:00:18
+RX
+[t1] press=6 color=red
+00:00:19
+RX
+[t1] press=7 color=green
+00:00:19
+RX
+[t1] press=8 color=blue
+00:00:19
+RX
+[t1] press=9 color=red
+00:00:19
+RX
+[t1] press=10 color=green
+00:00:19
+RX
+[t1] press=11 color=blue
+00:00:20
+RX
+[t1] press=12 color=red
+00:00:20
+RX
+[t1] press=13 color=green
+00:00:20
+RX
+[t1] press=14 color=blue
+00:00:20
+RX
+[t1] press=15 color=red
+00:00:20
+RX
+[t1] press=16 color=green
+00:00:20
+RX
+[t1] press=17 color=blue
+00:00:21
+RX
+[t1] press=18 color=red
+00:00:21
+RX
+[t1] press=19 color=green
+00:00:21
+RX
+[t1] press=20 color=blue
+00:00:22
+RX
+[t1] press=21 color=red
+00:00:22
+RX
+[t1] press=22 color=green
+00:00:22
+RX
+[t1] press=23 color=blue
+00:00:23
+RX
+[t1] press=24 color=red
+00:00:23
+RX
+[t1] press=25 color=green

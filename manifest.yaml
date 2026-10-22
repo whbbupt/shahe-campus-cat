@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组别未提供，本次是个人练习。
-  milestone: "T0/T1入门训练：T1 v0.2.0启动自检及10次按键通过，20/30次待验证"
+  milestone: "T0/T1入门训练：T1构建/自检/10次通过，新增25次计数核对通过，30次待验证"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -113,6 +113,17 @@ physical_verification:
       - "evidence/T1/video_contact_sheet_20261022.jpg"
     agent_conclusion: "TC-008依据真实启动自检通过；TC-005依据前9条串口、用户明确确认10次成功及实物视频通过，保留第10条原文未复制缺口。TC-006的20/30次仍未执行，不扩张结论。"
 
+  - item: "TC-006首轮实际25次按键与日志计数核对"
+    required_action: "用户亲自短按KEY1，回传连续日志并回答实际手数。"
+    executed_at: null # 原始日志只有00:00时刻，未单独提供完整操作日期。
+    evidence_received_at: "2026-10-23"
+    observed_time_labels: "00:00:18至00:00:23；首行X和首条缺前置标签均原样保留"
+    evidence_path: "evidence/T1/round25_000018_20261023_user_transcript.txt"
+    supporting_evidence_paths:
+      - "evidence/T1/round25_20261023_user_confirmation.txt"
+      - "evidence/T1/round25_20261023_analysis.json"
+    agent_conclusion: "原始25条连续事件与用户确认25次相符，颜色日志顺序正确，本轮计数/日志核对通过；30次附加测试和逐次实物观察待补，TC-006整体仍进行中。"
+
 test_results:
   - test_id: "TC-001"
     description: "REQ-001 / v0.1.1首次真实启动验证（历史已实测）"
@@ -164,9 +175,13 @@ test_results:
   - test_id: "TC-006"
     description: "REQ-004 / T1一按一次"
     expected: "20次短按与20次切换一致；通过后再30次，逐轮保存人工计数"
-    actual: "未执行；首版不消抖，不推断实测结果"
-    status: "not_executed"
+    actual: "2026-10-23收到press=1至25连续原文，颜色绿蓝红顺序一致；用户确认实际手数25次，计数一致。实际25次按原数保存，30次附加测试及逐次实物观察尚待；TC-006整体进行中。"
+    status: "in_progress"
     pass: null
+    evidence_path: "evidence/T1/round25_000018_20261023_user_transcript.txt"
+    supporting_evidence_paths:
+      - "evidence/T1/round25_20261023_user_confirmation.txt"
+      - "evidence/T1/round25_20261023_analysis.json"
   - test_id: "TC-007"
     description: "REQ-003、REQ-004 / T1本版完整构建"
     expected: "build_firmware.py返回0且SCons完整结束，保留本版构建记录"
@@ -184,7 +199,7 @@ test_results:
     evidence_path: "evidence/T1/reboot_213546_20261022_user_transcript.txt"
 
 known_issues:
-  - "T1 v0.2.0首版未消抖；TC-005按用户10次实测确认、前9条真实日志和视频通过，第10条原文未复制；TC-008真实启动自检通过，TC-007主机构建通过。TC-006的20/30次仍未执行、pass=null，不能称T1全部完成。"
+  - "T1 v0.2.0首版未消抖；TC-005按用户10次实测确认、前9条真实日志和视频通过，第10条原文未复制；TC-008真实启动自检通过，TC-007主机构建通过。TC-006已收到实际25次与25条日志一致的记录，30次及逐次物理观察仍待，pass=null，不能称T1全部完成。"
   - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
   - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
@@ -192,7 +207,7 @@ known_issues:
 
 self_review: |
   此前个人练习已有真实构建、用户板卡照片、启动日志、RGB反馈、复位后画面明确确认和本人解释。
-  当前T1 v0.2.0已编译并收到真实启动/自检、9条按键原文、用户10次成功确认及视频；TC-005/008通过，缺第10条原始串口，TC-006的20/30次仍待执行。
+  当前T1 v0.2.0已编译并收到真实启动/自检、9条按键原文、用户10次成功确认及视频；TC-005/008通过，缺第10条原始串口，TC-006新增25次计数/日志核对通过，30次及逐次物理观察仍待。
   v0.1.1两项串口历史及v0.1.2两项屏幕相关用例在各自范围通过；不是17项外设全过或正式产品完成。
   AI最初只安排串口，用户指出应显示在屏幕后按手册补齐；用户也纠正了把bat当必做步骤的冗余操作。
   新增LVGL首次漏配MEMHEAP导致构建失败，保留失败并补配置重建，主机预览失败过程同样保留。
