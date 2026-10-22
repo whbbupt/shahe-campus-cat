@@ -13,34 +13,44 @@
 # ============================================================
 
 submission:
-  student_id: "<学号，例如 S2026001>"
-  student_name: "<姓名>"
-  group_id: "<组别，例如 G3>"
-  milestone: "<里程碑名称，例如 阶段4-AI语音集成 / Capstone-检查点2 / Capstone-终版>"
-  submitted_at: "<ISO时间戳，例如 2026-11-03T21:40:00+08:00>"
+  student_id: null # 未提供，不推断。
+  student_name: null # Git用户whbbupt不冒充真实姓名。
+  group_id: null # 正式组别未提供，本次是个人练习。
+  milestone: "第三周个人修改练习 v0.1.2（不是正式产品封版）"
+  submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
-  tool: "<使用的agent工具，例如 Claude Code>"
-  model: "<模型版本，例如 claude-sonnet-5，请据实填写，不要凭记忆猜测>"
-  session_log_path: "<完整会话记录文件路径，必须是原始导出，不可编辑>"
-  session_log_hash: "<可选：会话记录文件的哈希值，用于防止事后篡改>"
+  tool: "Codex"
+  model: "GPT-6（会话提供的模型族；具体子版本未提供）"
+  session_log_path: null # 尚未取得界面的原始会话导出，不以整理摘要替代。
+  session_log_hash: null
 
 requirements:
-  prd_path: "<需求规格说明路径，默认 docs/01-需求规格说明.md>"
-  hardware_constraints_ref: "<引用的硬件规格文档，例如黄山派硬件手册链接或本地副本路径>"
+  prd_path: "docs/01-需求规格说明.md"
+  hardware_constraints_ref: "SDK v2.5.1 / customer/boards/sf32lb52-lchspi-ulp/hcpu/board.conf；本机已核对，SDK另配"
 
 design:
-  architecture_doc_path: "<方案设计说明路径，默认 docs/02-方案设计说明.md>"
+  architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
     # 每一条关键决策都要写清楚：决策内容 / 考虑过的备选方案 / 选择理由 / 谁做的最终决定
-    - decision: "<例如：选择BLE而非WiFi做数据同步>"
-      alternatives_considered: "<例如：曾考虑过用SD卡离线导出，因为使用场景需要实时同步而放弃>"
-      rationale: "<为什么最终这么选，写具体理由，不要只写'效果更好'>"
-      decided_by: "<agent建议+学生确认 / 学生主导 / 纯agent自动决定（不建议用于关键决策）>"
+    - decision: "本次个人练习补齐板载屏幕文字，保留已实测串口历史"
+      alternatives_considered: "先前只保留串口最小修改；根据用户纠正与手册要求补最小屏幕页"
+      rationale: "手册第7页环境闭环要求屏幕文字，串口修改不能代替；沿用课程既定LVGL v9，无新增产品方向或硬件选型"
+      decided_by: "用户指出应该显示在屏幕并要求处理屏幕不亮，AI据此纠正练习范围；具体实现由AI协助"
 
 code:
-  repo_url: "<git仓库地址>"
-  commit_range: "<起始commit..结束commit，对应本次里程碑>"
+  repo_url: null # 只有本地仓库，未配置远程或推送。
+  local_path: "D:/project/sifli/course_starter"
+  commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/tags/week03-practice-v0.1.2"
+  implementation_commit: "0d20b1e"
+
+practice_completion:
+  scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
+  status: "complete"
+  completed_on: "2026-10-22"
+  summary_path: "docs/week03-personal-practice-summary.md"
+  student_explanation_path: "evidence/week03/personal_explanation_20261022_user.txt"
+  formal_product_submission_ready: false
 
 physical_verification:
   # 每一个物理验证节点都要有对应记录，节点类型见配套文档《Agent协作开发与评审机制》第三节表格
@@ -127,17 +137,26 @@ known_issues:
   - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
   - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
-  - "身份、原始会话导出及本人解释等交接材料仍未齐全；未知操作时间戳保持空值。"
+  - "本次个人解释已记录，个人练习完成；身份、正式组别、平台提交时间及原始会话导出仍缺，不能据此称正式产品交接完成。未知操作时间戳保持空值。"
 
 self_review: |
-  <agent生成的自我复盘，包括：本次里程碑完成度如何、哪些地方agent自己也不确定、
-  哪些决策是在学生介入/纠正之后才修改的。建议由agent在里程碑结束时自动生成，
-  不建议学生代写。>
+  本次个人练习已有真实构建、用户板卡照片、启动日志、RGB反馈、复位后画面明确确认和本人解释。
+  v0.1.1两项串口历史及v0.1.2两项屏幕相关用例在各自范围通过；不是17项外设全过或正式产品完成。
+  AI最初只安排串口，用户指出应显示在屏幕后按手册补齐；用户也纠正了把bat当必做步骤的冗余操作。
+  新增LVGL首次漏配MEMHEAP导致构建失败，保留失败并补配置重建，主机预览失败过程同样保留。
+  用户亲自负责下载、观察、复位和证据，并说明在main修改版本/文字、通过屏幕确认；没有把AI源码记为学生独立手写。
+  未取得第二张复位照片、原始完整下载输出、操作日期与运行时内存/稳定性数据，限制如实保留。
+  收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
   # 用于区分"学生自己做的决定"和"agent建议、学生只是同意"
-  - decision_point: "<例如：是否采用非线性PWM映射>"
-    student_confirmation: "<学生对该决策的确认说明，最好包含'为什么认可/为什么修改'的具体理由>"
+  - decision_point: "下载操作入口"
+    student_confirmation: "用户指出可直接用CodeKit Download，否定把bat当额外必做步骤；已更正指南。"
+  - decision_point: "练习应包含屏幕文字"
+    student_confirmation: "用户指出文字应显示在屏幕，并提供黑屏反馈，推动补齐v0.1.2屏幕页。"
+  - decision_point: "本人对修改与验证的解释"
+    student_confirmation: "在main文件改了一下version 然后的话还有文字 通过屏幕显示确认的"
+    evidence_path: "evidence/week03/personal_explanation_20261022_user.txt"
 
 # ============================================================
 # 以下为字段填写示例（仅供参考，提交时请删除本示例区块）
