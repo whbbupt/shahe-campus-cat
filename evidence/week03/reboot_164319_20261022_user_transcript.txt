@@ -1,0 +1,271 @@
+保存日期：2026-10-22（Asia/Shanghai）。来源：用户在当前对话粘贴的真实监视器输出与实物观察反馈。
+原文只有16:43:19/16:43:21等时间标签，没有操作日期。首次标记为X，按用户原样保留，不补成TX。
+以下保留收发分片、文字与换行，仅去除行末空白；末行中文是用户观察反馈，不当作RX日志。
+这是用户粘贴的显示文本，不是AI直接读取串口，也不是完整会话导出。
+
+用户原文：
+X
+reboot
+16:43:19
+RX
+SFBL
+16:43:21
+RX
+Serial:c2,Chip:4,Package:3,Rev:3
+16:43:21
+RX
+  Reason:00000000
+
+
+ \ | /
+-
+16:43:21
+RX
+SiFli Corporation
+ / | \     bu
+16:43:21
+RX
+ild on Oct 22 2026, 2.5.1 build
+16:43:21
+RX
+421126d9
+ 2020 - 2022 Copyright
+16:43:21
+RX
+ by SiFli team
+aw32001_init ok,
+16:43:21
+RX
+  time consum: 0.00 ms.
+mount /
+16:43:21
+RX
+dev sucess
+[I/drv.rtc] PSCLR=0x
+16:43:21
+RX
+80000100 DivAI=128 DivAF=0 B=256
+16:43:21
+RX
+
+[I/drv.rtc] RTC use LXT RTC_CR
+16:43:21
+RX
+=00000001
+
+[I/drv.rtc] Init RT
+16:43:21
+RX
+C, wake = 1
+
+[I/drv.audprc] in
+16:43:21
+RX
+it 00 ADC_PATH_CFG0 0x606
+
+[I/
+16:43:21
+RX
+drv.audprc] HAL_AUDPRC_Init res
+16:43:21
+RX
+0
+
+[I/drv.audcodec] HAL_AUDCOD
+16:43:21
+RX
+EC_Init res 0
+
+[I/drv.rgb] rgb
+16:43:21
+RX
+led register success, supporting
+16:43:21
+RX
+ 1 LEDs
+[I/TOUCH] Regist t
+16:43:21
+RX
+ouch screen driver, probe=120274
+16:43:21
+RX
+0d
+[I/FAL] Flash A
+16:43:21
+RX
+bstraction Layer (V0.5.99) initialize success.
+[I/F
+16:43:21
+RX
+AL] The FAL MTD NOR device (dfu)
+16:43:21
+RX
+ created successfully
+16:43:21
+RX
+22m[I/FAL] The FAL MTD NOR devic
+16:43:21
+RX
+e (ble) created successfully
+16:43:21
+RX
+
+LV_MEM_RT: using rt_malloc path (psram private heap build cond
+16:43:21
+RX
+ition not met)
+[I/DBG] drv_gpu
+16:43:21
+RX
+opened.
+16:43:21
+RX
+call par CFG1(3313)
+
+fc 9, xtal
+16:43:21
+RX
+ 2000, pll 2150
+
+call par CFG1(
+16:43:21
+RX
+3313)
+
+fc 7, xtal 2000, pll 172
+16:43:21
+RX
+3
+
+
+[course_starter] v0.1.2 bo
+16:43:21
+RX
+ot ok
+Week 03 practice: modifie
+16:43:21
+RX
+d firmware is running.
+[I/DBG]
+16:43:21
+RX
+[NONE] -> [OPENING]
+[I/DBG] ope
+16:43:21
+RX
+n
+[I/DBG] HW open
+[I/DBG] Try
+16:43:21
+RX
+registered LCD driver...
+msh />
+16:43:21
+RX
+
+CO5300_ReadID 0x331100
+[I/co
+16:43:21
+RX
+5300] LCD module use CO5300 IC
+16:43:21
+RX
+
+
+16:43:21
+RX
+
+CO5300_ReadID 0x331100
+[I/co
+16:43:21
+RX
+5300] LCD module use CO5300 IC
+16:43:21
+RX
+
+
+[I/DBG] Found lcd co5300 id:331100h
+[I/DBG] HW open done.
+[
+16:43:21
+RX
+I/DBG] [OPENING] -> [INITIALIZED
+16:43:21
+RX
+]
+[I/DBG] open done.
+16:43:21
+RX
+[I/DBG] drv_lcd_fb_init
+[I/DBG]
+16:43:21
+RX
+ drv_lcd_fb_init done.
+[User]	(
+16:43:21
+RX
+0.283, +283)	 lv_touchscreen_cre
+16:43:21
+RX
+ate: touchscreen touch opening l
+16:43:21
+RX
+v_touch.c:153
+[I/TOUCH] Op
+16:43:21
+RX
+en
+[I/TOUCH] Opened.
+[User]	(0.285, +2)	 lv_touch
+16:43:21
+RX
+screen_create: touchscreen touch
+16:43:21
+RX
+ open success lv_touch.c:172
+16:43:21
+RX
+[course_starter] UI created (390
+16:43:21
+RX
+x450), awaiting visual check
+16:43:21
+RX
+[I/TOUCH] Find touch screen
+16:43:21
+RX
+ driver...
+[I/TOUCH] P
+16:43:21
+RX
+robe 1202740d
+[I/TOUCH
+16:43:21
+RX
+] touch screen found driver  200
+16:43:21
+RX
+1e338, ft6146
+16:43:21
+RX
+[I/DBG] Auto turn on display.
+[
+16:43:21
+RX
+I/DBG] set brightness 50
+[I/DBG
+16:43:21
+RX
+] display on
+[I/DBG] [INITIALIZ
+16:43:21
+RX
+ED] -> [ON]
+16:43:21
+RX
+[E/drv.ft6146] ft6146 id_H=64
+[
+16:43:21
+RX
+E/drv.ft6146] ft6146 id_L=56
+rgb还在轮换 但是停止刷屏了

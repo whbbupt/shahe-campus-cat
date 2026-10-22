@@ -71,6 +71,14 @@ physical_verification:
     evidence_note_path: "evidence/week03/screen_20261022_user_photo_record.md"
     evidence_sha256: "578E49715C4467418AE0F8E463AC59E76351047194075F21448547771EAEB5DF"
     agent_conclusion: "实物照片可见屏幕已点亮，course_starter、v0.1.2及完整练习文字均可辨认，无可见截断。屏幕显示子项确认；TC-003本版串口/RGB/刷屏反馈及TC-004复位仍待补，不扩大为整项通过。"
+  - item: "REQ-002 / TC-003、TC-004：v0.1.2复位启动与RGB反馈"
+    required_action: "用户发送reboot并回传本版启动日志，反馈RGB是否轮换、颜色日志是否停止刷屏。"
+    executed_at: null # 原文只有时间标签，没有含日期的完整操作时间戳。
+    evidence_received_at: "2026-10-22"
+    observed_time_labels: "SFBL 16:43:19；应用与显示启动16:43:21"
+    evidence_path: "evidence/week03/reboot_164319_20261022_user_transcript.txt"
+    evidence_note_path: "evidence/week03/reboot_164319_20261022_analysis.md"
+    agent_conclusion: "复位后v0.1.2、练习文字、390x450界面创建及显示ON均有日志；用户确认RGB仍轮换且停止刷屏。结合此前实物照片，TC-003通过；TC-004仅复位/启动已确认，实际复位后画面尚待确认，不据初始化日志直接记屏幕通过。"
 
 test_results:
   - test_id: "TC-001"
@@ -91,20 +99,23 @@ test_results:
   - test_id: "TC-003"
     description: "REQ-002 / v0.1.2首次屏幕与启动验证"
     expected: "屏幕完整显示course_starter、v0.1.2与练习文字；串口版本对应；RGB轮换且颜色日志不再刷屏，异常原文保留。"
-    actual: "用户实物照片已确认屏幕点亮、项目名、v0.1.2与完整练习文字；尚未提供本版串口输出及RGB轮换/停止刷屏反馈，整体用例进行中。"
-    status: "in_progress"
-    pass: null
-    evidence_path: "evidence/week03/screen_20261022_user_photo.jpg"
+    actual: "此前实物照片显示完整项目名、v0.1.2及练习文字；本次16:43复位日志包含相同版本和文字、UI创建及显示ON，用户明确反馈RGB仍轮换且已停止刷屏。两份证据在不同启动时刻取得，不伪装成同一时刻。"
+    status: "passed"
+    pass: true
+    evidence_path: "evidence/week03/reboot_164319_20261022_analysis.md"
+    supporting_evidence_paths:
+      - "evidence/week03/screen_20261022_user_photo.jpg"
+      - "evidence/week03/reboot_164319_20261022_user_transcript.txt"
   - test_id: "TC-004"
     description: "REQ-002 / v0.1.2再次复位屏幕验证"
     expected: "再次复位后屏幕完整显示相同项目名、v0.1.2和练习文字，串口版本对应，记录异常。"
-    actual: "尚未取得本版第二次复位的屏幕照片和启动输出。"
-    status: "not_executed"
+    actual: "已取得16:43:19 reboot/SFBL到16:43:21新版启动、UI创建及显示ON日志。复位已执行；复位后实际画面尚需用户明确确认或照片，不以驱动日志替代。"
+    status: "in_progress"
     pass: null
-    evidence_path: null
+    evidence_path: "evidence/week03/reboot_164319_20261022_user_transcript.txt"
 
 known_issues:
-  - "v0.1.1两项串口用例已实测；v0.1.2屏幕文字已有用户实物照片，TC-003本版串口/RGB反馈及TC-004复位仍待补。图形运行时内存与长期稳定性未测。"
+  - "v0.1.1两项串口用例与v0.1.2的TC-003已实测通过；TC-004复位启动已执行，复位后实际画面待用户确认。图形运行时内存与长期稳定性未测。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
   - "身份、原始会话导出及本人解释等交接材料仍未齐全；未知操作时间戳保持空值。"
 
