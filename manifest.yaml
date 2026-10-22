@@ -38,6 +38,11 @@ design:
       rationale: "手册第7页环境闭环要求屏幕文字，串口修改不能代替；沿用课程既定LVGL v9，无新增产品方向或硬件选型"
       decided_by: "用户指出应该显示在屏幕并要求处理屏幕不亮，AI据此纠正练习范围；具体实现由AI协助"
 
+    - decision: "T1周期轮询读取KEY1；每次采样后等待5ms"
+      alternatives_considered: "A周期轮询线程；B GPIO中断通知主线程"
+      rationale: "用户选择便于理解和调试的轮询；按键事件经队列交主线程，沿用KEY1原配置；首版不加消抖"
+      decided_by: "王焕博（用户明确选择；原话见evidence/T1/polling_choice_20261022_user.txt）"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
@@ -133,7 +138,33 @@ test_results:
       - "evidence/week03/reboot_164319_20261022_user_transcript.txt"
       - "evidence/week03/screen_20261022_user_photo.jpg"
 
+  - test_id: "TC-005"
+    description: "REQ-003 / T1按键顺序与实物颜色"
+    expected: "初始红色，静置不变，10次短按对应绿蓝红循环及10行日志"
+    actual: "未执行；尚未构建或收到本版硬件证据"
+    status: "not_executed"
+    pass: null
+  - test_id: "TC-006"
+    description: "REQ-004 / T1一按一次"
+    expected: "20次短按与20次切换一致；通过后再30次，逐轮保存人工计数"
+    actual: "未执行；首版不消抖，不推断实测结果"
+    status: "not_executed"
+    pass: null
+  - test_id: "TC-007"
+    description: "REQ-003、REQ-004 / T1本版完整构建"
+    expected: "build_firmware.py返回0且SCons完整结束，保留本版构建记录"
+    actual: "未执行；设计阶段尚未实现或构建"
+    status: "not_executed"
+    pass: null
+  - test_id: "TC-008"
+    description: "REQ-003、REQ-004 / T1板上逻辑自检"
+    expected: "真实启动输出中固定输入的状态机自检全部PASS；不替代物理用例"
+    actual: "未执行；没有本版真实板卡启动输出"
+    status: "not_executed"
+    pass: null
+
 known_issues:
+  - "T1首版按训练要求不消抖；TC-005/006/008均未实测，TC-007尚未构建，不据旧个人练习证据标通过。"
   - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
   - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
@@ -177,3 +208,7 @@ human_checkpoints:
 #     executed_at: "2026-11-03T20:15:00+08:00"
 #     evidence_path: "evidence/bt_pan_connect_log.png"
 #     agent_conclusion: "配对成功，ping通外部服务器，联网延迟约800ms"
+
+  - decision_point: "T1按键读取方案"
+    student_confirmation: "周期轮询（推荐）：约每5ms读一次按键，便于理解和调试"
+    evidence_path: "evidence/T1/polling_choice_20261022_user.txt"
