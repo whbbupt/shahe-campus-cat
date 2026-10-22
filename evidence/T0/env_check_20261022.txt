@@ -1,0 +1,7 @@
+✓ git          已安装
+✓ SiFli SDK    版本 v2.5.1（D:\development\sifli\SiFli-SDK\v2.5.1）
+✓ scons        D:\development\sifli\tools\envs\default\b1ffa931b7485f8607540b6a2f6a9a53bbefe3696b9db68845be1c3c5cff1ab9\python\Scripts\scons.EXE
+✓ ARM 编译器      arm-none-eabi-gcc 可用
+! uv          (可选) SDK 安装脚本需要 uv（见 T0 步骤）；已装好 SDK 环境可忽略
+
+环境就绪。下一步：python scripts/build_firmware.py

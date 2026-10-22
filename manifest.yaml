@@ -14,7 +14,7 @@
 
 submission:
   student_id: null # 未提供，不推断。
-  student_name: null # Git用户whbbupt不冒充真实姓名。
+  student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组别未提供，本次是个人练习。
   milestone: "第三周个人修改练习 v0.1.2（不是正式产品封版）"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。

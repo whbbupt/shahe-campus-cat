@@ -1,0 +1,46 @@
+=== 错误标题和缺失正文 ===
+执行时间: 2026-10-22T18:06:08.032156+08:00
+执行者: Codex；这是AI执行的主机钩子体验，不是学生亲自输入命令。
+命令参数(JSON): ["git", "commit", "-m", "update code"]
+HEAD before: e841b267c57a404e483b91d0256fe9fca21048ba
+exit_code: 1
+--- 实际合并输出原文 ---
+提交信息不符合规范：update code
+  ✗ 标题格式应为 `<type>(<scope>): <主题>`（注意冒号后有一个空格），例如 `feat(rgb): 新增 RGB 灯红绿蓝循环闪烁`
+  ✗ 缺少正文项 `改动:`
+  ✗ 缺少正文项 `AI协作:`
+
+正确示例：
+  feat(rgb): 新增 RGB 灯红绿蓝循环闪烁
+  
+  背景: REQ-002 要求用 RGB 灯指示设备运行状态。
+  改动: main.c 中新增 rgb_led_init/set_color，按颜色表循环点亮。
+  验证: 编译通过；上板后串口依次输出 red/green/blue，见 evidence/M2/rgb_log.txt。
+  AI协作: 是(Claude Code)；采纳颜色表实现，人工修正了灯珠供电未打开的问题。
+
+详见 docs/guides/git-workflow.md；可使用 `git config commit.template .gitmessage` 获得模板。
+--- 输出结束 ---
+HEAD after: e841b267c57a404e483b91d0256fe9fca21048ba
+
+=== 标题合规但正文缺少验证 ===
+执行时间: 2026-10-22T18:06:08.492475+08:00
+执行者: Codex；这是AI执行的主机钩子体验，不是学生亲自输入命令。
+命令参数(JSON): ["git", "commit", "-m", "feat(t0): 体验提交正文缺少验证时的拒绝", "-m", "背景: T0要求体验标题合规但缺少验证字段时的提交拒绝。\n改动: 仅暂存training/progress.md中的T0进行中说明。\nAI协作: 是(Codex / GPT-6)；AI执行钩子体验，用户暂无人工修正。"]
+HEAD before: e841b267c57a404e483b91d0256fe9fca21048ba
+exit_code: 1
+--- 实际合并输出原文 ---
+提交信息不符合规范：feat(t0): 体验提交正文缺少验证时的拒绝
+  ✗ 缺少正文项 `验证:`
+
+正确示例：
+  feat(rgb): 新增 RGB 灯红绿蓝循环闪烁
+  
+  背景: REQ-002 要求用 RGB 灯指示设备运行状态。
+  改动: main.c 中新增 rgb_led_init/set_color，按颜色表循环点亮。
+  验证: 编译通过；上板后串口依次输出 red/green/blue，见 evidence/M2/rgb_log.txt。
+  AI协作: 是(Claude Code)；采纳颜色表实现，人工修正了灯珠供电未打开的问题。
+
+详见 docs/guides/git-workflow.md；可使用 `git config commit.template .gitmessage` 获得模板。
+--- 输出结束 ---
+HEAD after: e841b267c57a404e483b91d0256fe9fca21048ba
+
