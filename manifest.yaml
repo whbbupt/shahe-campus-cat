@@ -63,6 +63,14 @@ physical_verification:
     observed_time_labels: "TX reboot 10:54:07；启动RX 10:54:09"
     evidence_path: "evidence/week03/reboot_20261022_user_transcript.txt"
     agent_conclusion: "发送reboot后出现SFBL和启动输出，第二次启动片段中v0.1.1与新练习文字各一次，TC-002启动文字判据通过；仅有red，无完整green/blue辅助记录，不扩展为其他外设或长期稳定性通过。"
+  - item: "REQ-002 / TC-003：v0.1.2屏幕文字实物照片"
+    required_action: "用户下载屏幕版并观察实际屏幕，回传真实照片。"
+    executed_at: null # 用户未提供拍摄/下载的完整时间戳。
+    evidence_received_at: "2026-10-22"
+    evidence_path: "evidence/week03/screen_20261022_user_photo.jpg"
+    evidence_note_path: "evidence/week03/screen_20261022_user_photo_record.md"
+    evidence_sha256: "578E49715C4467418AE0F8E463AC59E76351047194075F21448547771EAEB5DF"
+    agent_conclusion: "实物照片可见屏幕已点亮，course_starter、v0.1.2及完整练习文字均可辨认，无可见截断。屏幕显示子项确认；TC-003本版串口/RGB/刷屏反馈及TC-004复位仍待补，不扩大为整项通过。"
 
 test_results:
   - test_id: "TC-001"
@@ -83,10 +91,10 @@ test_results:
   - test_id: "TC-003"
     description: "REQ-002 / v0.1.2首次屏幕与启动验证"
     expected: "屏幕完整显示course_starter、v0.1.2与练习文字；串口版本对应；RGB轮换且颜色日志不再刷屏，异常原文保留。"
-    actual: "尚无本版板卡屏幕照片或运行日志；主机预览不能代替。"
-    status: "not_executed"
+    actual: "用户实物照片已确认屏幕点亮、项目名、v0.1.2与完整练习文字；尚未提供本版串口输出及RGB轮换/停止刷屏反馈，整体用例进行中。"
+    status: "in_progress"
     pass: null
-    evidence_path: null
+    evidence_path: "evidence/week03/screen_20261022_user_photo.jpg"
   - test_id: "TC-004"
     description: "REQ-002 / v0.1.2再次复位屏幕验证"
     expected: "再次复位后屏幕完整显示相同项目名、v0.1.2和练习文字，串口版本对应，记录异常。"
@@ -96,7 +104,7 @@ test_results:
     evidence_path: null
 
 known_issues:
-  - "v0.1.1两项串口用例已实测；v0.1.2新增屏幕页、RGB定时器及图形内存使用尚待板卡验证，TC-003/TC-004未执行。"
+  - "v0.1.1两项串口用例已实测；v0.1.2屏幕文字已有用户实物照片，TC-003本版串口/RGB反馈及TC-004复位仍待补。图形运行时内存与长期稳定性未测。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
   - "身份、原始会话导出及本人解释等交接材料仍未齐全；未知操作时间戳保持空值。"
 
