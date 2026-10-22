@@ -1,0 +1,102 @@
+{
+  "received_date": "2026-10-22",
+  "executed_at": null,
+  "observed_time_labels": {
+    "reboot": "21:35:46",
+    "application_start": "21:35:48",
+    "first_press": "21:35:53",
+    "last_copied_press": "21:35:58"
+  },
+  "source_text": "evidence/T1/reboot_213546_20261022_user_transcript.txt",
+  "source_sha256": "90D3269889940C10F8E10BDB107EB88A7CFC629803BC22FE2F092E95A0C89144",
+  "normalization_for_analysis": "Remove displayed RX/time labels and the embedded user question, then join source fragments; original text is preserved separately.",
+  "startup_marker_counts": {
+    "[course_starter] v0.2.0 boot ok": 1,
+    "[t1] SELFTEST sequence/hold/release PASS": 1,
+    "[t1] SELFTEST boot-held PASS": 1,
+    "[t1] SELFTEST raw-bounce PASS (2 edges; no debounce)": 1,
+    "[t1] SELFTEST all PASS (logic only)": 1,
+    "[t1] initial color=red": 1,
+    "[t1] ready: KEY1 pin=34 active-high poll=5ms; no debounce": 1
+  },
+  "raw_observed_press_events": [
+    {
+      "press": 1,
+      "color": "green"
+    },
+    {
+      "press": 2,
+      "color": "blue"
+    },
+    {
+      "press": 3,
+      "color": "red"
+    },
+    {
+      "press": 4,
+      "color": "green"
+    },
+    {
+      "press": 5,
+      "color": "blue"
+    },
+    {
+      "press": 6,
+      "color": "red"
+    },
+    {
+      "press": 7,
+      "color": "green"
+    },
+    {
+      "press": 8,
+      "color": "blue"
+    },
+    {
+      "press": 9,
+      "color": "red"
+    }
+  ],
+  "raw_observed_event_count": 9,
+  "user_confirmed_press_count": 10,
+  "missing_copied_raw_events": [
+    10
+  ],
+  "fabricated_serial_events": [],
+  "TC-005": "passed based on user confirmation, first 9 raw events and visual evidence; raw event 10 not copied",
+  "TC-008": "passed based on actual v0.2.0 startup self-test output",
+  "TC-006": "not_executed; no 20/30 press evidence",
+  "video": {
+    "fps": 30.0,
+    "frames": 146,
+    "width": 720,
+    "height": 1280,
+    "duration_seconds": 4.866666666666666,
+    "original_archive": "C:\\Users\\30831\\Desktop\\周六软件产品综合开发\\outputs\\t1-media-20261022\\3f511e524dfb1334a15eaacc12f39a47.mp4",
+    "original_bytes": 330831,
+    "original_sha256": "3313FEB1FD609157A4023DB619FBD13515CE40992E4836A78E524840531DF856",
+    "received_date": "2026-10-22",
+    "review_method": "Decoded all 146 frames, inspected 19-frame contact sheet and full-resolution frames 0,64,145.",
+    "visible_version": "v0.2.0",
+    "observed_rgb_colors": [
+      "red",
+      "green",
+      "blue"
+    ],
+    "last_visible_rgb": "green",
+    "press_count_basis": "User explicitly confirmed 10 successful presses; video provides visual support, not an independently counted record of every full press/release.",
+    "relation_to_serial_capture": "Exact synchronization with 21:35 serial transcript is unknown.",
+    "contact_sheet": {
+      "name": "video_contact_sheet_20261022.jpg",
+      "bytes": 248363,
+      "sha256": "1367CD758701CEDCED083A2C07F8C2DA3CAEFC4C34AD6248E3A8111BE95644A1",
+      "kind": "Derived review montage; original video unchanged."
+    }
+  },
+  "scope_limits": [
+    "No complete operation date in the pasted transcript; keep executed_at null.",
+    "Do not infer exact synchronization between video and serial captures.",
+    "Fixed-input raw-bounce self-test does not establish physical switch bounce.",
+    "User confirms the ten-press round; no independent stop-watch or complete tenth raw line is available."
+  ]
+}

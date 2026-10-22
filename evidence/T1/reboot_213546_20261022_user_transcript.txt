@@ -1,0 +1,334 @@
+
+reboot
+21:35:46
+RX
+SFBL
+21:35:48
+RX
+Serial:c2,Chip:4,Package:3,Rev:3
+21:35:48
+RX
+  Reason:00000000
+视频我也要给你吗 话说那个老师的要求是什么呢？
+
+
+ \ | /
+- 
+21:35:48
+RX
+SiFli Corporation
+ / | \     bu
+21:35:48
+RX
+ild on Oct 22 2026, 2.5.1 build 
+21:35:48
+RX
+421126d9
+ 2020 - 2022 Copyright
+21:35:48
+RX
+ by SiFli team
+aw32001_init ok,
+21:35:48
+RX
+  time consum: 0.00 ms.
+mount /
+21:35:48
+RX
+dev sucess
+[I/drv.rtc] PSCLR=0x
+21:35:48
+RX
+80000100 DivAI=128 DivAF=0 B=256
+21:35:48
+RX
+
+[I/drv.rtc] RTC use LXT RTC_CR
+21:35:48
+RX
+=00000001
+
+[I/drv.rtc] Init RT
+21:35:48
+RX
+C, wake = 1
+
+[I/drv.audprc] in
+21:35:48
+RX
+it 00 ADC_PATH_CFG0 0x606
+
+[I/
+21:35:48
+RX
+drv.audprc] HAL_AUDPRC_Init res 
+21:35:48
+RX
+0
+
+[I/drv.audcodec] HAL_AUDCOD
+21:35:48
+RX
+EC_Init res 0
+
+[I/drv.rgb] rgb
+21:35:48
+RX
+led register success, supporting
+21:35:48
+RX
+ 1 LEDs
+[I/TOUCH] Regist t
+21:35:48
+RX
+ouch screen driver, probe=120274
+21:35:48
+RX
+0d 
+[I/FAL] Flash A
+21:35:48
+RX
+bstraction Layer (V0.5.99) initi
+21:35:48
+RX
+alize success.
+[I/F
+21:35:48
+RX
+AL] The FAL MTD NOR device (dfu)
+21:35:48
+RX
+ created successfully
+21:35:48
+RX
+22m[I/FAL] The FAL MTD NOR devic
+21:35:48
+RX
+e (ble) created successfully
+21:35:48
+RX
+
+LV_MEM_RT: using rt_malloc pat
+21:35:48
+RX
+h (psram private heap build cond
+21:35:48
+RX
+ition not met)
+[I/DBG] drv_gpu 
+21:35:48
+RX
+opened.
+21:35:48
+RX
+call par CFG1(3313)
+
+fc 9, xtal
+21:35:48
+RX
+ 2000, pll 2149
+
+call par CFG1(
+21:35:48
+RX
+3313)
+
+fc 7, xtal 2000, pll 172
+21:35:48
+RX
+2
+
+
+[course_starter] v0.2.0 bo
+21:35:48
+RX
+ot ok
+T1 practice: press KEY1 t
+21:35:48
+RX
+o change RGB color.
+[t1] SELFTE
+21:35:48
+RX
+ST sequence/hold/release PASS
+[
+21:35:48
+RX
+t1] SELFTEST boot-held PASS
+[t1
+21:35:48
+RX
+] SELFTEST raw-bounce PASS (2 ed
+21:35:48
+RX
+ges; no debounce)
+[t1] SELFTEST
+21:35:48
+RX
+ all PASS (logic only)
+[I/DBG] 
+21:35:48
+RX
+[NONE] -> [OPENING]
+[I/DBG] ope
+21:35:48
+RX
+n
+[I/DBG] HW open
+[I/DBG] Try 
+21:35:48
+RX
+registered LCD driver...
+msh />
+21:35:48
+RX
+
+CO5300_ReadID 0x331100 
+[I/co
+21:35:48
+RX
+5300] LCD module use CO5300 IC 
+21:35:48
+RX
+
+
+21:35:48
+RX
+
+CO5300_ReadID 0x331100 
+[I/co
+21:35:48
+RX
+5300] LCD module use CO5300 IC 
+21:35:48
+RX
+
+
+[I/DBG] Found lcd co5300 id:3
+21:35:48
+RX
+31100h
+[I/DBG] HW open done.
+[
+21:35:48
+RX
+I/DBG] [OPENING] -> [INITIALIZED
+21:35:48
+RX
+]
+[I/DBG] open done.
+21:35:48
+RX
+[I/DBG] drv_lcd_fb_init
+[I/DBG]
+21:35:48
+RX
+ drv_lcd_fb_init done.
+[User]	(
+21:35:48
+RX
+0.284, +284)	 lv_touchscreen_cre
+21:35:48
+RX
+ate: touchscreen touch opening l
+21:35:48
+RX
+v_touch.c:153
+[I/TOUCH] Op
+21:35:48
+RX
+en
+[I/TOUCH] Opened.
+21:35:48
+RX
+0m
+[User]	(0.286, +2)	 lv_touch
+21:35:48
+RX
+screen_create: touchscreen touch
+21:35:48
+RX
+ open success lv_touch.c:172
+21:35:48
+RX
+[course_starter] UI created (390
+21:35:48
+RX
+x450), awaiting visual check
+21:35:48
+RX
+[I/TOUCH] Find touch screen
+21:35:48
+RX
+ driver...
+[I/TOUCH] P
+21:35:48
+RX
+robe 1202740d
+[I/TOUCH
+21:35:48
+RX
+] touch screen found driver  200
+21:35:48
+RX
+1e338, ft6146
+[t1] initial 
+21:35:48
+RX
+color=red
+[t1] ready: KEY1 pin=
+21:35:48
+RX
+34 active-high poll=5ms; no debo
+21:35:48
+RX
+unce
+21:35:48
+RX
+[I/DBG] Auto turn on display.
+[
+21:35:48
+RX
+I/DBG] set brightness 50
+[I/DBG
+21:35:48
+RX
+] display on
+[I/DBG] [INITIALIZ
+21:35:48
+RX
+ED] -> [ON]
+21:35:48
+RX
+[E/drv.ft6146] ft6146 id_H=64
+[
+21:35:48
+RX
+E/drv.ft6146] ft6146 id_L=56
+21:35:53
+RX
+[t1] press=1 color=green
+21:35:54
+RX
+[t1] press=2 color=blue
+21:35:54
+RX
+[t1] press=3 color=red
+21:35:54
+RX
+[t1] press=4 color=green
+21:35:56
+RX
+[t1] press=5 color=blue
+21:35:57
+RX
+[t1] press=6 color=red
+21:35:57
+RX
+[t1] press=7 color=green
+21:35:57
+RX
+[t1] press=8 color=blue
+21:35:58
+RX
+[t1] press=9 color=red
