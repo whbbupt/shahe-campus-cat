@@ -52,17 +52,11 @@ python scripts/build_firmware.py
 1. 使用此前下载peripheral_lab的USB数据线及板卡USB转串口接口，连接电脑和板卡。
 2. Ctrl+Shift+P → `选择下载串口`，查看实际WCH串口。历史为COM7；如果这次端口变化，使用本次实际端口。2026-10-22核对时只看到COM3—COM6蓝牙串口，尚未枚举到WCH板卡，不能选择这些蓝牙端口代替开发板。
 3. 先关闭设备监视器及其他占用该板串口的工具。
-4. 在 `新建 SiFli 终端` 打开的SDK已激活终端中执行下列命令。这条路径固定指向course_starter现有完整下载脚本，避免工作区仍指向另一个工程：
+4. 确认VS Code当前打开的是 `D:\project\sifli\course_starter`，CodeKit板型为 `sf32lb52-lchspi-ulp`、SDK为v2.5.1。插件可根据该目录下的src和project识别工程；当前产物位于 `project/build_sf32lb52-lchspi-ulp_hcpu`。
+5. 点击CodeKit的 **Download**。鼠标悬停时确认提示为 `Run SiFli download`，以实际命令名称为准。现有修改版已经编译，使用该工程生成的完整下载配置即可。
+6. 等待下载任务结束，保存完整输出或下载结果截图，建议文件名 `evidence/week03/flash_20261022.txt` 或同日期截图。出错时保留错误原文，下载尚不能记为成功。
 
-```powershell
-cd D:\project\sifli\course_starter
-.\project\build_sf32lb52-lchspi-ulp_hcpu\uart_download.bat
-```
-
-5. 出现 `please input the serial port num:` 时输入串口数字并回车。例如本次实际是COM7，就输入 `7`。不要输入完整的 `COM7`，脚本会自动添加COM前缀。
-6. 等待脚本运行结束。保存完整输出或下载结果截图，建议文件名 `evidence/week03/flash_20261022.txt` 或同日期截图。出错时保留错误原文，下载尚不能记为成功。
-
-脚本来自本工程构建，包含bootloader、main、ftab三份固件及对应地址。这里是给用户的操作步骤，AI没有执行烧录。若改天操作，证据用实际执行日期命名。
+CodeKit按钮下载和生成的uart_download.bat是两种可选入口，不需要依次执行。日常直接使用Download按钮即可；bat只是在需要命令行下载时的备用方式。本工程完整下载配置包含bootloader、main、ftab三份固件及对应地址。这里是给用户的操作步骤，AI没有执行烧录。若改天操作，证据用实际执行日期命名。
 
 ## 4. 第一次启动证据：TC-001
 
