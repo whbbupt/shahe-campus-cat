@@ -1,0 +1,34 @@
+python.exe : Traceback (most recent call last):
+所在位置 行:2 字符: 32
++ ... NG='utf-8'; & 'D:\development\python\python.exe' 'C:\temp\course-scre ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\temp\course-screen-preview\render.py", line 36, in <module>
+    objects = list(pool.map(compile_source, enumerate(sources)))
+  File "D:\development\python\Lib\concurrent\futures\_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\development\python\Lib\concurrent\futures\_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "D:\development\python\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\development\python\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "D:\development\python\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\temp\course-screen-preview\render.py", line 32, in compile_source
+    raise RuntimeError(p.stderr)
+RuntimeError: In file included from D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core\lv_group.c:9:
+In file included from D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core/lv_group_private.h:17:
+In file included from D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core/lv_group.h:18:
+In file included from D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core/../misc/lv_types.h:22:
+D:\development\unity\2022.3.20f1c1\Editor\Data\PlaybackEngines\AndroidPlayer\NDK\toolchains\llvm\prebuilt\windows-x86_6
+4\lib64\clang\12.0.8\include\inttypes.h:21:15: fatal error: 'inttypes.h' file not found
+#include_next <inttypes.h>
+              ^~~~~~~~~~~~
+1 error generated.
+

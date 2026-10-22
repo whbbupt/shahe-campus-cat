@@ -1,0 +1,73 @@
+{
+  "recorded_at": "2026-10-22T12:00:24+08:00",
+  "app_version": "0.1.2",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk": "v2.5.1",
+  "design_commit": "0a475d9ddd560f7c896c8913b411f2d78f1903bc",
+  "source_state": "Implementation worktree identified by exact file hashes; these files will be committed with this record.",
+  "build_command": "python scripts/build_firmware.py",
+  "first_build_exit_code": 1,
+  "build_exit_code": 0,
+  "build_log": "evidence/week03/screen_build_20261022.txt",
+  "first_build_log": "evidence/week03/screen_build_first_attempt_20261022.txt",
+  "host_preview": "evidence/week03/screen_host_preview_20261022.png",
+  "host_preview_scope": "Production course_ui.c + SDK LVGL v9 software display, 390x450, bounds checked; no board access.",
+  "physical_verification": "not_executed",
+  "link_memory_report": {
+    "rom_used_bytes": 744372,
+    "ram_used_bytes": 135676,
+    "runtime_heap_and_stack_usage": "not_measured"
+  },
+  "artifacts": [
+    {
+      "path": "src/main.c",
+      "bytes": 3952,
+      "sha256": "A4CCCDA2B6FE1B420533163B4D0729EE9F3A78D631E2C7EEA3071F069AC7EDE7"
+    },
+    {
+      "path": "src/course_ui.c",
+      "bytes": 1838,
+      "sha256": "7D4D14E9DCDA93CC18B2FA93BAA43D495AAD1D29FC324664FA493DD01EB0B7A2"
+    },
+    {
+      "path": "src/course_ui.h",
+      "bytes": 216,
+      "sha256": "981E89DFFA5E4D32CE1AD41027F91265974419563F5733EEB8B2962E7ADFE212"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/rtconfig.h",
+      "bytes": 10740,
+      "sha256": "56E63F810E56C1B7D5709FC7DABFF8A70F7BA71EAE59767324053560023B3180"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 695184,
+      "sha256": "BB28EBC19FE4A75F7C38CF839771C43BAAC292D60A964078CA5275CE57A2F829"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "38534EE0C54A6E6D45B0E96A7D326A5709E1D39D67B000611A4D149B4C6C7AAA"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    }
+  ]
+}

@@ -66,22 +66,39 @@ physical_verification:
 
 test_results:
   - test_id: "TC-001"
-    description: "REQ-001首次真实启动验证"
+    description: "REQ-001 / v0.1.1首次真实启动验证（历史已实测）"
     expected: "同次启动包含v0.1.1 boot ok和新练习文字，练习文字本次启动仅一次；记录是否有异常。"
     actual: "用户RX 10:46:27片段中版本及练习文字各一次，并有red；用户另确认下载成功、LED轮换。源码启动打印在循环前。未见所给片段内新增应用错误；启动边界与green/blue辅助记录不完整，详见测试报告。"
     status: "passed"
     pass: true # 仅原测试计划的启动文字判据；不代表辅助采集步骤完整或整体交接完成。
     evidence_path: "evidence/week03/boot_20261022_user_excerpt.txt"
   - test_id: "TC-002"
-    description: "REQ-001再次复位启动验证"
+    description: "REQ-001 / v0.1.1再次复位启动验证（历史已实测）"
     expected: "再次复位后仍出现相同版本和练习文字，本次启动练习文字仅一次。"
     actual: "TX 10:54:07发送reboot，随后SFBL与RX 10:54:09启动输出；第二次启动片段内版本和练习文字各一次，随后red。复位前red单独排除，不计入本次启动。未见所给片段内新增应用错误；无green/blue完整辅助记录。"
     status: "passed"
     pass: true
     evidence_path: "evidence/week03/reboot_20261022_user_transcript.txt"
 
+  - test_id: "TC-003"
+    description: "REQ-002 / v0.1.2首次屏幕与启动验证"
+    expected: "屏幕完整显示course_starter、v0.1.2与练习文字；串口版本对应；RGB轮换且颜色日志不再刷屏，异常原文保留。"
+    actual: "尚无本版板卡屏幕照片或运行日志；主机预览不能代替。"
+    status: "not_executed"
+    pass: null
+    evidence_path: null
+  - test_id: "TC-004"
+    description: "REQ-002 / v0.1.2再次复位屏幕验证"
+    expected: "再次复位后屏幕完整显示相同项目名、v0.1.2和练习文字，串口版本对应，记录异常。"
+    actual: "尚未取得本版第二次复位的屏幕照片和启动输出。"
+    status: "not_executed"
+    pass: null
+    evidence_path: null
+
 known_issues:
-  - "<已知问题1，真实项目通常都有未解决或有局限性的地方，主动说明比隐瞒更可信>"
+  - "v0.1.1两项串口用例已实测；v0.1.2新增屏幕页、RGB定时器及图形内存使用尚待板卡验证，TC-003/TC-004未执行。"
+  - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
+  - "身份、原始会话导出及本人解释等交接材料仍未齐全；未知操作时间戳保持空值。"
 
 self_review: |
   <agent生成的自我复盘，包括：本次里程碑完成度如何、哪些地方agent自己也不确定、
