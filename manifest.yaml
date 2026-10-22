@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组别未提供，本次是个人练习。
-  milestone: "第三周个人修改练习 v0.1.2（不是正式产品封版）"
+  milestone: "T0/T1入门训练：T1 v0.2.0首版已编译，待实物验证"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -46,7 +46,7 @@ design:
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
-  commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/tags/week03-practice-v0.1.2"
+  commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/t1-key-rgb"
   implementation_commit: "0d20b1e"
 
 practice_completion:
@@ -141,7 +141,7 @@ test_results:
   - test_id: "TC-005"
     description: "REQ-003 / T1按键顺序与实物颜色"
     expected: "初始红色，静置不变，10次短按对应绿蓝红循环及10行日志"
-    actual: "未执行；尚未构建或收到本版硬件证据"
+    actual: "v0.2.0已构建；尚未烧录或收到本版硬件证据，不能判实物颜色通过"
     status: "not_executed"
     pass: null
   - test_id: "TC-006"
@@ -153,9 +153,11 @@ test_results:
   - test_id: "TC-007"
     description: "REQ-003、REQ-004 / T1本版完整构建"
     expected: "build_firmware.py返回0且SCons完整结束，保留本版构建记录"
-    actual: "未执行；设计阶段尚未实现或构建"
-    status: "not_executed"
-    pass: null
+    actual: "build_firmware.py返回0，SCons完整结束；main.bin 696304字节；原有类型链接告警保留"
+    status: "passed"
+    pass: true
+    evidence_path: "evidence/T1/build_v0.2.0_20261022.txt"
+    build_metadata_path: "evidence/T1/build_v0.2.0_metadata_20261022.json"
   - test_id: "TC-008"
     description: "REQ-003、REQ-004 / T1板上逻辑自检"
     expected: "真实启动输出中固定输入的状态机自检全部PASS；不替代物理用例"
@@ -164,14 +166,15 @@ test_results:
     pass: null
 
 known_issues:
-  - "T1首版按训练要求不消抖；TC-005/006/008均未实测，TC-007尚未构建，不据旧个人练习证据标通过。"
+  - "T1 v0.2.0首版按训练要求不消抖；TC-007主机构建通过，TC-005/006/008仍未实测，pass保持null，不据旧个人练习证据标通过。"
   - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
   - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
   - "screen_host_preview_20261022.png是实际UI源码的软件渲染，不是实物照片；初始化创建日志不代表屏幕已经显示。"
   - "本次个人解释已记录，个人练习完成；身份、正式组别、平台提交时间及原始会话导出仍缺，不能据此称正式产品交接完成。未知操作时间戳保持空值。"
 
 self_review: |
-  本次个人练习已有真实构建、用户板卡照片、启动日志、RGB反馈、复位后画面明确确认和本人解释。
+  此前个人练习已有真实构建、用户板卡照片、启动日志、RGB反馈、复位后画面明确确认和本人解释。
+  当前T1 v0.2.0已按用户选择的轮询方案实现并编译，新增物理用例及板上自检仍待真实证据。
   v0.1.1两项串口历史及v0.1.2两项屏幕相关用例在各自范围通过；不是17项外设全过或正式产品完成。
   AI最初只安排串口，用户指出应显示在屏幕后按手册补齐；用户也纠正了把bat当必做步骤的冗余操作。
   新增LVGL首次漏配MEMHEAP导致构建失败，保留失败并补配置重建，主机预览失败过程同样保留。
@@ -188,6 +191,10 @@ human_checkpoints:
   - decision_point: "本人对修改与验证的解释"
     student_confirmation: "在main文件改了一下version 然后的话还有文字 通过屏幕显示确认的"
     evidence_path: "evidence/week03/personal_explanation_20261022_user.txt"
+
+  - decision_point: "T1按键读取方案"
+    student_confirmation: "周期轮询（推荐）：约每5ms读一次按键，便于理解和调试"
+    evidence_path: "evidence/T1/polling_choice_20261022_user.txt"
 
 # ============================================================
 # 以下为字段填写示例（仅供参考，提交时请删除本示例区块）
@@ -208,7 +215,3 @@ human_checkpoints:
 #     executed_at: "2026-11-03T20:15:00+08:00"
 #     evidence_path: "evidence/bt_pan_connect_log.png"
 #     agent_conclusion: "配对成功，ping通外部服务器，联网延迟约800ms"
-
-  - decision_point: "T1按键读取方案"
-    student_confirmation: "周期轮询（推荐）：约每5ms读一次按键，便于理解和调试"
-    evidence_path: "evidence/T1/polling_choice_20261022_user.txt"

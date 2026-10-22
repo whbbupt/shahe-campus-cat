@@ -1,0 +1,97 @@
+{
+  "recorded_at": "2026-10-22T18:35:21.743276+08:00",
+  "app_version": "0.2.0",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk": "v2.5.1",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "requirements_commit": "356d217",
+  "design_commit": "1988c80",
+  "source_state": "Implementation identified by exact hashes before feat(key) commit.",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "build_log": "evidence/T1/build_v0.2.0_20261022.txt",
+  "test_id": "TC-007",
+  "link_memory_report": {
+    "rom_used_bytes": 746157,
+    "ram_used_bytes": 135676,
+    "runtime_heap_and_stack_usage": "not_measured"
+  },
+  "download_files": [
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "address": "0x12010000"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "address": "0x12020000"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "address": "0x12000000"
+    }
+  ],
+  "physical_verification": "not_executed",
+  "board_logic_self_test": "not_executed",
+  "artifacts": [
+    {
+      "path": "src/main.c",
+      "bytes": 4780,
+      "sha256": "2BFE4C5F46876DC2C17484CB61B9F2D5B3F15571D9EFBD54AB8B10C74004FEC9"
+    },
+    {
+      "path": "src/key.c",
+      "bytes": 5582,
+      "sha256": "66A3B61FE2472A8AFE33DAC07BA1F0F3E57B0CDD92C8FD77BC82806FED34AFB2"
+    },
+    {
+      "path": "src/key.h",
+      "bytes": 590,
+      "sha256": "5C854C1FFDAACC4AAEF4557BD6B25A4236C25845310B5D824BCFAE206CEB1F01"
+    },
+    {
+      "path": "src/course_ui.c",
+      "bytes": 1838,
+      "sha256": "7D4D14E9DCDA93CC18B2FA93BAA43D495AAD1D29FC324664FA493DD01EB0B7A2"
+    },
+    {
+      "path": "src/course_ui.h",
+      "bytes": 216,
+      "sha256": "981E89DFFA5E4D32CE1AD41027F91265974419563F5733EEB8B2962E7ADFE212"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/rtconfig.h",
+      "bytes": 10740,
+      "sha256": "56E63F810E56C1B7D5709FC7DABFF8A70F7BA71EAE59767324053560023B3180"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 696304,
+      "sha256": "B5B2315772F38AAE47F10A40455CC9292C9B1A24C14508671D2426A21C55CDB5"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "D02390EDE06E4591715062DDBE04AB43159D1121E087E2F68D64AB5EA9EB9ED4"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    }
+  ]
+}
