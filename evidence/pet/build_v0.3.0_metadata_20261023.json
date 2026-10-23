@@ -1,0 +1,131 @@
+{
+  "recorded_at": "2026-10-23T19:37:24.767893+08:00",
+  "app_version": "0.3.0",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "requirements_design_commit": "d2b2320",
+  "source_state": "Exact hashes captured before implementation commit; no new hardware verification.",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "main_bin_bytes": 699232,
+  "link_memory_report": {
+    "rom_used_bytes": 748988,
+    "ram_used_bytes": 135820,
+    "runtime_heap_stack": "not_measured"
+  },
+  "test_results": {
+    "TC-111": "passed_host_only",
+    "TC-114": "passed_host_only",
+    "TC-116": "passed_build_only",
+    "physical_tests": "not_executed"
+  },
+  "inputs": [
+    {
+      "path": "src/main.c",
+      "bytes": 1000,
+      "sha256": "7B810C706AF95A9E03AD1EB951756DD8C29931F263544EB648194DF153958B7E"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 2261,
+      "sha256": "93EA108F06938F3796942B764EE7409E0996FD6341C222F5550C7E5CA39CE299"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 3182,
+      "sha256": "EA8E24E3DD7FDD0F0CA015B560E4055032D0EA0A37B1753A0139083A9037E6D0"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1057,
+      "sha256": "1E231957B8E6C10BD29485F26AEF18880C313B364ED5774B7C951089F182A1EB"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 8536,
+      "sha256": "F430806B01A7068D07CB7A92153B96C7D541C8C316CE839C2D5B46DED7A69DAF"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 310,
+      "sha256": "15CEEFEBEEF15BE9A2AA4EFE9A02BBFE93BB1CF58B6B037277212B901544BF17"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 5122,
+      "sha256": "7CFC846DAEFE48117AA7776B328AE41C8A3217A340B8F7BBF820CF229D4784C7"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 4050,
+      "sha256": "7CF139143B19CE95C7C8C2DE9272728C89EE9C2098AD31445C34732F4B552EEF"
+    },
+    {
+      "path": "tests/pet_model_test.c",
+      "bytes": 337,
+      "sha256": "35AF9657490B095C038FAB9C941C6FB269FD08A44B3F44EA6F11A90E99E1C676"
+    },
+    {
+      "path": "tests/pet_ui_test.c",
+      "bytes": 4035,
+      "sha256": "7FD48C04E8C000EEBA2DC0C438576C64163A81C9211D7CCEC58A9205348CB484"
+    },
+    {
+      "path": "tests/include/lv_conf.h",
+      "bytes": 472,
+      "sha256": "E33E2ADC4A47F424793724039CFA8436DCAD777E0C09EC09A536C5934A383FE6"
+    }
+  ],
+  "download_artifacts": [
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 699232,
+      "sha256": "AA0DCE7E455BBA357C4291E189671EB4AF77726927790FEC5A8B764C47AC1D9C"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "FAEE4B34877009ACBC022156947013AC17AD67135DB4F0E7787376E2162CABBC"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    }
+  ]
+}

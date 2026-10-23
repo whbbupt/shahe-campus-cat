@@ -1,0 +1,21 @@
+[host:pet] feed-clamp-spam-cooldown PASS
+
+[host:pet] touch-clamp-cooldown PASS
+
+[host:pet] elapsed-partition-large-gap PASS
+
+[host:pet] rest-reject-resume PASS
+
+[host:pet] view-priority PASS
+
+[host:pet] clock-wrap-fraction PASS
+
+[host:pet] invalid-event-reset PASS
+
+[host:pet] all PASS; board not tested
+
+
+
+
+
+exit_code=3221225477
