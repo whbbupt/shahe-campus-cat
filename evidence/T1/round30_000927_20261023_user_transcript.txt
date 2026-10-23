@@ -1,0 +1,20 @@
+[t1] press=25 color=green
+00:09:27
+RX
+[t1] press=26 color=blue
+00:09:28
+RX
+[t1] press=27 color=red
+00:09:28
+RX
+[t1] press=28 color=green
+00:09:28
+RX
+[t1] press=29 color=blue
+00:09:29
+RX
+[t1] press=30 color=red
+00:09:29
+RX
+[t1] press=31 color=green
+跟刚才一样

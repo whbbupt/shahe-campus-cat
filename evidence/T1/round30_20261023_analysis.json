@@ -1,0 +1,79 @@
+{
+  "evidence_received_at": "2026-10-23",
+  "executed_at": null,
+  "observed_time_labels": [
+    "00:09:27",
+    "00:09:29"
+  ],
+  "raw_events": [
+    {
+      "press": 25,
+      "color": "green"
+    },
+    {
+      "press": 26,
+      "color": "blue"
+    },
+    {
+      "press": 27,
+      "color": "red"
+    },
+    {
+      "press": 28,
+      "color": "green"
+    },
+    {
+      "press": 29,
+      "color": "blue"
+    },
+    {
+      "press": 30,
+      "color": "red"
+    },
+    {
+      "press": 31,
+      "color": "green"
+    }
+  ],
+  "overlap_with_previous_round": [
+    25
+  ],
+  "new_copied_event_count": 6,
+  "user_confirmed_additional_press_count": 30,
+  "uncopied_additional_event_count": 24,
+  "expected_uncopied_indices_if_continuous": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55
+  ],
+  "observed_final_index": 31,
+  "do_not_claim_observed_index_55": true,
+  "user_confirms_one_switch_per_press": true,
+  "result": "TC-006 passed with capture gap, based on previous 25-count match plus explicit user confirmation of an additional 30 normal presses.",
+  "limitations": [
+    "No full operation date or boot/version segment in this paste.",
+    "Input speed/force mix not separately quantified.",
+    "Raw-bounce startup self-test is not a physical bounce defect."
+  ]
+}
