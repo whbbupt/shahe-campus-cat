@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "T1功能验证已通过，待本人总结与交接；电子宠物M0选题已定，范围和预研待确认"
+  milestone: "T1功能验证已通过，待本人总结与交接；电子宠物离线v0.3.0增量开发，产品用例待执行"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -48,10 +48,15 @@ design:
       rationale: "用户明确选择喂食互动、状态变化、动画反馈；个人选择理由未补充，范围和架构不代为决定"
       decided_by: "王焕博（用户原话见evidence/pet/product_direction_20261023_user.txt；ADR-0002）"
 
+    - decision: "电子宠物v0.3.0默认离线、单线程独占模型，纯C规则与LVGL分离"
+      alternatives_considered: "UI主线程持有短小模型；独立业务线程加队列。首版会话版对比直接加入存档/联网"
+      rationale: "用户授权列出后直接开始；当前无耗时I/O，先建立可验证闭环，存档预研和联网拓展不虚报完成"
+      decided_by: "用户授权后AI建议采用；见ADR-0003与implementation_authorization_20261023_user.txt"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
-  commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/docs/pet-inception"
+  commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
   implementation_commit: "0d20b1e"
 
 practice_completion:
@@ -216,8 +221,57 @@ test_results:
     pass: true
     evidence_path: "evidence/T1/reboot_213546_20261022_user_transcript.txt"
 
+  - test_id: TC-110
+    description: 电子宠物真实首页
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-111
+    description: 实际模型主机固定输入测试
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-112
+    description: 喂食摸摸与连点实测
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-113
+    description: 休息与恢复实测
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-114
+    description: 真实UI软件渲染及重建
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-115
+    description: 会话版重启重置
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-116
+    description: 电子宠物完整固件构建
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+  - test_id: TC-117
+    description: 电子宠物实际板上自检
+    expected: 按docs/03第6节原定判据执行
+    actual: 未执行；文档先于实现建立
+    status: not_executed
+    pass: null
+
 known_issues:
-  - "两人电子宠物仅选题完成；首版范围、视觉、存档/联网、实际分工和关键预研仍待确认，无新增产品功能或物理验证。"
+  - "两人电子宠物按用户授权开始离线v0.3.0会话版；模型/UI分离与默认画风由AI建议。存档未实现、联网拓展、成员分工待认领；当前未新增物理验证。"
   - "T1 v0.2.0首版未消抖；TC-005按用户10次实测确认、前9条真实日志和视频通过，第10条原文未复制；TC-008真实启动自检通过，TC-007主机构建通过。TC-006结合实际25次计数一致与额外30次正常的用户明确确认通过；追加原文只覆盖26至31，后24次未复制。功能验证已收尾，Word/反思/交接仍待，不能称T1整体完成。"
   - "TC-001/TC-002为v0.1.1历史实测，TC-003/TC-004为v0.1.2本轮实测，通过范围限于入门启动文字及相关RGB行为；图形运行时内存与长期稳定性未测。"
   - "TC-004屏幕依据用户明确实物确认加本次复位日志；未收到第二张复位后照片，保留采集缺口，不改用例判据或假造新照片。"
