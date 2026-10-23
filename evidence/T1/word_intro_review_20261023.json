@@ -1,0 +1,40 @@
+{
+  "before_sha256": "52741d1ee1507dc238247c4a86cc6ee2a7a7808dddd3f2fcf319c172a57212ff",
+  "after_sha256": "7f7b0e90e07ef463db6306daa7cbd774dc21bafcc7c01c23e4a9ea5b0db7c942",
+  "changed_package_parts": [
+    "word/document.xml"
+  ],
+  "edited_paragraphs": {
+    "10": "主要是学会对脚手架初步的修改。",
+    "13": "按下KEY1之后，灯会变颜色，并且向串口发送信息日志。"
+  },
+  "word_path": "D:\\project\\sifli\\course_starter\\docs\\05-研制总结.docx",
+  "only_intro_completed": true,
+  "review_recorded_on": "2026-10-23",
+  "word_structure": {
+    "paragraphs": 90,
+    "tables": 21
+  },
+  "packaged_renderer_attempt": {
+    "status": "failed",
+    "exception": "FileNotFoundError: LibreOffice soffice.exe was not found on PATH",
+    "additional_error": "Temporary-directory cleanup encountered WinError 5 permission error"
+  },
+  "fallback_renderer": "Microsoft Word native COM, hidden read-only PDF export; no source save",
+  "page_rasterizer": "Codex runtime Poppler pdftoppm.exe, scale-to 1600",
+  "pages_reviewed": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "page_count": 9,
+  "visual_result": "Two inserted paragraphs legible on page 2; no clipping or overlap observed in reviewed pages. Existing template styles, tables and placeholders preserved; this is an incomplete training summary draft.",
+  "qa_directory": "C:\\Users\\30831\\.codex\\visualizations\\2026\\10\\22\\01a16304-d088-74d2-8522-85df8595641f\\t1_word_qa",
+  "qa_intermediates_are_final_deliverables": false
+}
