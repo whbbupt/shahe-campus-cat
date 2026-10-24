@@ -1,4 +1,4 @@
-/* Original editable cat artwork, with small expression overlays in ROM. */
+/* Approved AI character sprites, converted to ROM images with alpha. */
 #include "pet_ui.h"
 #include "pet_cat_assets.h"
 #include "lvgl.h"
@@ -14,7 +14,7 @@
 static struct
 {
     lv_timer_t *timer;
-    lv_obj_t *cat, *face, *heart, *sleep_mark;
+    lv_obj_t *cat, *sprite, *heart, *sleep_mark;
     lv_obj_t *food_value, *mood_value, *food_bar, *mood_bar, *state, *message;
     lv_obj_t *feed, *touch, *rest, *rest_text;
     pet_ui_action_fn action;
@@ -91,13 +91,13 @@ static void animate(lv_timer_t *timer)
     ++ui.frame;
     bool sleep = view == PET_SLEEPING;
     bool blink = sleep || ui.frame % 40U >= 38U;
-    const lv_image_dsc_t *face = &pet_cat_idle;
-    if (blink) face = &pet_cat_blink;
-    else if (view == PET_FEEDING) face = &pet_cat_eat;
-    else if (view == PET_PETTING || view == PET_HAPPY) face = &pet_cat_happy;
-    else if (view == PET_HUNGRY || view == PET_LONELY) face = &pet_cat_sad;
-    if (lv_image_get_src(ui.face) != face)
-        lv_image_set_src(ui.face, face);
+    const lv_image_dsc_t *sprite = &pet_cat_idle;
+    if (blink) sprite = &pet_cat_closed;
+    else if (view == PET_FEEDING) sprite = &pet_cat_eat;
+    else if (view == PET_PETTING || view == PET_HAPPY) sprite = &pet_cat_closed;
+    else if (view == PET_HUNGRY || view == PET_LONELY) sprite = &pet_cat_sad;
+    if (lv_image_get_src(ui.sprite) != sprite)
+        lv_image_set_src(ui.sprite, sprite);
     lv_obj_set_y(ui.cat, 136 + (sleep ? 2 : (ui.frame / 5U % 2U ? 1 : 0)));
     lv_obj_set_y(ui.heart, 210 - (int)(ui.frame % 8U / 2U));
     if (view == PET_PETTING)
@@ -147,13 +147,9 @@ void pet_ui_create(pet_ui_action_fn action)
 
     ui.cat = shape(screen, 97, 136, 196, 160, CLOUD, 0);
     lv_obj_set_style_bg_opa(ui.cat, LV_OPA_TRANSP, 0);
-    lv_obj_t *body = lv_image_create(ui.cat);
-    lv_image_set_src(body, &pet_cat_base);
-    lv_obj_remove_flag(body, LV_OBJ_FLAG_CLICKABLE);
-    ui.face = lv_image_create(ui.cat);
-    lv_obj_set_pos(ui.face, 56, 54);
-    lv_image_set_src(ui.face, &pet_cat_idle);
-    lv_obj_remove_flag(ui.face, LV_OBJ_FLAG_CLICKABLE);
+    ui.sprite = lv_image_create(ui.cat);
+    lv_image_set_src(ui.sprite, &pet_cat_idle);
+    lv_obj_remove_flag(ui.sprite, LV_OBJ_FLAG_CLICKABLE);
     ui.heart = lv_image_create(screen);
     lv_image_set_src(ui.heart, &pet_cat_heart);
     lv_obj_set_pos(ui.heart, 278, 210);

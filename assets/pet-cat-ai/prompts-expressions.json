@@ -1,0 +1,17 @@
+{
+  "method": "built-in image_gen; all edits reference approved idle image; transparent_background=true",
+  "edits": [
+    {
+      "pose": "closed",
+      "prompt": "Edit target: the attached approved ivory-and-orange hand-painted kitten character. This is a production sprite facial-expression edit, NOT a redesign. Preserve EXACT character identity, watercolor/gouache fur, orange patch placement, ear shapes, head tilt, eye locations, original body, paws, tail, scale, framing and all transparent margins. Keep the very same composition and square canvas. Change ONLY the specified facial expression; all fur, body and outlines outside the facial expression must remain unchanged. No text, no props, no background, no ground, no shadow. Keep a genuine transparent alpha background. Change ONLY both eyes to gently closed happy eyelids, following the existing head tilt. The eyelids should be two small natural dark brown soft curves. Keep the original tiny pink nose and gentle smiling mouth exactly. This is a peaceful contented blink/rest face, which can also be used while being petted. Do not shrink, widen or re-pose the cat."
+    },
+    {
+      "pose": "eat",
+      "prompt": "Edit target: the attached approved ivory-and-orange hand-painted kitten character. This is a production sprite facial-expression edit, NOT a redesign. Preserve EXACT character identity, watercolor/gouache fur, orange patch placement, ear shapes, head tilt, eye locations, original body, paws, tail, scale, framing and all transparent margins. Keep the very same composition and square canvas. Change ONLY the specified facial expression; all fur, body and outlines outside the facial expression must remain unchanged. No text, no props, no background, no ground, no shadow. Keep a genuine transparent alpha background. Keep the original two open brown eyes exactly. Change ONLY the tiny mouth to a slightly open, very small adorable eating mouth with a hint of pink tongue. It must remain a subtle cat mouth, not a human smile or a large hole. Keep nose, face silhouette, and every other pixel's visual structure unchanged."
+    },
+    {
+      "pose": "sad",
+      "prompt": "Edit target: the attached approved ivory-and-orange hand-painted kitten character. This is a production sprite facial-expression edit, NOT a redesign. Preserve EXACT character identity, watercolor/gouache fur, orange patch placement, ear shapes, head tilt, eye locations, original body, paws, tail, scale, framing and all transparent margins. Keep the very same composition and square canvas. Change ONLY the specified facial expression; all fur, body and outlines outside the facial expression must remain unchanged. No text, no props, no background, no ground, no shadow. Keep a genuine transparent alpha background. Keep the original open brown eyes, their sizes, positions and highlights. Change ONLY eyebrows and mouth to a very subtle plaintive hungry expression: gently upturned inner brows and a tiny concerned mouth. Still adorable and affectionate. No tears, no additional facial marks. Preserve the exact rest of the image."
+    }
+  ]
+}

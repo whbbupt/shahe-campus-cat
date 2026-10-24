@@ -89,6 +89,25 @@ int main(void)
     pet_ui_update(&model, NULL);
     screenshot("pet-idle.ppm");
     unsigned timers = timer_count();
+    /* Ensure real RGB565A8 sprites draw, with transparent margins. */
+    unsigned orange_pixels = 0;
+    for (int y = 145; y < 294; ++y)
+        for (int x = 110; x < 280; ++x)
+            if (frame[y][x][0] > frame[y][x][1] + 20 &&
+                frame[y][x][1] > frame[y][x][2] + 15)
+                ++orange_pixels;
+    assert(orange_pixels > 300);
+    assert(frame[150][110][0] == 0xD7 && frame[150][110][1] == 0xE8 && frame[150][110][2] == 0xEE);
+    for (unsigned i = 0; i < 37; ++i) {
+        lv_tick_inc(100);
+        lv_timer_handler();
+    }
+    screenshot("pet-blink.ppm");
+    for (unsigned i = 0; i < 3; ++i) {
+        lv_tick_inc(100);
+        lv_timer_handler();
+    }
+    assert(timer_count() == timers);
 
     lv_obj_send_event(find_button("Feed"), LV_EVENT_CLICKED, NULL);
     assert(model.food == 85 && pet_model_view(&model) == PET_FEEDING);
@@ -112,6 +131,11 @@ int main(void)
     lv_obj_send_event(find_button("Pet"), LV_EVENT_CLICKED, NULL);
     assert(model.mood == 70 && pet_model_view(&model) == PET_PETTING);
     screenshot("pet-petting.ppm");
-    puts("[host:ui] feed/rest/wake/pet and 10 recreations PASS; hardware not tested");
+    pet_model_advance(&model, 1000);
+    model.food = 20;
+    pet_ui_update(&model, NULL);
+    assert(pet_model_view(&model) == PET_HUNGRY);
+    screenshot("pet-hungry.ppm");
+    puts("[host:ui] AI sprites/alpha/blink, feed/rest/wake/pet, hungry and 10 recreations PASS; hardware not tested");
     return 0;
 }

@@ -1,0 +1,259 @@
+{
+  "recorded_at": "2026-10-24T23:47:17.566246+08:00",
+  "app_version": "0.3.2",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "requirements_design_commit": "69d7525",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "main_bin_bytes": 1077960,
+  "link_memory_report": {
+    "rom_used_bytes": 1127714,
+    "ram_used_bytes": 135812,
+    "runtime_heap_stack": "not_measured"
+  },
+  "art_image_data_bytes": 378840,
+  "test_results": {
+    "TC-111": "passed_host_only",
+    "TC-114": "passed_host_only",
+    "TC-116": "passed_build_only",
+    "physical_tests": "not_executed"
+  },
+  "source_state": "Exact inputs captured before implementation commit; approved base image and three image_gen edits; model/config unchanged.",
+  "warnings": [
+    "_close is not implemented and will always fail",
+    "_lseek is not implemented and will always fail",
+    "_read is not implemented and will always fail",
+    "_write is not implemented and will always fail",
+    "build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
+    "cannot find entry symbol entry; defaulting to 12000000",
+    "img \"dfu\" not found"
+  ],
+  "new_warning_messages_vs_v0.3.1": [],
+  "inputs": [
+    {
+      "path": "src/main.c",
+      "bytes": 1000,
+      "sha256": "0731B7879F173E9755ECD5359F7882C04EDC82453AF2B153088F7FF88A9DAA8F"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 2261,
+      "sha256": "93EA108F06938F3796942B764EE7409E0996FD6341C222F5550C7E5CA39CE299"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 3182,
+      "sha256": "EA8E24E3DD7FDD0F0CA015B560E4055032D0EA0A37B1753A0139083A9037E6D0"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1057,
+      "sha256": "1E231957B8E6C10BD29485F26AEF18880C313B364ED5774B7C951089F182A1EB"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 5122,
+      "sha256": "7CFC846DAEFE48117AA7776B328AE41C8A3217A340B8F7BBF820CF229D4784C7"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 8100,
+      "sha256": "329CB3F29B67FBAB7E315606FF4E81B2609E84F8FFEE75EF3BD023122B81D10C"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 310,
+      "sha256": "15CEEFEBEEF15BE9A2AA4EFE9A02BBFE93BB1CF58B6B037277212B901544BF17"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 1974709,
+      "sha256": "5B6B1D130CDA8E4898B6B51FC3698EE78B92E612C63C6F6E598DE74FB66DDBA1"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 286,
+      "sha256": "7FA10A2755DE3E6A7850117852495DBA687CD2E11C1E397E5C07427CA56EF0C8"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "scripts/make_cat_assets.cjs",
+      "bytes": 3751,
+      "sha256": "7DBEDEDA436B8B5A7C2EF36FCB1F204FD9A43B95B61CAF36D2BD639E91342F36"
+    },
+    {
+      "path": "tests/pet_ui_test.c",
+      "bytes": 4990,
+      "sha256": "D7B5B50DD960C99A5D07E966ADE78645C4B4009C3BB4050DCC0F44587312B884"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 4079,
+      "sha256": "BE302B9B7DA36DA1AEAE590638D360C11E091C19065D9EAA67552ED1DBA875BD"
+    },
+    {
+      "path": "assets/pet-cat-ai/conversion.json",
+      "bytes": 2649,
+      "sha256": "CB9C02A87B8F0F20F3DAF2F25CA5C1C149ED6A425D68E324A88FB65A02E207C2"
+    },
+    {
+      "path": "assets/pet-cat-ai/prompt-original.txt",
+      "bytes": 1783,
+      "sha256": "8095C3E09CAD74EF88F91A5F67B3D9C4E1EDBFCC34AB599BE288D245D9B5BB5B"
+    },
+    {
+      "path": "assets/pet-cat-ai/prompts-expressions.json",
+      "bytes": 3110,
+      "sha256": "113408D5C3E374BCAC2BE07EE9EBC5968CDEAF4AD89FEB09859F1E56CBB7D3E2"
+    },
+    {
+      "path": "assets/pet-cat-ai/README.md",
+      "bytes": 1445,
+      "sha256": "F323218340342F02D740E168D1CECC75895FB5B6D9AFBEF88C1E74F67A299D1E"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/closed.png",
+      "bytes": 43879,
+      "sha256": "63AC34AF14A3D2FED30BAB383B8232D54D29E021D423BE1405791E878E865436"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/eat.png",
+      "bytes": 45142,
+      "sha256": "A2F461231D39311DC07194BDD99843462A8811C443AE7298DCEF5EF631FEA38D"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/heart.png",
+      "bytes": 517,
+      "sha256": "72BA82C11511E7CC08F94550CDDB66B22768C1FF29B434D64F1569AA6FD83D34"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/idle.png",
+      "bytes": 45646,
+      "sha256": "DBFB899C0FAA6299AE3B0B0CDCAFC0B31326A7DE3AE80E0BAA632E81EDE8E385"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/sad.png",
+      "bytes": 44404,
+      "sha256": "0AA9D05DEAD4BA52BEC8FBFB01F85B06E149CBEF10D2824DEF21B8F41B7113F6"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/closed.png",
+      "bytes": 1342691,
+      "sha256": "357E4CEF67655D11AE9DA96C6A0AEF5F3C8874064D5E0B198D36B93C5F1A0E77"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/eat.png",
+      "bytes": 1346561,
+      "sha256": "1F6DDD6DCF4EB93BE2A6EEBD003357598154E7EC0861DCC5F1156BCA0DA39393"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/idle.png",
+      "bytes": 1431720,
+      "sha256": "0D2343B10E1D730EBCF0FA9D3546611E182AF88909C8AC0CFD4F20C77C40D2B3"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/sad.png",
+      "bytes": 1323660,
+      "sha256": "66022F95191323C7871D2189099291BAE3E719FE8085CD394E8E0A0696BD5E61"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 1077960,
+      "sha256": "F376E8412E29DB6A413A540AE998DB70139E27699EAE208D7ED82EF61ADA2309"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.elf",
+      "bytes": 7079056,
+      "sha256": "6D12E92BEC0C4D564148EB9D4D2F185C77A8C31AB519AA8FED561F54950D0620"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.hex",
+      "bytes": 3032110,
+      "sha256": "5E120EC992E23BAF3F1C36BF8F68A82909DDB2C66FA7B99F6CE8A4BEEE4E2AEB"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "764CD57DE76D7B0236514ABB2F404CE05E710BA26B248C0B7033F2C13C1ABAE6"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    }
+  ],
+  "previews": [
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/ai-cat-ui-preview.png",
+      "bytes": 131392,
+      "sha256": "7C2794D8B6299B9D4F653EA0B9531140C55FC2B521C110A56DD04CED847E7011"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-blink.png",
+      "bytes": 39497,
+      "sha256": "723595B12D92336FD389CDD4F0760F69CE17A5957AD702B1D64D90C730A0FB4C"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-feeding.png",
+      "bytes": 40763,
+      "sha256": "FB8B914615CC442C731BA666B1A588B15061C25D737EEF5FB5E399C005E7DCF9"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-hungry.png",
+      "bytes": 40723,
+      "sha256": "631A5142F31249201EF9049A19D620852F5FA342949AF990326EC635DF54E168"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-idle.png",
+      "bytes": 41516,
+      "sha256": "2F021062AE60321A482116C66877128DB4E8FEF79E541556A46D1413E56A6FB1"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-petting.png",
+      "bytes": 39555,
+      "sha256": "30E86B175AE7EB413CB3A6B7C2D17172F5459F2D8C9521D126D503F22DD8898C"
+    },
+    {
+      "path": "evidence/pet/previews/ai-cat-v0.3.2/pet-resting.png",
+      "bytes": 41958,
+      "sha256": "EFEE76264B486FB10DDC3CD90E3A03FA13B4F34D746A9D71965150774FD84BD4"
+    }
+  ]
+}

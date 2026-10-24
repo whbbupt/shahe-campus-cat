@@ -1,15 +1,5 @@
-# MOMO奶白橘猫
+# v0.3.1 SVG历史角色
 
-原创可编辑SVG，用户于2026-10-24选择圆脸、短爪、奶白橘猫方向。cat-base含身体、静态鼻子与腮红；idle/blink/happy/eat/sad为透明五官叠层，heart为摸摸反馈。PNG用于美术预览；固件只使用src/pet_cat_assets.c的常量。
+本目录保留v0.3.1的原创SVG和PNG，供历史追溯。v0.3.2当前猫咪源图、表情、提示词与转换说明见../pet-cat-ai/README.md；不再使用这里的几何猫脸与身体。cat-heart.png仍用于摸摸反馈。
 
-## 重新生成
-
-已有Node.js和sharp时，在工程根目录执行：
-
-```text
-node scripts/make_cat_assets.cjs
-```
-
-sharp未安装于默认搜索位置时，用`--sharp <sharp模块绝对路径>`指向现有模块。本机使用Codex捆绑的sharp；固件不引入Node或sharp依赖。生成器内保留原始路径与调色，可直接修改后重新导出。
-
-身体196×160，五种表情88×44，爱心30×28。共154680字节RGB565A8数据，颜色平面后接A8；按照所用SDK的LVGL v9头文件定义。内存/稳定性与触摸需实际板卡验证。
+旧SVG生成器保存在Git提交6cfae3f中。当前scripts/make_cat_assets.cjs用于转换已认可的AI PNG，不重新生成这些历史SVG。

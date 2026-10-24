@@ -1,0 +1,86 @@
+{
+  "method": "Mechanical shared transparent-margin crop, contain resize, RGB565 color plane + A8; no creative redraw",
+  "total_image_data_bytes": 378840,
+  "sprites": [
+    {
+      "name": "idle",
+      "source": "assets/pet-cat-ai/source/idle.png",
+      "source_width": 1254,
+      "source_height": 1254,
+      "source_sha256": "0d2343b10e1d730ebcf0fa9d3546611e182af88909c8ac0cfd4f20c77c40d2b3",
+      "crop": {
+        "left": 160,
+        "top": 62,
+        "width": 1018,
+        "height": 1118
+      },
+      "width": 196,
+      "height": 160,
+      "image_data_bytes": 94080,
+      "image_data_sha256": "36fd3214365d0e0b83ef7f5f4ed0922e3b37a5f4c7648e0683a1fb5bf561cf26"
+    },
+    {
+      "name": "closed",
+      "source": "assets/pet-cat-ai/source/closed.png",
+      "source_width": 1254,
+      "source_height": 1254,
+      "source_sha256": "357e4cef67655d11ae9da96c6a0aef5f3c8874064d5e0b198d36b93c5f1a0e77",
+      "crop": {
+        "left": 160,
+        "top": 62,
+        "width": 1018,
+        "height": 1118
+      },
+      "width": 196,
+      "height": 160,
+      "image_data_bytes": 94080,
+      "image_data_sha256": "8796f851854dc00a285cbfc17ac1c18a14b55c0f8533c1f37849f57a263d075d"
+    },
+    {
+      "name": "eat",
+      "source": "assets/pet-cat-ai/source/eat.png",
+      "source_width": 1254,
+      "source_height": 1254,
+      "source_sha256": "1f6ddd6dcf4eb93be2a6eebd003357598154e7ec0861dcc5f1156bca0da39393",
+      "crop": {
+        "left": 160,
+        "top": 62,
+        "width": 1018,
+        "height": 1118
+      },
+      "width": 196,
+      "height": 160,
+      "image_data_bytes": 94080,
+      "image_data_sha256": "65c1b65746d01ee1900e02b5272fee12a8de7e35b886d3d4496fb054abdb9f7c"
+    },
+    {
+      "name": "sad",
+      "source": "assets/pet-cat-ai/source/sad.png",
+      "source_width": 1254,
+      "source_height": 1254,
+      "source_sha256": "66022f95191323c7871d2189099291bae3e719fe8085cd394e8e0a0696bd5e61",
+      "crop": {
+        "left": 160,
+        "top": 62,
+        "width": 1018,
+        "height": 1118
+      },
+      "width": 196,
+      "height": 160,
+      "image_data_bytes": 94080,
+      "image_data_sha256": "b0feb847a8a1a008cec7769933c54b34f4e1b56779c48b692727179d94c683e2"
+    },
+    {
+      "name": "heart",
+      "source": "assets/pet-cat/cat-heart.png",
+      "source_width": 30,
+      "source_height": 28,
+      "source_sha256": "72ba82c11511e7cc08f94550cddb66b22768c1ff29b434d64f1569aa6fd83d34",
+      "crop": null,
+      "width": 30,
+      "height": 28,
+      "image_data_bytes": 2520,
+      "image_data_sha256": "49d3ca5148b3b2ad4cbe420d3421b6482926bb1290878ff0e58ad0dd3a90935a"
+    }
+  ]
+}
