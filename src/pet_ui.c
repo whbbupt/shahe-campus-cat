@@ -1,5 +1,6 @@
-/* Original LVGL primitive character: no external bitmap/font assets. */
+/* Original editable cat artwork, with small expression overlays in ROM. */
 #include "pet_ui.h"
+#include "pet_cat_assets.h"
 #include "lvgl.h"
 #include <stdint.h>
 
@@ -13,7 +14,7 @@
 static struct
 {
     lv_timer_t *timer;
-    lv_obj_t *cat, *eye_left, *eye_right, *mouth, *heart, *sleep_mark;
+    lv_obj_t *cat, *face, *heart, *sleep_mark;
     lv_obj_t *food_value, *mood_value, *food_bar, *mood_bar, *state, *message;
     lv_obj_t *feed, *touch, *rest, *rest_text;
     pet_ui_action_fn action;
@@ -32,12 +33,6 @@ static lv_obj_t *shape(lv_obj_t *parent, int x, int y, int w, int h, uint32_t co
     lv_obj_set_style_bg_color(obj, lv_color_hex(color), 0);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
     return obj;
-}
-
-static void outline(lv_obj_t *obj, int width)
-{
-    lv_obj_set_style_border_width(obj, width, 0);
-    lv_obj_set_style_border_color(obj, lv_color_hex(INK), 0);
 }
 
 static lv_obj_t *label(lv_obj_t *parent, const char *text, int x, int y, const lv_font_t *font, uint32_t color)
@@ -95,13 +90,16 @@ static void animate(lv_timer_t *timer)
     pet_view_t view = pet_model_view(&ui.snapshot);
     ++ui.frame;
     bool sleep = view == PET_SLEEPING;
-    bool blink = sleep || ui.frame % 40U < 2U;
-    lv_obj_set_height(ui.eye_left, blink ? 3 : 11);
-    lv_obj_set_height(ui.eye_right, blink ? 3 : 11);
-    lv_obj_set_y(ui.eye_left, blink ? 56 : 50);
-    lv_obj_set_y(ui.eye_right, blink ? 56 : 50);
-    lv_obj_set_y(ui.cat, 158 + (sleep ? 7 : (ui.frame / 5U % 2U ? 2 : 0)));
-    lv_obj_set_size(ui.mouth, view == PET_FEEDING ? 14 : 10, view == PET_FEEDING ? 12 : 3);
+    bool blink = sleep || ui.frame % 40U >= 38U;
+    const lv_image_dsc_t *face = &pet_cat_idle;
+    if (blink) face = &pet_cat_blink;
+    else if (view == PET_FEEDING) face = &pet_cat_eat;
+    else if (view == PET_PETTING || view == PET_HAPPY) face = &pet_cat_happy;
+    else if (view == PET_HUNGRY || view == PET_LONELY) face = &pet_cat_sad;
+    if (lv_image_get_src(ui.face) != face)
+        lv_image_set_src(ui.face, face);
+    lv_obj_set_y(ui.cat, 136 + (sleep ? 2 : (ui.frame / 5U % 2U ? 1 : 0)));
+    lv_obj_set_y(ui.heart, 210 - (int)(ui.frame % 8U / 2U));
     if (view == PET_PETTING)
         lv_obj_remove_flag(ui.heart, LV_OBJ_FLAG_HIDDEN);
     else
@@ -142,28 +140,24 @@ void pet_ui_create(pet_ui_action_fn action)
     ui.mood_bar = shape(screen, 204, 109, 97, 8, MINT, 4);
 
     lv_obj_t *room = shape(screen, 24, 136, 342, 162, 0xD7E8EE, 38);
-    shape(room, 28, 128, 286, 8, 0xBDD1DB, 4);
+    shape(room, 28, 144, 286, 4, 0xBDD1DB, 2);
     shape(room, 258, 22, 27, 27, SUN, LV_RADIUS_CIRCLE);
-    ui.sleep_mark = label(screen, "z z", 272, 169, &lv_font_montserrat_24, LAKE);
+    ui.sleep_mark = label(screen, "z z", 277, 207, &lv_font_montserrat_24, LAKE);
     lv_obj_add_flag(ui.sleep_mark, LV_OBJ_FLAG_HIDDEN);
 
-    ui.cat = shape(screen, 125, 158, 140, 138, CLOUD, 0);
+    ui.cat = shape(screen, 97, 136, 196, 160, CLOUD, 0);
     lv_obj_set_style_bg_opa(ui.cat, LV_OPA_TRANSP, 0);
-    outline(shape(ui.cat, 98, 94, 39, 18, MINT, 9), 3);
-    outline(shape(ui.cat, 33, 72, 73, 56, MINT, 24), 3);
-    shape(ui.cat, 53, 89, 34, 29, SUN, 16);
-    outline(shape(ui.cat, 23, 1, 31, 38, MINT, 6), 3);
-    outline(shape(ui.cat, 86, 1, 31, 38, MINT, 6), 3);
-    outline(shape(ui.cat, 14, 20, 112, 70, MINT, 25), 3);
-    shape(ui.cat, 32, 125, 29, 9, INK, 4);
-    shape(ui.cat, 80, 125, 29, 9, INK, 4);
-    shape(ui.cat, 27, 63, 14, 5, SUN, 2);
-    shape(ui.cat, 101, 63, 14, 5, SUN, 2);
-    ui.eye_left = shape(ui.cat, 45, 50, 6, 11, INK, 3);
-    ui.eye_right = shape(ui.cat, 90, 50, 6, 11, INK, 3);
-    shape(ui.cat, 68, 61, 7, 5, INK, 2);
-    ui.mouth = shape(ui.cat, 67, 72, 10, 3, INK, 2);
-    ui.heart = label(screen, "+", 271, 203, &lv_font_montserrat_28, LAKE);
+    lv_obj_t *body = lv_image_create(ui.cat);
+    lv_image_set_src(body, &pet_cat_base);
+    lv_obj_remove_flag(body, LV_OBJ_FLAG_CLICKABLE);
+    ui.face = lv_image_create(ui.cat);
+    lv_obj_set_pos(ui.face, 56, 54);
+    lv_image_set_src(ui.face, &pet_cat_idle);
+    lv_obj_remove_flag(ui.face, LV_OBJ_FLAG_CLICKABLE);
+    ui.heart = lv_image_create(screen);
+    lv_image_set_src(ui.heart, &pet_cat_heart);
+    lv_obj_set_pos(ui.heart, 278, 210);
+    lv_obj_remove_flag(ui.heart, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(ui.heart, LV_OBJ_FLAG_HIDDEN);
 
     ui.message = label(screen, "Ready for a little care.", 24, 313, &lv_font_montserrat_16, INK);

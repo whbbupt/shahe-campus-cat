@@ -78,6 +78,6 @@ build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))
-    sources += [root/'src/pet_model.c', root/'src/pet_ui.c', root/'tests/pet_ui_test.c']
+    sources += [root/'src/pet_model.c', root/'src/pet_ui.c', root/'src/pet_cat_assets.c', root/'tests/pet_ui_test.c']
     build(sources, 'pet-ui-test', [root/'tests/include', lvgl], ['LV_KCONFIG_IGNORE', 'LV_CONF_INCLUDE_SIMPLE'])
     print('Actual LVGL software previews:', out)

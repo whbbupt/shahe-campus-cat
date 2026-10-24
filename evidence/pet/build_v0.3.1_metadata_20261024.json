@@ -1,0 +1,164 @@
+{
+  "recorded_at": "2026-10-24T17:30:07.722825+08:00",
+  "app_version": "0.3.1",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "requirements_design_commit": "3a49038",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "main_bin_bytes": 853888,
+  "link_memory_report": {
+    "rom_used_bytes": 903642,
+    "ram_used_bytes": 135812,
+    "runtime_heap_stack": "not_measured"
+  },
+  "art_image_data_bytes": 154680,
+  "test_results": {
+    "TC-111": "passed_host_only",
+    "TC-114": "passed_host_only",
+    "TC-116": "passed_build_only",
+    "physical_tests": "not_executed"
+  },
+  "source_state": "Exact hashes captured before implementation commit. Original model and project configuration preserved.",
+  "inputs": [
+    {
+      "path": "src/main.c",
+      "bytes": 1000,
+      "sha256": "99A5964B7E4C76131E09ACA237577FC179460AA9531B2C16A33681D9D4D83F78"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 2261,
+      "sha256": "93EA108F06938F3796942B764EE7409E0996FD6341C222F5550C7E5CA39CE299"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 3182,
+      "sha256": "EA8E24E3DD7FDD0F0CA015B560E4055032D0EA0A37B1753A0139083A9037E6D0"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1057,
+      "sha256": "1E231957B8E6C10BD29485F26AEF18880C313B364ED5774B7C951089F182A1EB"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 5122,
+      "sha256": "7CFC846DAEFE48117AA7776B328AE41C8A3217A340B8F7BBF820CF229D4784C7"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 8254,
+      "sha256": "F2CB299435EBC7A4DA5DFFD096817E3E239A410A43D762890D5CD2A5EA0DC021"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 310,
+      "sha256": "15CEEFEBEEF15BE9A2AA4EFE9A02BBFE93BB1CF58B6B037277212B901544BF17"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 807797,
+      "sha256": "B43F9AB102C4F2729F389468ACBD55918E58BF35349FC5F76D99A92B297E97B6"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 370,
+      "sha256": "1C89B72671472457B534C6461628D13AD0D54A61922E338686223C4A903178DF"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "scripts/make_cat_assets.cjs",
+      "bytes": 6176,
+      "sha256": "6F95D64CF77CE3B52EBBFFB62901D7E33E078280F1A2B79C39EDE2C5052B0A1E"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 853888,
+      "sha256": "D76A0973C3250A191094608BED7BD8BCDC92F524E15F0314BC8E9ACB394F3F1C"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.elf",
+      "bytes": 6854324,
+      "sha256": "1189AB7E919454CF698EF0E5A63EE30E98456D1BCFADFD576B0F90C6694F397B"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.hex",
+      "bytes": 2401850,
+      "sha256": "2D7DC6CE7191B6C9AA4295783CB2CE1A01BD915F320549AA673D0948D1766357"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "EA17D2043ED149E8908442473C0710A3B764031187A0C225AAC57325A8B98F07"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    }
+  ],
+  "previews": [
+    {
+      "path": "evidence/pet/previews/cat-v0.3.1/cat-preview.png",
+      "bytes": 35199,
+      "sha256": "FDB89C211D471620640255D7F9C1C1271D7A947E1BAC06EAFCAAAA89A57DC96D"
+    },
+    {
+      "path": "evidence/pet/previews/cat-v0.3.1/pet-feeding.png",
+      "bytes": 25606,
+      "sha256": "F34472F416D18AA6640257C5AA64653AF3037474C8DE0501E32398520E36A758"
+    },
+    {
+      "path": "evidence/pet/previews/cat-v0.3.1/pet-idle.png",
+      "bytes": 25212,
+      "sha256": "8E57A6B91CC25F64A31DDC79EA7F5574EC313EB0616E309B84548122DE71F7D3"
+    },
+    {
+      "path": "evidence/pet/previews/cat-v0.3.1/pet-petting.png",
+      "bytes": 25451,
+      "sha256": "81E92A5DB0055754FBBCAEED3CD2E4CA5630AAC700C02E09109B505ADFFFD6F3"
+    },
+    {
+      "path": "evidence/pet/previews/cat-v0.3.1/pet-resting.png",
+      "bytes": 27682,
+      "sha256": "048A99D53531851F21DD8BBD4E43FC421E69C6B479A6F82A9E245E2E5759A7F6"
+    }
+  ]
+}

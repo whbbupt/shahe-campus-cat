@@ -1,0 +1,5 @@
+Write-Error: 
+Line |
+   4 |  . 'D:\development\sifli\SiFli-SDK\v2.5.1\export.ps1' 2>&1 | Tee-Objec …
+     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | uv was not found in PATH. Please install uv before running export.ps1.
