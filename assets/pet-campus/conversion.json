@@ -1,0 +1,33 @@
+{
+  "method": "cover resize, RGB565 little endian",
+  "total_image_data_bytes": 458784,
+  "scenes": [
+    {
+      "name": "dorm",
+      "source_width": 1536,
+      "source_height": 1024,
+      "source_sha256": "7d368456b3097917409769af301b085e3dd3abc49410b80eb086dafd26b24602",
+      "width": 354,
+      "height": 216,
+      "image_data_bytes": 152928
+    },
+    {
+      "name": "classroom",
+      "source_width": 1536,
+      "source_height": 1024,
+      "source_sha256": "3804847256eaef9132e9b38ab9e11429622d7736bdf927d313af6dc62f0cd31f",
+      "width": 354,
+      "height": 216,
+      "image_data_bytes": 152928
+    },
+    {
+      "name": "canteen",
+      "source_width": 1536,
+      "source_height": 1024,
+      "source_sha256": "4b86cda33c299058c8e7084a3d9e2444eada0cc4dad31a0375c0d3f3fdab9d17",
+      "width": 354,
+      "height": 216,
+      "image_data_bytes": 152928
+    }
+  ]
+}

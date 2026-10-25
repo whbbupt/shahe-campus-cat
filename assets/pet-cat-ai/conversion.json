@@ -1,6 +1,6 @@
 {
   "method": "Mechanical shared transparent-margin crop, contain resize, RGB565 color plane + A8; no creative redraw",
-  "total_image_data_bytes": 378840,
+  "total_image_data_bytes": 131544,
   "sprites": [
     {
       "name": "idle",
@@ -14,10 +14,10 @@
         "width": 1018,
         "height": 1118
       },
-      "width": 196,
-      "height": 160,
-      "image_data_bytes": 94080,
-      "image_data_sha256": "36fd3214365d0e0b83ef7f5f4ed0922e3b37a5f4c7648e0683a1fb5bf561cf26"
+      "width": 112,
+      "height": 96,
+      "image_data_bytes": 32256,
+      "image_data_sha256": "5bdc9115263d49f9e007508d263d13f425d2fd053ca571029ebf996794b73497"
     },
     {
       "name": "closed",
@@ -31,10 +31,10 @@
         "width": 1018,
         "height": 1118
       },
-      "width": 196,
-      "height": 160,
-      "image_data_bytes": 94080,
-      "image_data_sha256": "8796f851854dc00a285cbfc17ac1c18a14b55c0f8533c1f37849f57a263d075d"
+      "width": 112,
+      "height": 96,
+      "image_data_bytes": 32256,
+      "image_data_sha256": "ad8d048a1f239443193321daab7aa2ba9561de23bf8a089f6c3597e47b8b7a2f"
     },
     {
       "name": "eat",
@@ -48,10 +48,10 @@
         "width": 1018,
         "height": 1118
       },
-      "width": 196,
-      "height": 160,
-      "image_data_bytes": 94080,
-      "image_data_sha256": "65c1b65746d01ee1900e02b5272fee12a8de7e35b886d3d4496fb054abdb9f7c"
+      "width": 112,
+      "height": 96,
+      "image_data_bytes": 32256,
+      "image_data_sha256": "e3ff8ff6bff356220a2dd0741ec1098717e333e707e26360a121c23dee5f90cd"
     },
     {
       "name": "sad",
@@ -65,10 +65,10 @@
         "width": 1018,
         "height": 1118
       },
-      "width": 196,
-      "height": 160,
-      "image_data_bytes": 94080,
-      "image_data_sha256": "b0feb847a8a1a008cec7769933c54b34f4e1b56779c48b692727179d94c683e2"
+      "width": 112,
+      "height": 96,
+      "image_data_bytes": 32256,
+      "image_data_sha256": "09f1411b27709ff13e98711837eea0c1ef4154dde2e0fd4a5acf9c1773afab8e"
     },
     {
       "name": "heart",

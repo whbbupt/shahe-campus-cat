@@ -1,0 +1,51 @@
+[host:pet] feed-clamp-spam-cooldown PASS
+
+[host:pet] touch-clamp-cooldown PASS
+
+[host:pet] elapsed-partition-large-gap PASS
+
+[host:pet] rest-reject-resume PASS
+
+[host:pet] view-priority PASS
+
+[host:pet] clock-wrap-fraction PASS
+
+[host:pet] invalid-event-reset PASS
+
+[host:pet] campus-travel-guards PASS
+
+[host:pet] campus-study-cost-cooldown PASS
+
+[host:pet] campus-action-routing-reset PASS
+
+[host:pet] all PASS; board not tested
+
+
+[Error]	(1.000, +1000)	 lv_obj_get_child: Asserted at expression: obj != NULL (NULL pointer) lv_obj_tree.c:337
+
+
+[host:ui] creating page
+
+[host:ui] rendering campus-dorm.ppm
+
+[host:ui] rendering campus-classroom.ppm
+
+[host:ui] rendering campus-canteen.ppm
+
+[host:ui] rendering campus-study.ppm
+
+[host:ui] rendering campus-study-progress.ppm
+
+[host:ui] rendering campus-eat.ppm
+
+[host:ui] rendering campus-pet.ppm
+
+[host:ui] rendering campus-rest.ppm
+
+[host:ui] rendering campus-low-food.ppm
+
+[host:ui] rendering campus-zero.ppm
+
+[host:ui] rendering campus-full.ppm
+
+

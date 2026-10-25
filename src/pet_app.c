@@ -24,15 +24,16 @@ static uint32_t sync_clock(void)
 
 static void action(pet_event_t event)
 {
-    static const char *errors[] = {NULL, "One moment, please.", "A short break between treats.",
-                                  "Already full. Try another activity.", "Sleeping. Tap Wake first.", "Unknown action."};
+    static const char *errors[] = {NULL, "One moment, please.", "Take a short break first.",
+                                  "Already full. Try another activity.", "Resting. Tap Wake first.",
+                                  "Unknown action.", "Too hungry. Tap Eat first."};
     sync_clock();
     pet_result_t result = pet_model_event(&model, event);
     message = errors[result];
     message_ms = message ? 2500 : 0;
     pet_ui_update(&model, message);
-    rt_kprintf("[pet] event=%u result=%u food=%u mood=%u rest=%u\n",
-               (unsigned)event, (unsigned)result, (unsigned)model.food,
+    rt_kprintf("[pet] event=%u result=%u scene=%u food=%u mood=%u rest=%u\n",
+               (unsigned)event, (unsigned)result, (unsigned)model.scene, (unsigned)model.food,
                (unsigned)model.mood, (unsigned)model.sleeping);
 }
 
@@ -57,7 +58,7 @@ rt_err_t pet_app_start(void)
     message = NULL;
     pet_ui_create(action);
     pet_ui_update(&model, NULL);
-    rt_kprintf("[pet] ready food=70 mood=60; session-only, no persistent storage\n");
+    rt_kprintf("[pet] ready scene=dorm food=70 mood=60; Shahe campus, session-only\n");
     return RT_EOK;
 }
 

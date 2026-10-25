@@ -1,17 +1,9 @@
-# MOMO AI生图角色（v0.3.2）
+# MOMO AI生图角色（当前v0.4.0校园版）
 
-用户已明确认可source/idle.png对应的奶白橘猫原图，并于2026-10-24要求接入。原图由内置image_gen生成；closed/eat/sad是以该图为参考的3次内置生图编辑。没有把AI图记成学生手绘，也不声称编辑后的身体逐像素不变。三张派生图与原图毛色/姿势经AI查看一致；学生尚未单独确认派生表情或板端显示。
+source/保留用户于2026-10-24明确认可的idle原图和以它为参考的closed/eat/sad三次内置image_gen编辑，原字节不变。原图提示词为prompt-original.txt，完整编辑提示词为prompts-expressions.json。派生表情并非学生逐项指定；不声称编辑结果逐像素相同或已经实测。
 
-原图提示词：prompt-original.txt。3次编辑完整提示词：prompts-expressions.json。source/保留未经裁切、未经重编码的1254×1254 RGBA输出，哈希见conversion.json；runtime/是机械裁切透明边缘并等比缩放的目标图。
+当前runtime/由统一透明边裁切（left160/top62/width1018/height1118）后等比contain缩放为112×96，保留alpha，以满足用户缩小猫、让校园场景成为主体的要求。4张RGB565A8与原30×28爱心共131544字节；精确源图/输出参数见conversion.json。旧v0.3.2的196×160资源和378840字节数据保留在Git历史232d4d9。
 
-## 再生成固件资源
+已有Node.js/sharp时运行`node scripts/make_cat_assets.cjs`，或传`--sharp <本机已有sharp模块绝对路径>`。脚本机械裁切/缩放并生成src/pet_cat_assets.c/.h，颜色平面为RGB565，随后A8透明平面；不会重画猫或调用生图。闭眼图复用为眨眼、开心/摸摸和休息，爱心及z z仍由LVGL图层显示。
 
-已有Node.js与sharp时，在工程根目录执行：
-
-```text
-node scripts/make_cat_assets.cjs
-```
-
-也可传`--sharp <本机已有sharp模块绝对路径>`。不需要再调用生图接口，不在板上安装Node或PNG解码库。脚本对所有猫图统一裁切left=160/top=62/width=1018/height=1118，再contain等比缩放为196×160，保留透明alpha；不会用几何图形重画猫。输出src/pet_cat_assets.c/.h中的RGB565颜色平面+A8平面。
-
-闭眼图复用为眨眼、开心/摸摸与休息；摸摸加原爱心、休息加z z。4张整帧加原30×28爱心，共378840字节常量。保留旧assets/pet-cat中的SVG历史与爱心图。真实屏幕/触摸和运行时堆栈尚待学生实测。
+旧SVG保留于../pet-cat，当前背景与生成来源见../pet-campus。运行时完全离线，重启重置；板上显示/触摸/动态堆栈尚待真实证据。

@@ -1,0 +1,360 @@
+{
+  "recorded_at": "2026-10-25T08:23:09.314691+08:00",
+  "app_version": "0.4.0",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "requirements_design_commit": "8a38562",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "main_bin_bytes": 1263080,
+  "link_memory_report": {
+    "rom_used_bytes": 1313098,
+    "ram_used_bytes": 135860,
+    "runtime_heap_stack": "not_measured"
+  },
+  "art_image_data_bytes": 590328,
+  "test_results": {
+    "TC-120": "passed_host_only",
+    "TC-121": "passed_host_only",
+    "TC-122": "passed_build_only",
+    "TC-123": "not_executed",
+    "TC-124": "not_executed"
+  },
+  "warnings": [
+    "_close is not implemented and will always fail",
+    "_lseek is not implemented and will always fail",
+    "_read is not implemented and will always fail",
+    "_write is not implemented and will always fail",
+    "build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
+    "cannot find entry symbol entry; defaulting to 12000000",
+    "img \"dfu\" not found"
+  ],
+  "new_warning_messages_vs_v0.3.2": [],
+  "source_state": "Exact hashes captured before implementation commit. Model-driven campus actions, original approved cat and original generated backgrounds. No hardware evidence.",
+  "inputs": [
+    {
+      "path": "src/main.c",
+      "bytes": 1000,
+      "sha256": "FBF45729E052E832ADD250BBF3F39C47237EC8FF029260B12EA1B0CA3A80B9A0"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 2354,
+      "sha256": "A27477B4CEA1A860DDA437D14A8460DB52BD162F7B81F3E6F567DCCDC490FB93"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 4020,
+      "sha256": "F08F42FFC1D236052FA2AA913F1EB9BAACE1EA4CE10FF45B7CC499D87A5D745B"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1280,
+      "sha256": "EC7BBA7FF587EA9CCB44EDE6533C98176E46781A94EA2FE1A149F6A64F1358C8"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 8492,
+      "sha256": "C3EFBFCDEB8E0E72CAA429D00577FF283E8227BD332BDE7CF7E9FEBAC65BB70F"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 11575,
+      "sha256": "D2DCFC9C86B3C6197119C6B0822A37C6678711565E7B5022ED1A9DC6C98B5CCF"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 310,
+      "sha256": "15CEEFEBEEF15BE9A2AA4EFE9A02BBFE93BB1CF58B6B037277212B901544BF17"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 686705,
+      "sha256": "BC583AA5EA64630EDC814BCA605AFA9FA8753240D4E9AFB98B820728CD6C0890"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 286,
+      "sha256": "7FA10A2755DE3E6A7850117852495DBA687CD2E11C1E397E5C07427CA56EF0C8"
+    },
+    {
+      "path": "src/pet_scene_assets.c",
+      "bytes": 2390545,
+      "sha256": "857452F4FD865F32252C67E76467F54A0FFC09942611ACEA41CC10694B37FD7C"
+    },
+    {
+      "path": "src/pet_scene_assets.h",
+      "bytes": 219,
+      "sha256": "E22191F03069E8B2A2F06D7B745D8D28AC198CF1030C2B2F63B36122755D5B0B"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "scripts/make_cat_assets.cjs",
+      "bytes": 3750,
+      "sha256": "49F8DEE287F487257F6999F421E95FC66D526BEDA6088B9014E56FAB6E2A0F5E"
+    },
+    {
+      "path": "scripts/make_scene_assets.cjs",
+      "bytes": 2563,
+      "sha256": "41F4DFBBD251E6A2E78F12A8D4253F51A077B964BC6C19D2691DADE3EC1276F3"
+    },
+    {
+      "path": "tests/pet_ui_test.c",
+      "bytes": 6721,
+      "sha256": "D26EE5A818D2783C4D6F293C183C361C70CAB9A916E1D2360AA00965F10A29F1"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 4110,
+      "sha256": "B2C627CB12527F2C2E4153F2707859EEBF4F5792C6C81C2120A84229B80FB4AC"
+    },
+    {
+      "path": "tests/include/lv_conf.h",
+      "bytes": 472,
+      "sha256": "E33E2ADC4A47F424793724039CFA8436DCAD777E0C09EC09A536C5934A383FE6"
+    },
+    {
+      "path": "assets/pet-campus/conversion.json",
+      "bytes": 886,
+      "sha256": "05E5A78832E110260EACB794F68F630F3D48A84632D0B69AA9C97C5841786C7E"
+    },
+    {
+      "path": "assets/pet-campus/prompts.json",
+      "bytes": 5542,
+      "sha256": "E843E4B0259F2BC7C61D3BC9641D716A9960B623DD5F30E4371022E351DC773A"
+    },
+    {
+      "path": "assets/pet-campus/README.md",
+      "bytes": 1335,
+      "sha256": "4397B545D230AF4E48B293933C31EEED7EF316CD84447209D14C203948C1DCBC"
+    },
+    {
+      "path": "assets/pet-campus/runtime/canteen.png",
+      "bytes": 174810,
+      "sha256": "8BC5A410358B2FF040AAF90609D999D251203A4B5688560C58184D35A5E1CC90"
+    },
+    {
+      "path": "assets/pet-campus/runtime/classroom.png",
+      "bytes": 185044,
+      "sha256": "96197EF0F1E17C99FF311C65F9C915D2DD59AF45418D0F57B8269F6DC689660D"
+    },
+    {
+      "path": "assets/pet-campus/runtime/dorm.png",
+      "bytes": 200607,
+      "sha256": "B111747AE257627CF86F5DD5B8D9F653BDFD71EB83279D84AC37982FA8859FAF"
+    },
+    {
+      "path": "assets/pet-campus/source/canteen.png",
+      "bytes": 1965406,
+      "sha256": "4B86CDA33C299058C8E7084A3D9E2444EADA0CC4DAD31A0375C0D3F3FDAB9D17"
+    },
+    {
+      "path": "assets/pet-campus/source/classroom.png",
+      "bytes": 2146489,
+      "sha256": "3804847256EAEF9132E9B38AB9E11429622D7736BDF927D313AF6DC62F0CD31F"
+    },
+    {
+      "path": "assets/pet-campus/source/dorm.png",
+      "bytes": 2352853,
+      "sha256": "7D368456B3097917409769AF301B085E3DD3ABC49410B80EB086DAFD26B24602"
+    },
+    {
+      "path": "assets/pet-cat-ai/conversion.json",
+      "bytes": 2645,
+      "sha256": "AC58CE6FB73C09B5A5AAF4D81ED23890AF36E820BABF59A053B0165DFC61EB25"
+    },
+    {
+      "path": "assets/pet-cat-ai/prompt-original.txt",
+      "bytes": 1783,
+      "sha256": "8095C3E09CAD74EF88F91A5F67B3D9C4E1EDBFCC34AB599BE288D245D9B5BB5B"
+    },
+    {
+      "path": "assets/pet-cat-ai/prompts-expressions.json",
+      "bytes": 3110,
+      "sha256": "113408D5C3E374BCAC2BE07EE9EBC5968CDEAF4AD89FEB09859F1E56CBB7D3E2"
+    },
+    {
+      "path": "assets/pet-cat-ai/README.md",
+      "bytes": 1268,
+      "sha256": "3CF09B0E8717043B12AF46460E2AD41B45937ED6B8013F399C7DD6C1C1EECE55"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/closed.png",
+      "bytes": 17394,
+      "sha256": "5479FE2902E0B93B46BFD04D198063C60C3AC667A017FF4478241E8C1F434995"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/eat.png",
+      "bytes": 17895,
+      "sha256": "FDA4869C306396E6EFC5124D3EB36DA231B7776E80881BDFBAFE7E54C82219B5"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/heart.png",
+      "bytes": 517,
+      "sha256": "72BA82C11511E7CC08F94550CDDB66B22768C1FF29B434D64F1569AA6FD83D34"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/idle.png",
+      "bytes": 17820,
+      "sha256": "3A1E02104EFB8ECABFDA979C3B37E30444EA86FBD38EC9FE584CA822000CD152"
+    },
+    {
+      "path": "assets/pet-cat-ai/runtime/sad.png",
+      "bytes": 17654,
+      "sha256": "5B4D8E82B5E09449EFBF8A13380E8DB197579786CFE637F066CDC5F7118EF4DD"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/closed.png",
+      "bytes": 1342691,
+      "sha256": "357E4CEF67655D11AE9DA96C6A0AEF5F3C8874064D5E0B198D36B93C5F1A0E77"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/eat.png",
+      "bytes": 1346561,
+      "sha256": "1F6DDD6DCF4EB93BE2A6EEBD003357598154E7EC0861DCC5F1156BCA0DA39393"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/idle.png",
+      "bytes": 1431720,
+      "sha256": "0D2343B10E1D730EBCF0FA9D3546611E182AF88909C8AC0CFD4F20C77C40D2B3"
+    },
+    {
+      "path": "assets/pet-cat-ai/source/sad.png",
+      "bytes": 1323660,
+      "sha256": "66022F95191323C7871D2189099291BAE3E719FE8085CD394E8E0A0696BD5E61"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 1263080,
+      "sha256": "8CE2D25E79CF9D5F9BF34CD1D2EE16A69A05F86657D47F40026A555B957A54FE"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.elf",
+      "bytes": 7268988,
+      "sha256": "B1DAD128BDA7C9C1DA8D919EF506B1CED43FDBB67FBBB2BD115C59B703D8D437"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.hex",
+      "bytes": 3552811,
+      "sha256": "B1BAD30643902BA6F50D7F82DB9ABA7F0ACEDFFA739A04A8363B4453B8267680"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "D47D3ABB84C16B3CEECF52894A0403FB8C69FCCA182BA6E3DA0BBE30E002CB90"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    }
+  ],
+  "previews": [
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-blink.png",
+      "bytes": 109701,
+      "sha256": "05B59C67BD5D54F674E547F8D7201D15121BE611F3087ABA0D68A17A0958C1AD"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-canteen.png",
+      "bytes": 96620,
+      "sha256": "D419C21C2407570A9FD10676C23805EA8DA8C84EED7E5C837D06C5BE0B81CB81"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-classroom.png",
+      "bytes": 100509,
+      "sha256": "F0DE4F6DDE978A93DC62B64F0015622DE2F97E7127BB3410DA18828C1B524CEA"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-dorm.png",
+      "bytes": 111015,
+      "sha256": "71E31F3A3252AEFD38E10117C12C6CDA16A5209854FFB2CE368E855A7EF68C5A"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-eat.png",
+      "bytes": 94078,
+      "sha256": "A7A975A531454E5A3B7F2241F22EE507753DDB0424AAFD87BB0EBA20CDB00457"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-edge-cases.png",
+      "bytes": 431937,
+      "sha256": "7BA0C738039D776FA18731533E06D7F0CCC24275DAAA742D663BA51050D47F57"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-full.png",
+      "bytes": 99086,
+      "sha256": "2009C83D629E1A220A2626FED0EA1D14556E66B0485B97537E8946439A4B7C4D"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-low-food.png",
+      "bytes": 99740,
+      "sha256": "A313F45D22CCF0A306C372E3C3C8BF47FDC1BCD1E0639CC3636203A262D58111"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-pet.png",
+      "bytes": 93012,
+      "sha256": "70EB68AD161DA3FD54C221751045C2E9B8E5EFEB4AAAC7D47A82BE1D89ED9651"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-preview.png",
+      "bytes": 566690,
+      "sha256": "FEEE81D8D03D6802A41C7704AE6EE1567198AAB3370A0A83B9063A8B5FE68251"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-rest.png",
+      "bytes": 110490,
+      "sha256": "9623F84634E92FEB2C8D8AF86AF24E3BB0C3CD621C19584A9DD217D323C5FB00"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-study-progress.png",
+      "bytes": 98014,
+      "sha256": "B16204921868D99F5592CDE1BDA0E3E3E67B4D449FE248BAA12A8C1FFABF3C38"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-study.png",
+      "bytes": 97996,
+      "sha256": "23DE34CFCD6A8674943F5D04FFD941F1946B441230FDA26E351DC8A2728CB08D"
+    },
+    {
+      "path": "evidence/pet/previews/campus-v0.4.0/campus-zero.png",
+      "bytes": 98795,
+      "sha256": "2F64E48422D8BD7797BF4AE7EEE2BA603536C00C31A22DCFED464B5CE119894A"
+    }
+  ]
+}

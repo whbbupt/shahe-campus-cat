@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, '..');
 const art = path.join(root, 'assets', 'pet-cat-ai');
 const crop = {left:160, top:62, width:1018, height:1118};
 const sprites = ['idle','closed','eat','sad'].map(name => ({
-  name, source:path.join(art,'source',name+'.png'), width:196, height:160, crop
+  name, source:path.join(art,'source',name+'.png'), width:112, height:96, crop
 }));
 sprites.push({name:'heart', source:path.join(root,'assets','pet-cat','cat-heart.png'), width:30,height:28});
 

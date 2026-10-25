@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "T1功能验证已通过，待本人总结与交接；电子宠物离线v0.3.2生图角色接入，产品用例待执行"
+  milestone: "T1功能验证已通过，待本人总结与交接；沙河校园电子宠物v0.4.0，产品用例待执行"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -62,7 +62,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.3.2_metadata_20261024.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.4.0_metadata_20261025.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -278,7 +278,42 @@ test_results:
     status: not_executed
     pass: null
 
+  - test_id: TC-120
+    description: 沙河校园纯C模型与共享自检
+    expected: 按docs/03第9节执行
+    actual: 主机原7组和新增3组共10组PASS；非板上运行
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.4.0_20261025.txt
+  - test_id: TC-121
+    description: 实际校园UI与交互布局
+    expected: 按docs/03第9节执行
+    actual: 3场景/行为/拒绝恢复/10次重建/定时器/眨眼/嵌套边界PASS，12态主机图经查看
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.4.0_20261025.txt
+  - test_id: TC-122
+    description: 沙河校园完整目标构建
+    expected: 按docs/03第9节执行
+    actual: 原build_firmware.py返回0，main.bin1263080字节
+    status: passed_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.4.0_20261025.txt
+  - test_id: TC-123
+    description: 校园场景与行为板卡验证
+    expected: 按docs/03第9节执行
+    actual: 未执行；未取得本版板卡证据
+    status: not_executed
+    pass: null
+  - test_id: TC-124
+    description: 新版10组板上启动自检
+    expected: 按docs/03第9节执行
+    actual: 未执行；主机PASS不能替代实际启动日志
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.4.0沙河校园三场景/上课/吃饭/休息与较小猫已实现，TC-120/121/122仅软件通过；TC-123/124未实测，图是插画/主机渲染，仍无存档与真实运行时内存结论。"
   - "v0.3.2已按用户认可原图替换为AI生图猫；6态实际LVGL预览/回归与构建通过，动态堆栈和真实板端效果未测；不把原图认可当实物通过。"
   - "v0.3.1按用户选择重绘奶白橘猫，四态实际LVGL预览/回归/构建通过；图像常量154680字节，运行时堆栈和真实板端表现未测，不把预览当照片。"
   - "两人电子宠物按用户授权开始离线v0.3.0会话版；模型/UI分离与默认画风由AI建议。存档未实现、联网拓展、成员分工待认领；本轮主机逻辑/UI与构建通过，5项物理用例未执行。"
@@ -311,6 +346,10 @@ human_checkpoints:
   - decision_point: "T1按键读取方案"
     student_confirmation: "周期轮询（推荐）：约每5ms读一次按键，便于理解和调试"
     evidence_path: "evidence/T1/polling_choice_20261022_user.txt"
+
+  - decision_point: "沙河校园玩法范围"
+    student_confirmation: "用户选择温馨风格，要求主体小一点、多场景和北邮上学的小猫；明确选择同时校园行为/数值、沙河校区。具体演示参数AI提出。"
+    evidence_path: "evidence/pet/campus_scope_20261025_user.txt"
 
   - decision_point: "AI生成角色接入"
     student_confirmation: "可以我觉得还不错 能替换吗（认可原始生成猫并授权替换；派生表情与板端显示尚未单独确认）"

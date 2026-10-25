@@ -4,19 +4,23 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef enum { PET_FEED, PET_TOUCH, PET_REST } pet_event_t;
-typedef enum { PET_OK, PET_BUSY, PET_COOLDOWN, PET_FULL, PET_ASLEEP, PET_INVALID } pet_result_t;
-typedef enum { PET_IDLE, PET_HAPPY, PET_HUNGRY, PET_LONELY, PET_FEEDING, PET_PETTING, PET_SLEEPING } pet_view_t;
+typedef enum { PET_FEED, PET_TOUCH, PET_REST, PET_STUDY,
+               PET_GO_DORM, PET_GO_CLASSROOM, PET_GO_CANTEEN } pet_event_t;
+typedef enum { PET_OK, PET_BUSY, PET_COOLDOWN, PET_FULL, PET_ASLEEP, PET_INVALID, PET_LOW_FOOD } pet_result_t;
+typedef enum { PET_IDLE, PET_HAPPY, PET_HUNGRY, PET_LONELY, PET_FEEDING, PET_PETTING, PET_SLEEPING, PET_STUDYING } pet_view_t;
+typedef enum { PET_DORM, PET_CLASSROOM, PET_CANTEEN } pet_scene_t;
 
 typedef struct
 {
     uint8_t food;
     uint8_t mood;
     bool sleeping;
+    pet_scene_t scene;
     pet_view_t action;
     uint32_t action_ms;
     uint32_t feed_cooldown_ms;
     uint32_t touch_cooldown_ms;
+    uint32_t study_cooldown_ms;
     uint32_t food_elapsed_ms;
     uint32_t mood_elapsed_ms;
     uint32_t rest_elapsed_ms;

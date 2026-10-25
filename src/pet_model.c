@@ -29,6 +29,7 @@ void pet_model_init(pet_model_t *pet)
     memset(pet, 0, sizeof(*pet));
     pet->food = 70;
     pet->mood = 60;
+    pet->scene = PET_DORM;
     pet->action = PET_IDLE;
 }
 
@@ -36,6 +37,7 @@ void pet_model_advance(pet_model_t *pet, uint32_t elapsed_ms)
 {
     pet->feed_cooldown_ms = countdown(pet->feed_cooldown_ms, elapsed_ms);
     pet->touch_cooldown_ms = countdown(pet->touch_cooldown_ms, elapsed_ms);
+    pet->study_cooldown_ms = countdown(pet->study_cooldown_ms, elapsed_ms);
     pet->action_ms = countdown(pet->action_ms, elapsed_ms);
     if (!pet->action_ms)
         pet->action = PET_IDLE;
@@ -49,30 +51,37 @@ void pet_model_advance(pet_model_t *pet, uint32_t elapsed_ms)
 
 pet_result_t pet_model_event(pet_model_t *pet, pet_event_t event)
 {
-    if (event != PET_FEED && event != PET_TOUCH && event != PET_REST)
+    if ((unsigned)event > (unsigned)PET_GO_CANTEEN)
         return PET_INVALID;
     if (pet->action_ms)
         return PET_BUSY;
     if (event == PET_REST)
     {
+        pet->scene = PET_DORM;
         pet->sleeping = !pet->sleeping;
         pet->rest_elapsed_ms = 0;
         return PET_OK;
     }
     if (pet->sleeping)
         return PET_ASLEEP;
+    if (event >= PET_GO_DORM && event <= PET_GO_CANTEEN)
+    {
+        pet->scene = (pet_scene_t)(event - PET_GO_DORM);
+        return PET_OK;
+    }
     if (event == PET_FEED)
     {
         if (pet->food == 100)
             return PET_FULL;
         if (pet->feed_cooldown_ms)
             return PET_COOLDOWN;
+        pet->scene = PET_CANTEEN;
         pet->food = increase(pet->food, 15);
         pet->feed_cooldown_ms = 2000;
         pet->action = PET_FEEDING;
         pet->action_ms = 1200;
     }
-    else
+    else if (event == PET_TOUCH)
     {
         if (pet->mood == 100)
             return PET_FULL;
@@ -82,6 +91,21 @@ pet_result_t pet_model_event(pet_model_t *pet, pet_event_t event)
         pet->touch_cooldown_ms = 3000;
         pet->action = PET_PETTING;
         pet->action_ms = 900;
+    }
+    else /* PET_STUDY: short, explicit demo cycle; effects settle once at start. */
+    {
+        if (pet->food < 10)
+            return PET_LOW_FOOD;
+        if (pet->mood == 100)
+            return PET_FULL;
+        if (pet->study_cooldown_ms)
+            return PET_COOLDOWN;
+        pet->scene = PET_CLASSROOM;
+        pet->food = decrease(pet->food, 5);
+        pet->mood = increase(pet->mood, 5);
+        pet->study_cooldown_ms = 8000;
+        pet->action = PET_STUDYING;
+        pet->action_ms = 5000;
     }
     return PET_OK;
 }
