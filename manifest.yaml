@@ -53,6 +53,11 @@ design:
       rationale: "用户授权列出后直接开始；当前无耗时I/O，先建立可验证闭环，存档预研和联网拓展不虚报完成"
       decided_by: "用户授权后AI建议采用；见ADR-0003与implementation_authorization_20261023_user.txt"
 
+    - decision: "沙河校园采用三场景及模型驱动的上课/吃饭/休息"
+      alternatives_considered: "仅换背景保留原规则；增加校园行为与数值变化"
+      rationale: "用户明确选择校园行为版本和沙河；保留单线程，切场景与结算分离；具体演示参数由AI提出"
+      decided_by: "王焕博选择范围；见ADR-0004与campus_scope_20261025_user.txt"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
