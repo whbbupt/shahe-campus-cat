@@ -1,0 +1,14 @@
+{
+  "verified_on": "2026-10-26",
+  "head_before_integration": "9c723f0a9eb3b47f974d12b30a26f00326eee399",
+  "build_inputs_verified": 42,
+  "build_artifacts_verified": 9,
+  "package_artifacts_verified": 13,
+  "zip_crc_and_all_file_bytes_pass": true,
+  "sdk_and_protected_files_unchanged": true,
+  "source_changed_since_final_tests": false,
+  "main_bin_bytes": 2096080,
+  "main_bin_sha256": "B51288D5FEDB8D1B4BF8892BC78FD79C9F5A39CF15203BB9E41FA19A2BF21260",
+  "board_verification": "not_executed",
+  "rebuild_required": false
+}

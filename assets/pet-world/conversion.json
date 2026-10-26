@@ -1,0 +1,230 @@
+{
+  "method": "approved source PNGs -> native RGB565/RGB565A8; same anchors and masks as browser v1.4",
+  "total_image_bytes": 1417743,
+  "images": [
+    {
+      "symbol": "pw_bg_dorm",
+      "width": 390,
+      "height": 450,
+      "bytes": 351000,
+      "sha256": "feb876308e310bdb15e2953aa02a79ebbfa3e5def14963714e5896d96013eebf"
+    },
+    {
+      "symbol": "pw_occ_dorm",
+      "width": 33,
+      "height": 100,
+      "bytes": 9900,
+      "sha256": "5a78ea04b796c55cd0b7346d40184936ad6f374c444d3bd44dbebed82e14befb"
+    },
+    {
+      "symbol": "pw_bg_classroom",
+      "width": 390,
+      "height": 450,
+      "bytes": 351000,
+      "sha256": "e5418a690c5d339ab0d3013e9446435299fdaae7551c213913bf460cc837b8e9"
+    },
+    {
+      "symbol": "pw_occ_classroom",
+      "width": 49,
+      "height": 117,
+      "bytes": 17199,
+      "sha256": "f46e0016916dedeebbbca0510e20319e146317bc0ccfe6250bdd061b123c41b9"
+    },
+    {
+      "symbol": "pw_bg_canteen",
+      "width": 390,
+      "height": 450,
+      "bytes": 351000,
+      "sha256": "d95eeab2f44ae2826e0e304814015fe1686a9d2d81331418362a9b57296f1f42"
+    },
+    {
+      "symbol": "pw_occ_canteen",
+      "width": 42,
+      "height": 122,
+      "bytes": 15372,
+      "sha256": "e28e29ed648a381632f9d932188fc22f382d74e3d1aacc5b693dd1addf657d37"
+    },
+    {
+      "symbol": "pw_frame_0",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "449c4f16c45a56fbe7e4df7e8a5e6cdbec34a785c6862e2e5a848fd9f606b0f5"
+    },
+    {
+      "symbol": "pw_frame_1",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "0c0286d756898e286dba43106d7431bdcff5b30f425cbc25df11a54bbf7618e9"
+    },
+    {
+      "symbol": "pw_frame_2",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "8f1e5138f23ce8cbc7e7423ef4e11e6bf7aec26f872905cae3fdbe93bf21bd44"
+    },
+    {
+      "symbol": "pw_frame_3",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "fce85c2d2d55335c38d87c7e2c654ed561dff44c559697039ef5bc99e43909ed"
+    },
+    {
+      "symbol": "pw_frame_4",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "7de14eabb0ab10cdfa0035a94f8b28628af54e5c251b5cace0286b7ef46b5844"
+    },
+    {
+      "symbol": "pw_frame_5",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "46add302a4c88ca328c4bfbcfbe53af81f084b0ff66a321c7d6d2060bac8f083"
+    },
+    {
+      "symbol": "pw_frame_6",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "ca659dca70ec0066fa67ca11e215717134103d6f694591aee58e98108363e1da"
+    },
+    {
+      "symbol": "pw_frame_7",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "87fe04ec18936e11cdbc7f8618343eff41d750e2d23005f9402ded446dc078c9"
+    },
+    {
+      "symbol": "pw_frame_8",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "5126266533036f6c38e87aa3d40cbd622332d8c284b2641e656ab23922ab0401"
+    },
+    {
+      "symbol": "pw_frame_9",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "6be2ac4ab95cb1344be30455da225f2d1699c79d6cfd2692731d85e3f09c1f0d"
+    },
+    {
+      "symbol": "pw_frame_10",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "a7ed5ba80e54d3919f259409120d6f86f672dc1a69e2da894bfe12c507750650"
+    },
+    {
+      "symbol": "pw_frame_11",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "02e2df2e2a29b30a8f28806e5d557ca34da0dff2851ecf2c2773e2a9056f59f9"
+    },
+    {
+      "symbol": "pw_frame_12",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "e5577823f5a0752cc62e8e3eb1c3a38d3efe381d83ea82afa79908f2cfaa4267"
+    },
+    {
+      "symbol": "pw_frame_13",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "a5831b4d5e8c690d8b16d5da13837266b431fbf7fc0faaa92e35420fbf1f030a"
+    },
+    {
+      "symbol": "pw_frame_14",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "44b45147377e935983b66cdf37506b02dfd9e039373f8a58a86a283a8ab2a6a2"
+    },
+    {
+      "symbol": "pw_frame_15",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "c5c04e2d39284229d19e7ce23ac0e065d2fde29b33243dbb42a538f4ee67a6b3"
+    },
+    {
+      "symbol": "pw_frame_16",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "21e34f2a4a38f4b20ad93ceb546414296e6767099846ead5696878f6f9f8c031"
+    },
+    {
+      "symbol": "pw_frame_17",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "1b6098bf26c7dbbb67ddff111894348a031ab78c2cbbc4e6334841f69beb2509"
+    },
+    {
+      "symbol": "pw_frame_18",
+      "width": 72,
+      "height": 76,
+      "bytes": 16416,
+      "sha256": "192fe924332781aee76fb6f1b61f2886b36c87212551506d55f519b9552128af"
+    },
+    {
+      "symbol": "pw_icon_0",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "cd9562c8c1e2845ccd0787aeba3a4a4acd995add6be3e048d32cb8d514ce8680"
+    },
+    {
+      "symbol": "pw_icon_1",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "5134d8fc0b5ef42b734d80c64f24369e9720417dd38af241f257d9eb7cd6fca4"
+    },
+    {
+      "symbol": "pw_icon_2",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "df9b1b1ced819cedfce9bf41c8c67069e3c21dcf86e7838e8a435495e1ae236e"
+    },
+    {
+      "symbol": "pw_icon_3",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "058ba2dd7d8173c2e1d92bd503037f6ee9cd09f7aae8b2ac7e75272b51192b1a"
+    },
+    {
+      "symbol": "pw_icon_4",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "4afa5d5153524a34045f264701f7f2233ae53ba54fb1a3fe9fb7edec09cd42bf"
+    },
+    {
+      "symbol": "pw_icon_5",
+      "width": 24,
+      "height": 24,
+      "bytes": 1728,
+      "sha256": "1225e00bfab03e64237f8a58915e96f71975329a69f51fd7ea909c12d94a9d8d"
+    }
+  ],
+  "source_hashes": {
+    "activity-atlas.png": "1d58312a3ce84ecf88e4a791e13bea13893684510c574dd99fc82a699e3d454f",
+    "canteen.png": "5d25ccd6a69eed0798a93efb0f488130f2977765db7aab45cbdf2e1a28351584",
+    "classroom.png": "1f292a98b6e69f019ab72bbd1170acf117ea0b08d06e06539fae246bac9be918",
+    "dorm.png": "b8e593c1d8c7a8e71c749a130d118683da6f4cfe3332920b4455e9382b0db328",
+    "eight-atlas.png": "7d01ffc18e09150dc4f4397f954b687699f50ef5739a06d83928bf221e7bdc4d"
+  }
+}

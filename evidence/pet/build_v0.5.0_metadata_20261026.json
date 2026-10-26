@@ -1,0 +1,298 @@
+{
+  "recorded_on": "2026-10-26",
+  "app_version": "0.5.0",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "sdk_clean": true,
+  "requirements_commit": "be73556",
+  "model_commit": "9c723f0",
+  "source_ref": "refs/heads/feat/pet-core",
+  "source_state": "Exact final filesystem input hashes captured before integration commit; UI source uses confirmed fixed-room design, not the browser runtime.",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit_code": 0,
+  "main_bin_bytes": 2096080,
+  "main_bin_sha256": "B51288D5FEDB8D1B4BF8892BC78FD79C9F5A39CF15203BB9E41FA19A2BF21260",
+  "link_memory_report": {
+    "rom_used_bytes": 2146115,
+    "ram_used_bytes": 136224,
+    "runtime_heap_stack": "not_measured"
+  },
+  "art_image_bytes": 1417743,
+  "test_results": {
+    "TC-130": "passed_host_only; old model 10 groups and production world 14 groups",
+    "TC-131": "passed_host_only; real LVGL pointer and rendering, 21 previews",
+    "TC-132": "passed_build_only",
+    "TC-133": "not_executed",
+    "TC-134": "not_executed"
+  },
+  "warnings": [
+    "build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
+    "img \"dfu\" not found",
+    "_close is not implemented and will always fail",
+    "_lseek is not implemented and will always fail",
+    "_read is not implemented and will always fail",
+    "_write is not implemented and will always fail",
+    "cannot find entry symbol entry; defaulting to 12000000"
+  ],
+  "new_warning_messages_vs_v0.4.0": [],
+  "protected_inputs_unchanged": true,
+  "inputs": [
+    {
+      "path": "src/course_ui.c",
+      "bytes": 1838,
+      "sha256": "7D4D14E9DCDA93CC18B2FA93BAA43D495AAD1D29FC324664FA493DD01EB0B7A2"
+    },
+    {
+      "path": "src/key.c",
+      "bytes": 5582,
+      "sha256": "66A3B61FE2472A8AFE33DAC07BA1F0F3E57B0CDD92C8FD77BC82806FED34AFB2"
+    },
+    {
+      "path": "src/main.c",
+      "bytes": 1075,
+      "sha256": "4EBE38B15CABC1E5BF409AC461C0ACBB9C8FD5D7443AA84A24B4B7D9F75EEE86"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 1568,
+      "sha256": "AEB2168D790B4A7DDF58C86E79AFC58C561ECB87021D2218A6CA04E98648A7EA"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 686705,
+      "sha256": "BC583AA5EA64630EDC814BCA605AFA9FA8753240D4E9AFB98B820728CD6C0890"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 4020,
+      "sha256": "F08F42FFC1D236052FA2AA913F1EB9BAACE1EA4CE10FF45B7CC499D87A5D745B"
+    },
+    {
+      "path": "src/pet_scene_assets.c",
+      "bytes": 2390545,
+      "sha256": "857452F4FD865F32252C67E76467F54A0FFC09942611ACEA41CC10694B37FD7C"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 8492,
+      "sha256": "C3EFBFCDEB8E0E72CAA429D00577FF283E8227BD332BDE7CF7E9FEBAC65BB70F"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 14326,
+      "sha256": "DDA0E2D754920D0D2F8D2F5B0974D1BD2966C465570026E26AFE714DEC98A665"
+    },
+    {
+      "path": "src/pet_world.c",
+      "bytes": 17289,
+      "sha256": "CCF4DE2FFD39B0DBD5CFF0FAE0B74ACBB2CF64031DBC1A6B2156B47F29BDB39C"
+    },
+    {
+      "path": "src/pet_world_assets.c",
+      "bytes": 7215708,
+      "sha256": "E46B2807DE89BCE26965753A6407BFE8A4521ECECBFE3079CEA6EE29E9EE258D"
+    },
+    {
+      "path": "src/pet_world_font.c",
+      "bytes": 172618,
+      "sha256": "20FD32489DAD0043F417A91358586A5F67832175C72F2B537F3512AF593D1A33"
+    },
+    {
+      "path": "src/pet_world_selftest.c",
+      "bytes": 7507,
+      "sha256": "BDB60C275B171AB816FD82E002E2D7C78197FD0F29C4919AA8748A287915CCB4"
+    },
+    {
+      "path": "src/course_ui.h",
+      "bytes": 216,
+      "sha256": "981E89DFFA5E4D32CE1AD41027F91265974419563F5733EEB8B2962E7ADFE212"
+    },
+    {
+      "path": "src/key.h",
+      "bytes": 590,
+      "sha256": "5C854C1FFDAACC4AAEF4557BD6B25A4236C25845310B5D824BCFAE206CEB1F01"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 286,
+      "sha256": "7FA10A2755DE3E6A7850117852495DBA687CD2E11C1E397E5C07427CA56EF0C8"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1280,
+      "sha256": "EC7BBA7FF587EA9CCB44EDE6533C98176E46781A94EA2FE1A149F6A64F1358C8"
+    },
+    {
+      "path": "src/pet_scene_assets.h",
+      "bytes": 219,
+      "sha256": "E22191F03069E8B2A2F06D7B745D8D28AC198CF1030C2B2F63B36122755D5B0B"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 218,
+      "sha256": "43AA7D46F0B62E04069F58E4CFB7F8F9C77FC3C45B7AB192E94263794F011263"
+    },
+    {
+      "path": "src/pet_version.h",
+      "bytes": 88,
+      "sha256": "FDEF0F14AAF26BE4A6E7A70CB3B203EB32C2D727B4379562C75DB3DD1C7B6D3E"
+    },
+    {
+      "path": "src/pet_world.h",
+      "bytes": 1738,
+      "sha256": "96167A0E355817A0A2AB0179385DCB91AA6BD4D5C1CF7B84470C965F26090808"
+    },
+    {
+      "path": "src/pet_world_assets.h",
+      "bytes": 1592,
+      "sha256": "82F244A8BC2B0D5A610A7AC80DE05452A7F1D36D36D20642C9AAEB2571657264"
+    },
+    {
+      "path": "src/pet_world_font.h",
+      "bytes": 153,
+      "sha256": "0478F18E3D73D1EAA5100CC9DB1D9D1889B5DC41568B70E40DE0345BCB5F142B"
+    },
+    {
+      "path": "project/SConstruct",
+      "bytes": 799,
+      "sha256": "895F6A73940F18A05686C3813C08050A5F643436050DD01BC015FD09F6EBC9CF"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "project/Kconfig",
+      "bytes": 76,
+      "sha256": "C5FA11ABAE22E736829FDF8386B2521555E45DC09EBA30618A1A7267B10FFEFC"
+    },
+    {
+      "path": "project/rtconfig.py",
+      "bytes": 10,
+      "sha256": "7414EA905126BB7954095AD6126A355FC08C173C87EA2E4885942B6B947B0614"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "tests/include/lv_conf.h",
+      "bytes": 472,
+      "sha256": "E33E2ADC4A47F424793724039CFA8436DCAD777E0C09EC09A536C5934A383FE6"
+    },
+    {
+      "path": "tests/pet_world_ui_test.c",
+      "bytes": 9577,
+      "sha256": "35F31D75B4D5B39786950DD8F52BF0D527F9212B119FE320420992AFEBC5BF70"
+    },
+    {
+      "path": "tests/pet_world_test.c",
+      "bytes": 313,
+      "sha256": "E84E69E66E27987ECD007D1C3F16AF9F0ECB16C2633DE2556C93F01C75D7FE07"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 4314,
+      "sha256": "04EA44AA0E73FCE04395E01A88206CF05680AE5D9A8A5026C8A0DD00CC39457B"
+    },
+    {
+      "path": "assets/pet-world/source/activity-atlas.png",
+      "bytes": 1796434,
+      "sha256": "1D58312A3CE84ECF88E4A791E13BEA13893684510C574DD99FC82A699E3D454F"
+    },
+    {
+      "path": "assets/pet-world/source/canteen.png",
+      "bytes": 2235595,
+      "sha256": "5D25CCD6A69EED0798A93EFB0F488130F2977765DB7AAB45CBDF2E1A28351584"
+    },
+    {
+      "path": "assets/pet-world/source/classroom.png",
+      "bytes": 2377162,
+      "sha256": "1F292A98B6E69F019AB72BBD1170ACF117EA0B08D06E06539FAE246BAC9BE918"
+    },
+    {
+      "path": "assets/pet-world/source/dorm.png",
+      "bytes": 2440175,
+      "sha256": "B8E593C1D8C7A8E71C749A130D118683DA6F4CFE3332920B4455E9382B0DB328"
+    },
+    {
+      "path": "assets/pet-world/source/eight-atlas.png",
+      "bytes": 1899837,
+      "sha256": "7D01FFC18E09150DC4F4397F954B687699F50EF5739A06D83928BF221E7BDC4D"
+    },
+    {
+      "path": "assets/pet-world/conversion.json",
+      "bytes": 6448,
+      "sha256": "B00EC2A07692C654F0978C532AD818CB2857D0B69340BF5A6C1B64A942070F2D"
+    },
+    {
+      "path": "assets/pet-world/font-conversion.json",
+      "bytes": 848,
+      "sha256": "22DE6CB51F7418FB1DA00E8C9D37E6C71694C903D7F0D5A31F5F246C506E9AC3"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "main.bin",
+      "bytes": 2096080,
+      "sha256": "B51288D5FEDB8D1B4BF8892BC78FD79C9F5A39CF15203BB9E41FA19A2BF21260"
+    },
+    {
+      "path": "main.elf",
+      "bytes": 8132212,
+      "sha256": "40AA5C9E6F24EAFEA21C31410DE718159F48BFC25F827FCD03BE14AC95A66C87"
+    },
+    {
+      "path": "main.hex",
+      "bytes": 5895821,
+      "sha256": "32D6108D8D0F3A36FDB0464A2091C7DE60D38592C3852A8823D3B6AECB596338"
+    },
+    {
+      "path": "bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "D9CA460BA8B422DFC0EB4F6D24D49DD9CAAE7D3E274FEC200E3420772FA4327A"
+    },
+    {
+      "path": "ImgBurnList.ini",
+      "bytes": 143,
+      "sha256": "30F2A9B0F53C5AFEE62B650E3FAF27E13A47EC6CE369D077B5A7CF82BFF546A2"
+    },
+    {
+      "path": "uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    },
+    {
+      "path": "download.bat",
+      "bytes": 134,
+      "sha256": "FDE5C42582509F3F8D788D929BD2E7D1D731DAEE6CCCD826ED3374699FFFD340"
+    },
+    {
+      "path": "sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    }
+  ]
+}

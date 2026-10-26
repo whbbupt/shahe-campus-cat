@@ -1,10 +1,7 @@
 #ifndef PET_UI_H
 #define PET_UI_H
-
-#include "pet_model.h"
-typedef void (*pet_ui_action_fn)(pet_event_t event);
-/* UI-thread only. Recreating the page deletes its old animation timer first. */
+#include "pet_world.h"
+typedef pw_result_t (*pet_ui_action_fn)(pw_command_t command);
 void pet_ui_create(pet_ui_action_fn action);
-void pet_ui_update(const pet_model_t *pet, const char *message);
-
+void pet_ui_update(const pet_world_t *world);
 #endif

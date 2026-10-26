@@ -1,0 +1,13 @@
+* Loaded runtime config ... OK
+* Loaded profile lock 'default' ... OK
+┌─────────────────────────────┐
+│ Activating SiFli-SDK v2.5.1 │
+│ profile=default             │
+└─────────────────────────────┘
+* Resolved tool plan ... OK
+* Checking environment compatibility ... OK
+[ OK ] Updated state file D:\development\sifli\tools\sifli-sdk-env.json
+* Identified shell ... powershell
+* Generating shell export script ... OK
+* Export script ... C:\temp\sifli-sdk-export\sdk-env-lak69q0y.ps1
+C:\temp\sifli-sdk-export\sdk-env-lak69q0y.ps1

@@ -1,0 +1,1102 @@
+{
+  "designVersion": "1.4",
+  "designedOn": "2026-10-25",
+  "updatedOn": "2026-10-26",
+  "parameterAuthority": "AI defaults completed under the user request to finish the whole design; not individually user-specified or teacher requirements",
+  "scope": "offline three-scene session version",
+  "viewport": {
+    "width": 390,
+    "height": 450,
+    "camera": "fixed per scene; no follow, zoom or activity closeup"
+  },
+  "controls": [
+    "status",
+    "travel"
+  ],
+  "character": {
+    "width": 52,
+    "height": 58,
+    "footAnchor": "bottom center",
+    "footRadius": [
+      6,
+      3
+    ],
+    "touchMin": [
+      64,
+      68
+    ],
+    "plannedFrameCount": 40
+  },
+  "characterAtlas": {
+    "atlases": {
+      "walk": {
+        "file": "assets/cat-eight-v1.3/atlas.png",
+        "width": 1254,
+        "height": 1254
+      },
+      "activity": {
+        "file": "assets/cat-volume-v1.2/atlas.png",
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    "frames": {
+      "front-a": {
+        "rect": [
+          78,
+          24,
+          200,
+          330
+        ],
+        "anchor": [
+          178,
+          333
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "front-b": {
+        "rect": [
+          375,
+          23,
+          204,
+          332
+        ],
+        "anchor": [
+          480,
+          333
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "front-left-a": {
+        "rect": [
+          652,
+          19,
+          260,
+          336
+        ],
+        "anchor": [
+          782,
+          333
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "front-left-b": {
+        "rect": [
+          957,
+          20,
+          270,
+          337
+        ],
+        "anchor": [
+          1092,
+          335
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "left-a": {
+        "rect": [
+          22,
+          355,
+          322,
+          264
+        ],
+        "anchor": [
+          187,
+          595
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "left-b": {
+        "rect": [
+          340,
+          357,
+          306,
+          262
+        ],
+        "anchor": [
+          492,
+          595
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-left-a": {
+        "rect": [
+          671,
+          353,
+          280,
+          287
+        ],
+        "anchor": [
+          813,
+          619
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-left-b": {
+        "rect": [
+          966,
+          355,
+          278,
+          284
+        ],
+        "anchor": [
+          1110,
+          616
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-a": {
+        "rect": [
+          90,
+          637,
+          164,
+          288
+        ],
+        "anchor": [
+          173,
+          904
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-b": {
+        "rect": [
+          391,
+          638,
+          179,
+          292
+        ],
+        "anchor": [
+          480,
+          909
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-right-a": {
+        "rect": [
+          647,
+          641,
+          270,
+          283
+        ],
+        "anchor": [
+          781,
+          909
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "back-right-b": {
+        "rect": [
+          960,
+          637,
+          252,
+          287
+        ],
+        "anchor": [
+          1088,
+          909
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "right-a": {
+        "rect": [
+          17,
+          930,
+          319,
+          272
+        ],
+        "anchor": [
+          179,
+          1178
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "right-b": {
+        "rect": [
+          335,
+          930,
+          308,
+          272
+        ],
+        "anchor": [
+          488,
+          1178
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "front-right-a": {
+        "rect": [
+          647,
+          925,
+          285,
+          299
+        ],
+        "anchor": [
+          789,
+          1199
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "front-right-b": {
+        "rect": [
+          973,
+          925,
+          277,
+          302
+        ],
+        "anchor": [
+          1111,
+          1202
+        ],
+        "unit": 0.17,
+        "atlas": "walk"
+      },
+      "sit-a": {
+        "rect": [
+          54,
+          818,
+          355,
+          383
+        ],
+        "anchor": [
+          232,
+          1175
+        ],
+        "unit": 0.14,
+        "atlas": "activity"
+      },
+      "sit-b": {
+        "rect": [
+          475,
+          820,
+          361,
+          382
+        ],
+        "anchor": [
+          654,
+          1177
+        ],
+        "unit": 0.14,
+        "atlas": "activity"
+      },
+      "sleep": {
+        "rect": [
+          860,
+          934,
+          388,
+          269
+        ],
+        "anchor": [
+          1054,
+          1176
+        ],
+        "unit": 0.14,
+        "atlas": "activity"
+      }
+    },
+    "sourcePoseCount": 19,
+    "directions": [
+      "front",
+      "front-left",
+      "left",
+      "back-left",
+      "back",
+      "back-right",
+      "right",
+      "front-right"
+    ],
+    "directionSource": "eight independently drawn directions, no horizontal mirroring",
+    "scope": "two-step browser gait plus three furniture poses, not final frame set"
+  },
+  "timeAndActions": {
+    "initialFood": 70,
+    "initialMood": 60,
+    "speed": 70,
+    "foodPeriod": 300000,
+    "moodPeriod": 600000,
+    "restPeriod": 60000,
+    "transition": 400,
+    "actions": {
+      "eat": {
+        "label": "正在吃饭",
+        "duration": 4000,
+        "cooldown": 2000,
+        "food": 15,
+        "mood": 0,
+        "minFood": 0
+      },
+      "touch": {
+        "label": "享受摸摸",
+        "duration": 1500,
+        "cooldown": 3000,
+        "food": 0,
+        "mood": 10,
+        "minFood": 0
+      },
+      "study": {
+        "label": "正在上课",
+        "duration": 8000,
+        "cooldown": 8000,
+        "food": -5,
+        "mood": 5,
+        "minFood": 10
+      },
+      "code": {
+        "label": "正在敲代码",
+        "duration": 10000,
+        "cooldown": 10000,
+        "food": -3,
+        "mood": 4,
+        "minFood": 8
+      },
+      "rest": {
+        "label": "准备睡觉",
+        "duration": 600,
+        "cooldown": 0,
+        "food": 0,
+        "mood": 0,
+        "minFood": 0
+      },
+      "wake": {
+        "label": "正在起床",
+        "duration": 500,
+        "cooldown": 0,
+        "food": 0,
+        "mood": 0,
+        "minFood": 0
+      }
+    }
+  },
+  "coordinateBasis": "normalized logical topology in scenes; current painted viewport anchors are separately calibrated in paintedScenes",
+  "paintedScenes": {
+    "dorm": {
+      "file": "dorm.png",
+      "nodes": {
+        "entry": [
+          365,
+          300
+        ],
+        "hall": [
+          339,
+          305
+        ],
+        "right": [
+          301,
+          342
+        ],
+        "center": [
+          211,
+          339
+        ],
+        "left": [
+          161,
+          346
+        ],
+        "front": [
+          198,
+          390
+        ],
+        "bed": [
+          120,
+          268
+        ],
+        "desk": [
+          303,
+          277
+        ]
+      },
+      "targets": {
+        "rest": {
+          "marker": [
+            43,
+            247
+          ],
+          "pose": [
+            62,
+            195
+          ],
+          "support": {
+            "scale": 1,
+            "rotation": 18,
+            "shadowY": -10,
+            "area": [
+              [
+                15,
+                159
+              ],
+              [
+                109,
+                183
+              ],
+              [
+                88,
+                217
+              ],
+              [
+                0,
+                193
+              ]
+            ],
+            "contact": [
+              62,
+              185
+            ]
+          },
+          "zone": [
+            [
+              0,
+              146
+            ],
+            [
+              72,
+              91
+            ],
+            [
+              150,
+              104
+            ],
+            [
+              121,
+              250
+            ],
+            [
+              72,
+              305
+            ],
+            [
+              0,
+              256
+            ]
+          ]
+        },
+        "code": {
+          "marker": [
+            327,
+            154
+          ],
+          "pose": [
+            293,
+            210
+          ],
+          "support": {
+            "scale": 0.94,
+            "rotation": 0,
+            "shadowY": -1,
+            "area": [
+              [
+                270,
+                204
+              ],
+              [
+                297,
+                193
+              ],
+              [
+                315,
+                212
+              ],
+              [
+                289,
+                224
+              ]
+            ],
+            "contact": [
+              293,
+              210
+            ]
+          },
+          "zone": [
+            [
+              250,
+              140
+            ],
+            [
+              310,
+              127
+            ],
+            [
+              371,
+              173
+            ],
+            [
+              370,
+              256
+            ],
+            [
+              320,
+              280
+            ],
+            [
+              264,
+              247
+            ]
+          ]
+        }
+      }
+    },
+    "classroom": {
+      "file": "classroom.png",
+      "nodes": {
+        "entry": [
+          368,
+          231
+        ],
+        "hall": [
+          338,
+          267
+        ],
+        "right": [
+          295,
+          319
+        ],
+        "center": [
+          224,
+          338
+        ],
+        "left": [
+          186,
+          369
+        ],
+        "front": [
+          244,
+          410
+        ],
+        "seat": [
+          154,
+          383
+        ]
+      },
+      "targets": {
+        "study": {
+          "marker": [
+            143,
+            249
+          ],
+          "pose": [
+            108,
+            310
+          ],
+          "support": {
+            "scale": 1.02,
+            "rotation": 0,
+            "shadowY": -1,
+            "area": [
+              [
+                70,
+                308
+              ],
+              [
+                111,
+                287
+              ],
+              [
+                145,
+                312
+              ],
+              [
+                95,
+                334
+              ]
+            ],
+            "contact": [
+              108,
+              310
+            ]
+          },
+          "zone": [
+            [
+              61,
+              242
+            ],
+            [
+              137,
+              208
+            ],
+            [
+              198,
+              246
+            ],
+            [
+              178,
+              316
+            ],
+            [
+              94,
+              373
+            ],
+            [
+              51,
+              321
+            ]
+          ]
+        }
+      }
+    },
+    "canteen": {
+      "file": "canteen.png",
+      "nodes": {
+        "entry": [
+          365,
+          266
+        ],
+        "hall": [
+          335,
+          290
+        ],
+        "right": [
+          288,
+          327
+        ],
+        "center": [
+          217,
+          349
+        ],
+        "left": [
+          183,
+          380
+        ],
+        "front": [
+          242,
+          411
+        ],
+        "meal": [
+          125,
+          386
+        ]
+      },
+      "targets": {
+        "eat": {
+          "marker": [
+            110,
+            277
+          ],
+          "pose": [
+            79,
+            336
+          ],
+          "support": {
+            "scale": 0.98,
+            "rotation": 0,
+            "shadowY": -1,
+            "area": [
+              [
+                44,
+                329
+              ],
+              [
+                83,
+                314
+              ],
+              [
+                111,
+                336
+              ],
+              [
+                72,
+                352
+              ]
+            ],
+            "contact": [
+              79,
+              336
+            ]
+          },
+          "zone": [
+            [
+              24,
+              269
+            ],
+            [
+              93,
+              226
+            ],
+            [
+              163,
+              281
+            ],
+            [
+              144,
+              355
+            ],
+            [
+              58,
+              390
+            ],
+            [
+              22,
+              337
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "scenes": {
+    "dorm": {
+      "label": "宿舍",
+      "targets": {
+        "rest": {
+          "node": "bed",
+          "pose": {
+            "u": 0.19,
+            "v": 0.62,
+            "z": 22
+          },
+          "label": "床铺 · 睡觉 / 叫醒"
+        },
+        "code": {
+          "node": "desk",
+          "pose": {
+            "u": 0.75,
+            "v": 0.43,
+            "z": 16
+          },
+          "label": "书桌 · 敲代码"
+        }
+      },
+      "furniture": [
+        {
+          "id": "bed",
+          "u0": 0.06,
+          "u1": 0.32,
+          "v0": 0.34,
+          "v1": 0.87
+        },
+        {
+          "id": "desk",
+          "u0": 0.58,
+          "u1": 0.9,
+          "v0": 0.09,
+          "v1": 0.35
+        },
+        {
+          "id": "chair",
+          "u0": 0.64,
+          "u1": 0.8,
+          "v0": 0.38,
+          "v1": 0.51
+        }
+      ],
+      "nodes": {
+        "entry": {
+          "u": 0.94,
+          "v": 0.12
+        },
+        "hall": {
+          "u": 0.94,
+          "v": 0.44
+        },
+        "right": {
+          "u": 0.86,
+          "v": 0.63
+        },
+        "center": {
+          "u": 0.58,
+          "v": 0.65
+        },
+        "left": {
+          "u": 0.43,
+          "v": 0.82
+        },
+        "front": {
+          "u": 0.68,
+          "v": 0.87
+        },
+        "bed": {
+          "u": 0.4,
+          "v": 0.72
+        },
+        "desk": {
+          "u": 0.88,
+          "v": 0.48
+        }
+      },
+      "edges": [
+        [
+          "entry",
+          "hall"
+        ],
+        [
+          "hall",
+          "right"
+        ],
+        [
+          "right",
+          "center"
+        ],
+        [
+          "center",
+          "left"
+        ],
+        [
+          "right",
+          "front"
+        ],
+        [
+          "center",
+          "front"
+        ],
+        [
+          "left",
+          "bed"
+        ],
+        [
+          "hall",
+          "desk"
+        ],
+        [
+          "right",
+          "desk"
+        ]
+      ]
+    },
+    "classroom": {
+      "label": "教室",
+      "targets": {
+        "study": {
+          "node": "seat",
+          "pose": {
+            "u": 0.23,
+            "v": 0.83,
+            "z": 15
+          },
+          "label": "课桌 · 上课"
+        }
+      },
+      "furniture": [
+        {
+          "id": "background1",
+          "u0": 0.08,
+          "u1": 0.34,
+          "v0": 0.24,
+          "v1": 0.47
+        },
+        {
+          "id": "background2",
+          "u0": 0.48,
+          "u1": 0.72,
+          "v0": 0.08,
+          "v1": 0.24
+        },
+        {
+          "id": "desk",
+          "u0": 0.08,
+          "u1": 0.34,
+          "v0": 0.59,
+          "v1": 0.75
+        },
+        {
+          "id": "chair",
+          "u0": 0.15,
+          "u1": 0.3,
+          "v0": 0.78,
+          "v1": 0.9
+        }
+      ],
+      "nodes": {
+        "entry": {
+          "u": 0.94,
+          "v": 0.12
+        },
+        "hall": {
+          "u": 0.94,
+          "v": 0.44
+        },
+        "right": {
+          "u": 0.86,
+          "v": 0.63
+        },
+        "center": {
+          "u": 0.58,
+          "v": 0.65
+        },
+        "left": {
+          "u": 0.43,
+          "v": 0.82
+        },
+        "front": {
+          "u": 0.68,
+          "v": 0.87
+        },
+        "seat": {
+          "u": 0.4,
+          "v": 0.82
+        }
+      },
+      "edges": [
+        [
+          "entry",
+          "hall"
+        ],
+        [
+          "hall",
+          "right"
+        ],
+        [
+          "right",
+          "center"
+        ],
+        [
+          "center",
+          "left"
+        ],
+        [
+          "right",
+          "front"
+        ],
+        [
+          "center",
+          "front"
+        ],
+        [
+          "left",
+          "seat"
+        ]
+      ]
+    },
+    "canteen": {
+      "label": "食堂",
+      "targets": {
+        "eat": {
+          "node": "meal",
+          "pose": {
+            "u": 0.25,
+            "v": 0.88,
+            "z": 15
+          },
+          "label": "餐桌 · 吃饭"
+        }
+      },
+      "furniture": [
+        {
+          "id": "counter",
+          "u0": 0.05,
+          "u1": 0.75,
+          "v0": 0.02,
+          "v1": 0.16
+        },
+        {
+          "id": "table2",
+          "u0": 0.2,
+          "u1": 0.46,
+          "v0": 0.3,
+          "v1": 0.45
+        },
+        {
+          "id": "chair2",
+          "u0": 0.25,
+          "u1": 0.38,
+          "v0": 0.46,
+          "v1": 0.56
+        },
+        {
+          "id": "table",
+          "u0": 0.1,
+          "u1": 0.38,
+          "v0": 0.61,
+          "v1": 0.81
+        },
+        {
+          "id": "chair",
+          "u0": 0.16,
+          "u1": 0.3,
+          "v0": 0.83,
+          "v1": 0.93
+        }
+      ],
+      "nodes": {
+        "entry": {
+          "u": 0.94,
+          "v": 0.12
+        },
+        "hall": {
+          "u": 0.94,
+          "v": 0.44
+        },
+        "right": {
+          "u": 0.86,
+          "v": 0.63
+        },
+        "center": {
+          "u": 0.58,
+          "v": 0.65
+        },
+        "left": {
+          "u": 0.43,
+          "v": 0.82
+        },
+        "front": {
+          "u": 0.68,
+          "v": 0.87
+        },
+        "meal": {
+          "u": 0.44,
+          "v": 0.84
+        }
+      },
+      "edges": [
+        [
+          "entry",
+          "hall"
+        ],
+        [
+          "hall",
+          "right"
+        ],
+        [
+          "right",
+          "center"
+        ],
+        [
+          "center",
+          "left"
+        ],
+        [
+          "right",
+          "front"
+        ],
+        [
+          "center",
+          "front"
+        ],
+        [
+          "left",
+          "meal"
+        ]
+      ]
+    }
+  },
+  "rules": {
+    "settlement": "once at activity start after arrival and eligibility recheck",
+    "cooldown": "per activity, starts at completion",
+    "inTransit": "latest valid target replaces prior unstarted intent; no position snap",
+    "activeShortAction": "noninterruptible; no queue or repeat settlement",
+    "sleep": "tap bed to wake",
+    "popup": "blocks underlying input, does not pause clock, one at a time",
+    "restart": {
+      "scene": "dorm",
+      "food": 70,
+      "mood": 60,
+      "sleeping": false,
+      "persistence": "session only",
+      "poweredOffCatchUp": false
+    },
+    "highMood": "study and coding remain allowed; benefits saturate at 100",
+    "renderVsModel": "animation does not own or multiply numeric settlement"
+  },
+  "implementationStatus": "design and browser prototype only; not target firmware"
+}

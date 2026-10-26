@@ -58,11 +58,17 @@ design:
       rationale: "用户明确选择校园行为版本和沙河；保留单线程，切场景与结算分离；具体演示参数由AI提出"
       decided_by: "王焕博选择范围；见ADR-0004与campus_scope_20261025_user.txt"
 
+
+    - decision: "固定房间网页方案实际移植为纯C世界模型与LVGL快照界面"
+      alternatives_considered: "UI回调/动画直接结算；纯C模型持有路径、意图、时钟与结算"
+      rationale: "延续ADR-0003单所有者，支持到达复核/途中重选/共享自检，防止重复结算；资源编入ROM，字体来自SDK的OFL源"
+      decided_by: "用户明确ok你更改吧授权移植；常规技术实现由AI沿用既有边界完成，见ADR-0005及scene_port_authorization_20261026_user.txt"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.4.0_metadata_20261025.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.5.0_metadata_20261026.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -312,7 +318,42 @@ test_results:
     status: not_executed
     pass: null
 
+  - test_id: TC-130
+    description: 移动场景新模型与旧规则回归
+    expected: 按docs/03第10节执行
+    actual: 原10组及新世界14组主机PASS；非板上运行
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.5.0_final_20261026.txt
+  - test_id: TC-131
+    description: 实际全屏房间LVGL及触摸模拟
+    expected: 按docs/03第10节执行
+    actual: 原生指针/两入口/三场景/家具/模态/重建/中文及21张主机图PASS
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.5.0_final_20261026.txt
+  - test_id: TC-132
+    description: v0.5.0完整固件构建
+    expected: 原build_firmware.py返回0
+    actual: main.bin2096080字节，ROM2146115及静态RAM136224；运行时未测
+    status: passed_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.5.0_final_20261026.txt
+  - test_id: TC-133
+    description: v0.5.0屏幕触摸与场景行为实测
+    expected: 按docs/03第10节执行
+    actual: 未执行，待用户回传本版照片或视频与操作日志
+    status: not_executed
+    pass: null
+  - test_id: TC-134
+    description: v0.5.0板上WORLD启动自检
+    expected: 本版boot及14组WORLD和all PASS原始日志
+    actual: 未执行，主机输出不能替代
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过，TC-133/134板端未实测；重启重置，无存档，动态内存/帧率未测。"
   - "v0.4.0沙河校园三场景/上课/吃饭/休息与较小猫已实现，TC-120/121/122仅软件通过；TC-123/124未实测，图是插画/主机渲染，仍无存档与真实运行时内存结论。"
   - "v0.3.2已按用户认可原图替换为AI生图猫；6态实际LVGL预览/回归与构建通过，动态堆栈和真实板端效果未测；不把原图认可当实物通过。"
   - "v0.3.1按用户选择重绘奶白橘猫，四态实际LVGL预览/回归/构建通过；图像常量154680字节，运行时堆栈和真实板端表现未测，不把预览当照片。"

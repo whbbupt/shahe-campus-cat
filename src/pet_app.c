@@ -1,76 +1,54 @@
 #include "pet_app.h"
 #include "pet_model.h"
-#include "pet_selftest.h"
 #include "pet_ui.h"
-
-static pet_model_t model;
+#include "pet_world.h"
+static pet_world_t world;
 static rt_tick_t previous_tick;
-static uint32_t tick_fraction;
-static uint32_t message_ms;
-static uint32_t display_elapsed;
-static const char *message;
-
+static uint32_t fraction, display_elapsed;
 static uint32_t sync_clock(void)
 {
     rt_tick_t now = rt_tick_get();
-    uint32_t elapsed = pet_clock_elapsed(previous_tick, now, RT_TICK_PER_SECOND, &tick_fraction);
+    uint32_t ms = pet_clock_elapsed(previous_tick, now, RT_TICK_PER_SECOND, &fraction);
     previous_tick = now;
-    pet_model_advance(&model, elapsed);
-    message_ms = elapsed >= message_ms ? 0 : message_ms - elapsed;
-    if (!message_ms)
-        message = NULL;
-    return elapsed;
+    pw_advance(&world, ms);
+    return ms;
 }
-
-static void action(pet_event_t event)
+static pw_result_t command(pw_command_t cmd)
 {
-    static const char *errors[] = {NULL, "One moment, please.", "Take a short break first.",
-                                  "Already full. Try another activity.", "Resting. Tap Wake first.",
-                                  "Unknown action.", "Too hungry. Tap Eat first."};
     sync_clock();
-    pet_result_t result = pet_model_event(&model, event);
-    message = errors[result];
-    message_ms = message ? 2500 : 0;
-    pet_ui_update(&model, message);
-    rt_kprintf("[pet] event=%u result=%u scene=%u food=%u mood=%u rest=%u\n",
-               (unsigned)event, (unsigned)result, (unsigned)model.scene, (unsigned)model.food,
-               (unsigned)model.mood, (unsigned)model.sleeping);
+    pw_result_t result = pw_request(&world, cmd);
+    pet_ui_update(&world);
+    rt_kprintf("[pet] cmd=%u result=%u scene=%u phase=%u food=%u mood=%u\n", (unsigned)cmd, (unsigned)result,
+               (unsigned)world.scene, (unsigned)world.phase, (unsigned)world.food, (unsigned)world.mood);
+    return result;
 }
-
-static void report_test(const char *name, bool passed)
+static void report(const char *name, bool ok)
 {
-    rt_kprintf("[pet:SELFTEST] %s %s\n", name, passed ? "PASS" : "FAIL");
+    rt_kprintf("[pet:WORLD] %s %s\n", name, ok ? "PASS" : "FAIL");
 }
-
 rt_err_t pet_app_start(void)
 {
-    if (!pet_selftest_run(report_test))
+    if (!pw_selftest(report))
     {
-        rt_kprintf("[pet:SELFTEST] all FAIL; UI not started\n");
+        rt_kprintf("[pet:WORLD] all FAIL; UI not started\n");
         return -RT_ERROR;
     }
-    rt_kprintf("[pet:SELFTEST] all PASS\n");
-    pet_model_init(&model);
+    rt_kprintf("[pet:WORLD] all PASS\n");
+    pw_init(&world);
     previous_tick = rt_tick_get();
-    tick_fraction = 0;
-    message_ms = 0;
-    display_elapsed = 0;
-    message = NULL;
-    pet_ui_create(action);
-    pet_ui_update(&model, NULL);
-    rt_kprintf("[pet] ready scene=dorm food=70 mood=60; Shahe campus, session-only\n");
+    fraction = display_elapsed = 0;
+    pet_ui_create(command);
+    pet_ui_update(&world);
+    rt_kprintf("[pet] fixed-room 390x450; eight directions; status/travel; session-only\n");
     return RT_EOK;
 }
-
 void pet_app_poll(void)
 {
-    uint32_t elapsed = sync_clock();
-    /* Refresh text at a modest rate; callbacks update immediately. */
-    if (elapsed >= 100U - display_elapsed)
+    uint32_t ms = sync_clock();
+    display_elapsed += ms;
+    if (display_elapsed >= 40)
     {
-        display_elapsed = 0;
-        pet_ui_update(&model, message);
+        display_elapsed %= 40;
+        pet_ui_update(&world);
     }
-    else
-        display_elapsed += elapsed;
 }
