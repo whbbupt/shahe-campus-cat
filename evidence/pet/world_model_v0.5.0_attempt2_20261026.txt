@@ -1,0 +1,15 @@
+[host:world] initial-scene PASS
+[host:world] arrive-once PASS
+[host:world] retarget-no-snap PASS
+[host:world] arrival-eligibility PASS
+[host:world] busy-no-queue PASS
+[host:world] cooldown-from-finish PASS
+[host:world] capped-meal PASS
+[host:world] full-mood-study PASS
+[host:world] sleep-wake-support PASS
+[host:world] touch-cancels-intent PASS
+[host:world] elapsed-and-long-gap PASS
+[host:world] jump-and-seat PASS
+[host:world] eight-directions PASS
+[host:world] reset-invalid PASS
+[host:world] all PASS

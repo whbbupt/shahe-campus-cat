@@ -1,0 +1,1 @@
+First host driver failed before C compilation: Python subprocess could not resolve the short executable name cl (WinError 2), although vcvars had been read into the child environment. Retried using the installed compiler absolute path; actual run output is in attempt2. No model pass result was produced by attempt1.
