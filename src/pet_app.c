@@ -15,6 +15,11 @@ static void show_save(unsigned status)
     save_status = status;
     pet_ui_set_save_status(status);
 }
+static void refresh_save_status(void)
+{
+    if (save.enabled && save_status != PET_SAVE_FAILED)
+        show_save(ps_visible_saved(&save, &world) ? PET_SAVE_SAVED : PET_SAVE_PENDING);
+}
 static uint32_t sync_clock(void)
 {
     rt_tick_t now = rt_tick_get();
@@ -27,6 +32,7 @@ static pw_result_t command(pw_command_t cmd)
 {
     sync_clock();
     pw_result_t result = pw_request(&world, cmd);
+    refresh_save_status();
     pet_ui_update(&world);
     rt_kprintf("[pet] cmd=%u result=%u scene=%u phase=%u food=%u mood=%u\n", (unsigned)cmd, (unsigned)result,
                (unsigned)world.scene, (unsigned)world.phase, (unsigned)world.food, (unsigned)world.mood);
@@ -83,7 +89,7 @@ void pet_app_poll(void)
                 rt_kprintf("[pet:SAVE] save failed result=%u; last committed snapshot retained\n", (unsigned)result);
             show_save(PET_SAVE_FAILED);
         }
-        else if (save.pending && save_status != PET_SAVE_FAILED) show_save(PET_SAVE_PENDING);
+        refresh_save_status();
     }
     display_elapsed += ms;
     if (display_elapsed >= 40)

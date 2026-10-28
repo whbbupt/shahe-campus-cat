@@ -141,13 +141,32 @@ static bool scheduler(void)
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.mood == 81);
     return true;
 }
+static bool visible_status(void)
+{
+    blank(); pet_save_t s; pet_world_t w; pw_init(&w); ps_open(&s, io(), &w);
+    CHECK(!ps_visible_saved(&s, &w)); CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(ps_visible_saved(&s, &w)); int writes = ram.writes;
+    w.food--; CHECK(!ps_visible_saved(&s, &w)); w.food++;
+    w.mood++; CHECK(!ps_visible_saved(&s, &w)); w.mood--;
+    w.scene = PW_CLASSROOM; CHECK(!ps_visible_saved(&s, &w)); w.scene = PW_DORM;
+    w.phase = PW_ACTION; CHECK(!ps_visible_saved(&s, &w));
+    w.phase = PW_TRANSITION; CHECK(!ps_visible_saved(&s, &w));
+    w.phase = PW_WALK; w.purpose = 1; CHECK(!ps_visible_saved(&s, &w));
+    w.purpose = 0; CHECK(ps_visible_saved(&s, &w));
+    w.phase = PW_SLEEP; CHECK(!ps_visible_saved(&s, &w));
+    CHECK(ps_save(&s, &w) == PS_OK && ps_visible_saved(&s, &w));
+    w.phase = PW_IDLE; CHECK(!ps_visible_saved(&s, &w));
+    CHECK(ram.writes == writes + 2); /* queries themselves perform no writes */
+    return true;
+}
 bool ps_selftest(void (*report)(const char *, bool))
 {
     static const struct { const char *name; bool (*run)(void); } cases[] = {
         {"format-restore-cooldowns", empty_restore}, {"sleep-elapsed-wake", sleep_restore},
         {"all-65-write-cut-points", partial_writes}, {"crc-fallback", bad_record},
         {"rotation-partial-erase", rotate_and_erase}, {"short-io-no-success", io_failures},
-        {"no-unfinished-action-replay", no_busy_replay}, {"autosave-throttle-checkpoint-retry", scheduler}
+        {"no-unfinished-action-replay", no_busy_replay}, {"autosave-throttle-checkpoint-retry", scheduler},
+        {"visible-state-save-consistency", visible_status}
     };
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)

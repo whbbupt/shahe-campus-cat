@@ -73,7 +73,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.6.0_metadata_20261028.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.6.1_metadata_20261028.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -412,7 +412,17 @@ test_results:
     status: not_executed
     pass: null
 
+
+  - test_id: TC-146
+    description: 保存提示与当前可见状态一致性
+    expected: 按docs/03存档提示回归执行
+    actual: 先在旧逻辑真实断言失败，修复后即时等待/动作中重启/成功恢复/拒绝与错误优先PASS，原故障注入/LVGL/目标编译通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.6.1_feedback_final_20261028.txt
+
 known_issues:
+  - "v0.6.1已通过TC-146软件回归修复忙碌期保存提示误导，格式与v0.6.0兼容；TC-144/145真实存档验收仍待证据。"
   - "v0.6.0专用双区存档已软件/构建通过，TC-144/145未实测；须等待保存成功再断电，动作/主动路径中延后；无离线时间模拟，全片擦除会清档，动态峰值/帧率和Flash寿命未测。"
   - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过；2026-10-28用户确认已烧录且使用暂未发现问题，TC-133完整判据与TC-134启动日志仍待核验；重启重置，无存档，动态内存/帧率未测。"
   - "v0.4.0沙河校园三场景/上课/吃饭/休息与较小猫已实现，TC-120/121/122仅软件通过；TC-123/124未实测，图是插画/主机渲染，仍无存档与真实运行时内存结论。"

@@ -1,0 +1,379 @@
+{
+  "recorded_on": "2026-10-28",
+  "app_version": "0.6.1",
+  "requirements_commit": "838a044",
+  "source_ref": "refs/heads/feat/pet-core",
+  "source_state": "Final filesystem inputs after feedback fix; original failure retained",
+  "sdk_commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+  "sdk_clean": true,
+  "main_bin_bytes": 2105296,
+  "main_bin_sha256": "9C3B52DE159D9CC7AB23C68FBABE99AE2A1668EB4CA808591FA793760EAF0062",
+  "build_exit_code": 0,
+  "build_command": "python scripts/build_firmware.py",
+  "link_memory_report": {
+    "rom_used_bytes": 2155803,
+    "ram_used_bytes": 144928,
+    "runtime_heap_stack": "not_measured"
+  },
+  "warnings": [
+    "_close is not implemented and will always fail",
+    "_lseek is not implemented and will always fail",
+    "_read is not implemented and will always fail",
+    "_write is not implemented and will always fail",
+    "build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
+    "cannot find entry symbol entry; defaulting to 12000000",
+    "img \"dfu\" not found"
+  ],
+  "partition_validation": {
+    "existing_regions_unchanged": true,
+    "no_overlap": true,
+    "start": "0x12DA8000",
+    "size": 8192,
+    "download_images_unchanged": true
+  },
+  "shared_save_selftest_groups": 9,
+  "host_save_groups": 13,
+  "host_app_groups": 3,
+  "host_UI_save_statuses": 4,
+  "host_production_previews": 25,
+  "physical_tests": {
+    "TC-144": "not_executed",
+    "TC-145": "not_executed"
+  },
+  "protected_files_unchanged": true,
+  "inputs": [
+    {
+      "path": "src/course_ui.c",
+      "bytes": 1838,
+      "sha256": "7D4D14E9DCDA93CC18B2FA93BAA43D495AAD1D29FC324664FA493DD01EB0B7A2"
+    },
+    {
+      "path": "src/key.c",
+      "bytes": 5582,
+      "sha256": "66A3B61FE2472A8AFE33DAC07BA1F0F3E57B0CDD92C8FD77BC82806FED34AFB2"
+    },
+    {
+      "path": "src/main.c",
+      "bytes": 1075,
+      "sha256": "6DC13941EB62E9D31DA088FA426D8A818BF4C0CC9092139F60F5034BA789A63D"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 3567,
+      "sha256": "F1F1265ED2131CA7FC82837CECF5C4F85245D8F3716A5A30503171D6678373B4"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 686705,
+      "sha256": "BC583AA5EA64630EDC814BCA605AFA9FA8753240D4E9AFB98B820728CD6C0890"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 4020,
+      "sha256": "F08F42FFC1D236052FA2AA913F1EB9BAACE1EA4CE10FF45B7CC499D87A5D745B"
+    },
+    {
+      "path": "src/pet_save.c",
+      "bytes": 6776,
+      "sha256": "62CA4B5F285DEF0C5E47C4422C8343518F86D1DB844C9C4FC0BF049AAC1C0E5F"
+    },
+    {
+      "path": "src/pet_save_flash.c",
+      "bytes": 1683,
+      "sha256": "004AEDB587648A8F174C4494FA196784F11EA16A40D422B5FF7AE5189DC7DD2F"
+    },
+    {
+      "path": "src/pet_save_selftest.c",
+      "bytes": 8307,
+      "sha256": "8E46B38E8216D54709A045C491DBA8B4FC2E13C822C85D74B7A80BE9FD42D16D"
+    },
+    {
+      "path": "src/pet_scene_assets.c",
+      "bytes": 2390545,
+      "sha256": "857452F4FD865F32252C67E76467F54A0FFC09942611ACEA41CC10694B37FD7C"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 8492,
+      "sha256": "C3EFBFCDEB8E0E72CAA429D00577FF283E8227BD332BDE7CF7E9FEBAC65BB70F"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 15099,
+      "sha256": "1697E0242CECEC3B477C7C39374488DCC481A65A15464FAA9E1A0EB9740EE32F"
+    },
+    {
+      "path": "src/pet_world.c",
+      "bytes": 17289,
+      "sha256": "CCF4DE2FFD39B0DBD5CFF0FAE0B74ACBB2CF64031DBC1A6B2156B47F29BDB39C"
+    },
+    {
+      "path": "src/pet_world_assets.c",
+      "bytes": 7215708,
+      "sha256": "E46B2807DE89BCE26965753A6407BFE8A4521ECECBFE3079CEA6EE29E9EE258D"
+    },
+    {
+      "path": "src/pet_world_font.c",
+      "bytes": 184649,
+      "sha256": "724C0391684CD18F9401348213D7CE55D1B177DABFB3E66882EFB3F7FE0EC4A0"
+    },
+    {
+      "path": "src/pet_world_selftest.c",
+      "bytes": 7507,
+      "sha256": "BDB60C275B171AB816FD82E002E2D7C78197FD0F29C4919AA8748A287915CCB4"
+    },
+    {
+      "path": "src/course_ui.h",
+      "bytes": 216,
+      "sha256": "981E89DFFA5E4D32CE1AD41027F91265974419563F5733EEB8B2962E7ADFE212"
+    },
+    {
+      "path": "src/key.h",
+      "bytes": 590,
+      "sha256": "5C854C1FFDAACC4AAEF4557BD6B25A4236C25845310B5D824BCFAE206CEB1F01"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 122,
+      "sha256": "CF9B5E359EF7904D9E287E6357BAAC334B6D404D208D49DF269E5E8EB3C97978"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 286,
+      "sha256": "7FA10A2755DE3E6A7850117852495DBA687CD2E11C1E397E5C07427CA56EF0C8"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1280,
+      "sha256": "EC7BBA7FF587EA9CCB44EDE6533C98176E46781A94EA2FE1A149F6A64F1358C8"
+    },
+    {
+      "path": "src/pet_save.h",
+      "bytes": 1175,
+      "sha256": "9840BF973CBAD9971DEA69B921B42CD4A77B849CAE6B40575FA0D5E44B8ECE01"
+    },
+    {
+      "path": "src/pet_save_flash.h",
+      "bytes": 110,
+      "sha256": "44152D34D4A07E4962DFC0DFAF595B5339EEFDC437487E0E5798BB343125A174"
+    },
+    {
+      "path": "src/pet_scene_assets.h",
+      "bytes": 219,
+      "sha256": "E22191F03069E8B2A2F06D7B745D8D28AC198CF1030C2B2F63B36122755D5B0B"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 355,
+      "sha256": "C1132FA28598F537B86BA23766EBAA9514C62F29DD85AD98205B9882CE07A144"
+    },
+    {
+      "path": "src/pet_version.h",
+      "bytes": 92,
+      "sha256": "D0845FC239685D0EF0439142A58B8AB29869BCE27FEDA07221A64BAA0E667256"
+    },
+    {
+      "path": "src/pet_world.h",
+      "bytes": 1738,
+      "sha256": "96167A0E355817A0A2AB0179385DCB91AA6BD4D5C1CF7B84470C965F26090808"
+    },
+    {
+      "path": "src/pet_world_assets.h",
+      "bytes": 1592,
+      "sha256": "82F244A8BC2B0D5A610A7AC80DE05452A7F1D36D36D20642C9AAEB2571657264"
+    },
+    {
+      "path": "src/pet_world_font.h",
+      "bytes": 153,
+      "sha256": "0478F18E3D73D1EAA5100CC9DB1D9D1889B5DC41568B70E40DE0345BCB5F142B"
+    },
+    {
+      "path": "project/SConstruct",
+      "bytes": 799,
+      "sha256": "895F6A73940F18A05686C3813C08050A5F643436050DD01BC015FD09F6EBC9CF"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "project/Kconfig",
+      "bytes": 76,
+      "sha256": "C5FA11ABAE22E736829FDF8386B2521555E45DC09EBA30618A1A7267B10FFEFC"
+    },
+    {
+      "path": "project/rtconfig.py",
+      "bytes": 10,
+      "sha256": "7414EA905126BB7954095AD6126A355FC08C173C87EA2E4885942B6B947B0614"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 567,
+      "sha256": "48AB0A0300C58A4784C1CE7AD0E89C8BF50C3C63F795B6F6D204E74BF1203BD4"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "tests/include/lv_conf.h",
+      "bytes": 472,
+      "sha256": "E33E2ADC4A47F424793724039CFA8436DCAD777E0C09EC09A536C5934A383FE6"
+    },
+    {
+      "path": "project/sf32lb52-lchspi-ulp_hcpu/ptab.json",
+      "bytes": 3708,
+      "sha256": "7AC09A722ED45824C2AD104A98367909DC0200D931D682477812F3DCDB239565"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 4729,
+      "sha256": "59040F34D4DB89B51432E78DAABBD4FED0B8FC18127665CB0AB2B3FADA0A7956"
+    },
+    {
+      "path": "scripts/make_world_fonts.py",
+      "bytes": 3578,
+      "sha256": "7173B19440E8D1D0B9494797A88D17E9E0C0F887A9683BB452A920ADBA5C8E85"
+    },
+    {
+      "path": "tests/pet_model_test.c",
+      "bytes": 337,
+      "sha256": "35AF9657490B095C038FAB9C941C6FB269FD08A44B3F44EA6F11A90E99E1C676"
+    },
+    {
+      "path": "tests/pet_save_app_test.c",
+      "bytes": 4398,
+      "sha256": "052DA7DE6D9AB879CB8FB5720A6F8CF3BFE7BAE0ECE18CB4B32DABC674C6C021"
+    },
+    {
+      "path": "tests/pet_save_test.c",
+      "bytes": 2747,
+      "sha256": "7E4FC5F434F61B5B8E6854E5773C5EE29C1FF078F09E2568F4F924450269653B"
+    },
+    {
+      "path": "tests/pet_ui_test.c",
+      "bytes": 6721,
+      "sha256": "D26EE5A818D2783C4D6F293C183C361C70CAB9A916E1D2360AA00965F10A29F1"
+    },
+    {
+      "path": "tests/pet_world_test.c",
+      "bytes": 313,
+      "sha256": "E84E69E66E27987ECD007D1C3F16AF9F0ECB16C2633DE2556C93F01C75D7FE07"
+    },
+    {
+      "path": "tests/pet_world_ui_test.c",
+      "bytes": 10867,
+      "sha256": "925F8294FA422F988D745B08BD4C30D19713ED0429F7755DB2079D7B1EAFB95E"
+    },
+    {
+      "path": "tests/save_include/drv_flash.h",
+      "bytes": 235,
+      "sha256": "CFE65B83A42F06E2A5C60BB9DB7F40DE317FD49A27269CBDD7B2240776B2A510"
+    },
+    {
+      "path": "tests/save_include/ptab.h",
+      "bytes": 82,
+      "sha256": "FE248DAA015807D70CAD3D4B8F877E9B201B1EB6ECD4DA246B8D66844B593E8A"
+    },
+    {
+      "path": "tests/save_include/rtthread.h",
+      "bytes": 257,
+      "sha256": "2A7FE3C7D7CE0955F8B01D9D6C721E81ADD75D3DC9412023BCC543233D931ADC"
+    },
+    {
+      "path": "assets/pet-world/font-conversion.json",
+      "bytes": 881,
+      "sha256": "F9F2131012F0172703D205CE1C56036EAF97ED7A77DA7B155C441241556AAF6A"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "main.bin",
+      "bytes": 2105296,
+      "sha256": "9C3B52DE159D9CC7AB23C68FBABE99AE2A1668EB4CA808591FA793760EAF0062"
+    },
+    {
+      "path": "main.elf",
+      "bytes": 8179196,
+      "sha256": "B17790FAE7FC360E0EEBCEC61BBA3BF7810EC5E3A7BE965C0D12CBF7928E94E1"
+    },
+    {
+      "path": "main.hex",
+      "bytes": 5921758,
+      "sha256": "6428C22A5510010053B16829E31CF4FE800AAB7CDB4BD90F9F2AC3D5AFAF3431"
+    },
+    {
+      "path": "bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "bootloader/bootloader.hex",
+      "bytes": 164615,
+      "sha256": "2F14CB6AE13C61ED97DBE7E1B5E4ED5B60F3B2D6C68ABD45821AE1C0FDCC5E46"
+    },
+    {
+      "path": "ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "978C1E2AD640849F364105CC29E3F4120228BDB04FF921A5F3A81011C7DC3244"
+    },
+    {
+      "path": "ftab/ftab.hex",
+      "bytes": 31818,
+      "sha256": "C9F081AD43D4660237225DD336EAE23E825FFCDFA5C5DDBEC6E516CC629434C4"
+    },
+    {
+      "path": "ImgBurnList.ini",
+      "bytes": 143,
+      "sha256": "30F2A9B0F53C5AFEE62B650E3FAF27E13A47EC6CE369D077B5A7CF82BFF546A2"
+    },
+    {
+      "path": "uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    },
+    {
+      "path": "uart_download.sh",
+      "bytes": 1527,
+      "sha256": "5C65112E7AD12601D7BFFAA4C82045375B443C4A043221B923A99664DF67068A"
+    },
+    {
+      "path": "download.bat",
+      "bytes": 134,
+      "sha256": "FDE5C42582509F3F8D788D929BD2E7D1D731DAEE6CCCD826ED3374699FFFD340"
+    },
+    {
+      "path": "download.sh",
+      "bytes": 195,
+      "sha256": "7E8F07E112EB97A1E9B2186189EA63B72CD4A26E35CE955BAD20588A642B2D0B"
+    },
+    {
+      "path": "download.jlink",
+      "bytes": 139,
+      "sha256": "F0C9A5634FC970032FA2E71F4DD04497251B07F380BE55022D8E7DF32E7CAE7F"
+    },
+    {
+      "path": "sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "ptab.h",
+      "bytes": 5986,
+      "sha256": "4767E5B60E537CE666F9AB67379A3E115392F8351742FCA37E0B3685E45EF2F2"
+    }
+  ],
+  "new_warning_messages_vs_v0.6.0": [],
+  "test_results": {
+    "TC-146": "passed_host_and_build_only",
+    "TC-144": "not_executed",
+    "TC-145": "not_executed"
+  }
+}

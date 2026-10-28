@@ -24,6 +24,8 @@ typedef struct
 } pet_save_t;
 ps_result_t ps_open(pet_save_t *s, ps_io_t io, pet_world_t *world);
 ps_result_t ps_save(pet_save_t *s, const pet_world_t *world);
+/* True only for current visible values with no unfinished business intent; no IO. */
+bool ps_visible_saved(const pet_save_t *s, const pet_world_t *world);
 ps_result_t ps_poll(pet_save_t *s, const pet_world_t *world);
 bool ps_selftest(void (*report)(const char *, bool));
 #endif

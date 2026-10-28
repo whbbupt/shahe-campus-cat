@@ -40,11 +40,21 @@ static bool valid(const uint8_t *r)
         if (get32(r + 28 + 4 * i) > limits[i]) return false;
     return true;
 }
+static bool snapshot_ready(const pet_world_t *w)
+{
+    return w->phase != PW_ACTION && w->phase != PW_TRANSITION &&
+           !(w->phase == PW_WALK && w->purpose != 0);
+}
+bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
+{
+    return s->enabled && s->has_saved && snapshot_ready(w) &&
+           s->saved[12] == w->food && s->saved[13] == w->mood &&
+           s->saved[14] == (uint8_t)w->scene && s->saved[15] == (w->phase == PW_SLEEP);
+}
 static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
     /* Never persist an unfinished business intent or a half-swapped scene. */
-    if (w->phase == PW_ACTION || w->phase == PW_TRANSITION ||
-        (w->phase == PW_WALK && w->purpose != 0)) return false;
+    if (!snapshot_ready(w)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC); r[4] = 1; r[6] = 64; put32(r + 8, seq);
     r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = w->phase == PW_SLEEP;
