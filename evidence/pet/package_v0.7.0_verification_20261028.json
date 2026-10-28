@@ -1,0 +1,12 @@
+{
+  "zip": "北邮小猫-v0.7.0-校园探索固件-20261028.zip",
+  "bytes": 7087535,
+  "sha256": "5BC6D83F64404BB447AA7E452015C8D6E1FBD542E35980C1DF2015E78BE3E32C",
+  "zip_crc": "PASS",
+  "file_hashes": "PASS",
+  "payload_files": 20,
+  "firmware_files": 15,
+  "source_input_hashes": "PASS",
+  "current_firmware_hashes": "PASS",
+  "implementation_commit": "b6ec1eb15db47fcd0db761f0b57071a5c80671d6"
+}

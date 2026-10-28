@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "T1功能验证已通过，待本人总结与交接；沙河校园电子宠物v0.4.0，产品用例待执行"
+  milestone: "T1功能实测收尾；电子宠物v0.7.0连续校园探索软件/构建通过，新增实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "连续校园地图＋跟随镜头，建筑门口衔接室内"
+      alternatives_considered: "分屏道路探索；连续地图与跟随镜头"
+      rationale: "用户明确选择连续地图，要求从教室沿路走到十字路口探索，取消生产目的地传送菜单；矢量地图与有界路网由AI实施"
+      decided_by: "王焕博；ADR-0007，evidence/pet/campus_exploration_choice_20261028_user.txt"
     # 每一条关键决策都要写清楚：决策内容 / 考虑过的备选方案 / 选择理由 / 谁做的最终决定
     - decision: "本次个人练习补齐板载屏幕文字，保留已实测串口历史"
       alternatives_considered: "先前只保留串口最小修改；根据用户纠正与手册要求补最小屏幕页"
@@ -421,7 +425,62 @@ test_results:
     pass: true
     evidence_path: evidence/pet/host_v0.6.1_feedback_final_20261028.txt
 
+  - test_id: TC-150
+    description: 连续道路和相机约束
+    expected: 按docs/03第12节执行
+    actual: 主机或构建通过，详见docs/04最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.0_verified_20261028.txt
+
+  - test_id: TC-151
+    description: 三建筑出入和原规则回归
+    expected: 按docs/03第12节执行
+    actual: 主机或构建通过，详见docs/04最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.0_verified_20261028.txt
+
+  - test_id: TC-152
+    description: 旧档升级与新版安全恢复
+    expected: 按docs/03第12节执行
+    actual: 主机或构建通过，详见docs/04最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.0_verified_20261028.txt
+
+  - test_id: TC-153
+    description: 生产LVGL触摸镜头和重建
+    expected: 按docs/03第12节执行
+    actual: 主机或构建通过，详见docs/04最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.0_verified_20261028.txt
+
+  - test_id: TC-154
+    description: 校园固件构建交付
+    expected: 按docs/03第12节执行
+    actual: 主机或构建通过，详见docs/04最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.7.0_verified_20261028.txt
+
+  - test_id: TC-155
+    description: 真实校园屏幕触摸及流畅度
+    expected: 按docs/03第12节执行
+    actual: 未执行，待用户本版真实证据
+    status: not_executed
+    pass: null
+
+  - test_id: TC-156
+    description: 真实校园启动及存档恢复
+    expected: 按docs/03第12节执行
+    actual: 未执行，待用户本版真实证据
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.7.0连续校园与跟随镜头已软件/构建通过；TC-155/156未实测，动态峰值/帧率未知。地图为示意，户外恢复安全路口；新版存档格式2兼容读旧1，降级写保护，分区驱动不变。"
   - "v0.6.1已通过TC-146软件回归修复忙碌期保存提示误导，格式与v0.6.0兼容；TC-144/145真实存档验收仍待证据。"
   - "v0.6.0专用双区存档已软件/构建通过，TC-144/145未实测；须等待保存成功再断电，动作/主动路径中延后；无离线时间模拟，全片擦除会清档，动态峰值/帧率和Flash寿命未测。"
   - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过；2026-10-28用户确认已烧录且使用暂未发现问题，TC-133完整判据与TC-134启动日志仍待核验；重启重置，无存档，动态内存/帧率未测。"
@@ -446,6 +505,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "校园探索地图形式"
+    student_confirmation: "连续大地图：点路面走动，镜头跟随小猫滚动，逛校园更连贯，但改动和性能验证更多。"
+    evidence_path: "evidence/pet/campus_exploration_choice_20261028_user.txt"
   # 用于区分"学生自己做的决定"和"agent建议、学生只是同意"
   - decision_point: "下载操作入口"
     student_confirmation: "用户指出可直接用CodeKit Download，否定把bat当额外必做步骤；已更正指南。"
