@@ -156,6 +156,14 @@ physical_verification:
       - "evidence/T1/round30_20261023_analysis.json"
     agent_conclusion: "结合前轮25次计数一致与用户明确确认额外30次全部正常、一按一次，TC-006通过；后24次原始日志未复制，采集缺口保留。不补造32至55，不推断长期稳定性。"
 
+  - item: "v0.5.0烧录与初步使用：用户本人确认"
+    required_action: "用户烧录并实际使用，反馈运行情况；本次已收到一般使用确认。"
+    executed_at: null # 未提供实际操作的完整日期时刻，不能以反馈接收日期代填。
+    evidence_received_at: "2026-10-28"
+    evidence_path: "evidence/pet/flash_usage_20261028_user_confirmation.txt"
+    evidence_type: "user_text_confirmation"
+    agent_conclusion: "用户确认已烧录并使用暂未发现问题；上下文对应v0.5.0，独立版本截图/原始启动日志及逐项用例明细未提供。TC-133已有初步实机反馈，完整判据待核验；TC-134启动自检仍待日志。"
+
 test_results:
   - test_id: "TC-001"
     description: "REQ-001 / v0.1.1首次真实启动验证（历史已实测）"
@@ -342,18 +350,19 @@ test_results:
   - test_id: TC-133
     description: v0.5.0屏幕触摸与场景行为实测
     expected: 按docs/03第10节执行
-    actual: 未执行，待用户回传本版照片或视频与操作日志
-    status: not_executed
+    actual: 2026-10-28用户确认已烧录并使用暂未发现问题；完整场景/数值/拒绝恢复等逐项结果及照片日志尚未提供
+    status: user_confirmed_general_pending_details
     pass: null
+    evidence_path: evidence/pet/flash_usage_20261028_user_confirmation.txt
   - test_id: TC-134
     description: v0.5.0板上WORLD启动自检
     expected: 本版boot及14组WORLD和all PASS原始日志
-    actual: 未执行，主机输出不能替代
-    status: not_executed
+    actual: 已收到烧录和使用反馈，但尚无本版boot及WORLD原始日志，自检结果待核验
+    status: awaiting_boot_log
     pass: null
 
 known_issues:
-  - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过，TC-133/134板端未实测；重启重置，无存档，动态内存/帧率未测。"
+  - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过；2026-10-28用户确认已烧录且使用暂未发现问题，TC-133完整判据与TC-134启动日志仍待核验；重启重置，无存档，动态内存/帧率未测。"
   - "v0.4.0沙河校园三场景/上课/吃饭/休息与较小猫已实现，TC-120/121/122仅软件通过；TC-123/124未实测，图是插画/主机渲染，仍无存档与真实运行时内存结论。"
   - "v0.3.2已按用户认可原图替换为AI生图猫；6态实际LVGL预览/回归与构建通过，动态堆栈和真实板端效果未测；不把原图认可当实物通过。"
   - "v0.3.1按用户选择重绘奶白橘猫，四态实际LVGL预览/回归/构建通过；图像常量154680字节，运行时堆栈和真实板端表现未测，不把预览当照片。"
