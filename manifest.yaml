@@ -64,6 +64,11 @@ design:
       rationale: "延续ADR-0003单所有者，支持到达复核/途中重选/共享自检，防止重复结算；资源编入ROM，字体来自SDK的OFL源"
       decided_by: "用户明确ok你更改吧授权移植；常规技术实现由AI沿用既有边界完成，见ADR-0005及scene_port_authorization_20261026_user.txt"
 
+    - decision: "专用Flash双份校验追加式宠物存档"
+      alternatives_considered: "A专用区域双份校验；B文件系统存档"
+      rationale: "小快照无需文件系统；专用区域避开dfu/ble/fs，提交前保留旧记录，固定输入可测中断恢复"
+      decided_by: "用户明确选择A，见ADR-0006及evidence/pet/save_choice_20261028_user.txt"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
