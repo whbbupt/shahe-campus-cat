@@ -38,6 +38,15 @@ static pw_result_t command(pw_command_t cmd)
                (unsigned)world.scene, (unsigned)world.phase, (unsigned)world.food, (unsigned)world.mood);
     return result;
 }
+static pw_result_t walk_to(float x, float y)
+{
+    sync_clock();
+    pw_result_t result = pw_walk_to(&world, x, y);
+    refresh_save_status();
+    pet_ui_update(&world);
+    rt_kprintf("[pet:WALK] x=%d y=%d result=%u\n", (int)x, (int)y, (unsigned)result);
+    return result;
+}
 static void report(const char *name, bool ok)
 {
     rt_kprintf("[pet:WORLD] %s %s\n", name, ok ? "PASS" : "FAIL");
@@ -62,6 +71,7 @@ rt_err_t pet_app_start(void)
     previous_tick = rt_tick_get();
     fraction = display_elapsed = 0;
     pet_ui_create(command);
+    pet_ui_set_point_handler(walk_to);
     show_save(loaded == PS_OK ? PET_SAVE_SAVED : (loaded == PS_EMPTY ? PET_SAVE_PENDING : PET_SAVE_UNAVAILABLE));
     pet_ui_update(&world);
     rt_kprintf("[pet:SAVE] load=%u seq=%u scene=%u food=%u mood=%u sleeping=%u\n", (unsigned)loaded,

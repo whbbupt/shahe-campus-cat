@@ -43,7 +43,8 @@ int main(void)
     assert(ps_open(&s,io,&w)==PS_OK && w.food==49);
     puts("[host:save] committed-but-readback-failed reconciliation PASS");
     /* Check schema refusal with a valid CRC, and never write over unknown format. */
-    flash[4]=2; put(flash+56,crc(flash,56));
+    flash[4] = 99;
+    put(flash + 56, crc(flash, 56));
     assert(ps_open(&s,io,&w)==PS_VERSION && !s.enabled);
     assert(ps_save(&s,&w)==PS_IO_ERROR);
     puts("[host:save] unknown-schema-write-protection PASS");
@@ -57,5 +58,24 @@ int main(void)
     flash[PS_SECTOR_SIZE+12]=101; put(flash+PS_SECTOR_SIZE+56,crc(flash+PS_SECTOR_SIZE,56));
     assert(ps_open(&s,io,&w)==PS_OK && w.food==70);
     puts("[host:save] semantic-range-validation PASS");
+    memset(flash, 255, sizeof(flash));
+    pw_init(&w);
+    ps_open(&s, io, &w);
+    assert(ps_save(&s, &w) == PS_OK);
+    flash[4] = 1;
+    put(flash + 56, crc(flash, 56));
+    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_DORM && w.food == 70);
+    w.scene = PW_CAMPUS;
+    w.node = 0;
+    w.x = 560;
+    w.y = 560;
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 2);
+    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_CAMPUS && w.x == 560 && w.y == 560 &&
+           w.phase == PW_IDLE);
+    FILE *fixture = fopen("campus-v2-nor.bin", "wb");
+    assert(fixture);
+    assert(fwrite(flash, sizeof(flash), 1, fixture) == 1);
+    fclose(fixture);
+    puts("[host:save] schema-v1-upgrade-and-campus-v2-safe-restore PASS");
     puts("[host:save] all PASS (RAM NOR simulation; not physical flash)"); return 0;
 }

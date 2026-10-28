@@ -159,15 +159,37 @@ static bool visible_status(void)
     CHECK(ram.writes == writes + 2); /* queries themselves perform no writes */
     return true;
 }
+static bool campus_restore(void)
+{
+    blank();
+    pet_save_t s;
+    pet_world_t w;
+    pw_init(&w);
+    ps_open(&s, io(), &w);
+    w.scene = PW_CAMPUS;
+    w.node = 0;
+    w.x = 560;
+    w.y = 560;
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 2);
+    w.x = 960;
+    w.y = 900;
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
+    CHECK(w.x == 560 && w.y == 560 && w.phase == PW_IDLE && w.target == PW_NONE);
+    CHECK(pw_walk_to(&w, 560, 400) == PW_OK && !ps_visible_saved(&s, &w));
+    CHECK(ps_save(&s, &w) == PS_WAIT);
+    pw_advance(&w, 3000);
+    CHECK(ps_visible_saved(&s, &w));
+    return true;
+}
 bool ps_selftest(void (*report)(const char *, bool))
 {
-    static const struct { const char *name; bool (*run)(void); } cases[] = {
-        {"format-restore-cooldowns", empty_restore}, {"sleep-elapsed-wake", sleep_restore},
-        {"all-65-write-cut-points", partial_writes}, {"crc-fallback", bad_record},
-        {"rotation-partial-erase", rotate_and_erase}, {"short-io-no-success", io_failures},
-        {"no-unfinished-action-replay", no_busy_replay}, {"autosave-throttle-checkpoint-retry", scheduler},
-        {"visible-state-save-consistency", visible_status}
-    };
+    static const struct { const char *name; bool (*run)(void);
+    } cases[] = {
+        {"format-restore-cooldowns", empty_restore},        {"sleep-elapsed-wake", sleep_restore},
+        {"all-65-write-cut-points", partial_writes},        {"crc-fallback", bad_record},
+        {"rotation-partial-erase", rotate_and_erase},       {"short-io-no-success", io_failures},
+        {"no-unfinished-action-replay", no_busy_replay},    {"autosave-throttle-checkpoint-retry", scheduler},
+        {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

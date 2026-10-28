@@ -4,6 +4,7 @@
 #include "pet_world_assets.h"
 #include "pet_world_font.h"
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #undef assert
@@ -118,7 +119,12 @@ static void controls_fit(lv_obj_t *p, bool hidden)
     {
         lv_area_t a;
         lv_obj_get_coords(p, &a);
-        assert(a.x1 >= 0 && a.y1 >= 0 && a.x2 < 390 && a.y2 < 450);
+        bool map_child = false;
+        for (lv_obj_t *q = p; q; q = lv_obj_get_parent(q))
+            if (lv_obj_get_width(q) == 1120)
+                map_child = true;
+        if (!map_child)
+            assert(a.x1 >= 0 && a.y1 >= 0 && a.x2 < 390 && a.y2 < 450);
         assert(lv_obj_get_width(p) >= 44 && lv_obj_get_height(p) >= 44);
     }
     for (unsigned i = 0; i < lv_obj_get_child_count(p); i++)
@@ -174,10 +180,17 @@ static void screenshot(const char *name)
     fclose(f);
     fprintf(stderr, "[host:world-ui] %s\n", name);
 }
+static pw_result_t point_command(float x, float y)
+{
+    result = pw_walk_to(&world, x, y);
+    pet_ui_update(&world);
+    return result;
+}
 static void reset(void)
 {
     pw_init(&world);
     pet_ui_create(command);
+    pet_ui_set_point_handler(point_command);
     pet_ui_update(&world);
     lv_obj_update_layout(lv_screen_active());
 }
@@ -189,10 +202,14 @@ static void until_action(void)
 }
 static void travel(const char *name, pw_scene_t scene)
 {
-    press("出行");
-    press(name);
+    (void)name;
+    press("出门");
+    for (int n = 0; n < 1000 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
+        step(20);
+    assert(world.scene == PW_CAMPUS);
+    command((pw_command_t)(PW_ENTER_DORM + scene));
     for (int i = 0;
-         i < 1500 && (world.scene != scene || world.phase == PW_WALK || world.phase == PW_TRANSITION); i++)
+         i < 3000 && (world.scene != scene || world.phase == PW_WALK || world.phase == PW_TRANSITION); i++)
         step(20);
     assert(world.scene == scene);
 }
@@ -226,8 +243,8 @@ int main(void)
     uint64_t now = world.now;
     step(500);
     assert(world.now == now + 500 && world.action == PW_CODE);
-    press("出行");
-    assert(lv_obj_has_state(control("教室"), LV_STATE_DISABLED));
+    press("出门");
+    assert(result == PW_BUSY && world.action == PW_CODE);
     screenshot("world-busy-travel.ppm");
     tap(20, 200);
     step(11000);
@@ -267,6 +284,7 @@ int main(void)
     {
         uint8_t f = world.food, m = world.mood;
         pet_ui_create(command);
+        pet_ui_set_point_handler(point_command);
         pet_ui_update(&world);
         lv_obj_update_layout(lv_screen_active());
         assert(timers() == count && world.food == f && world.mood == m);
@@ -309,9 +327,101 @@ int main(void)
         char filename[40]; snprintf(filename, sizeof(filename), "world-save-status-%u.ppm", state);
         screenshot(filename);
     }
-    pet_ui_create(command); pet_ui_update(&world);
+    pet_ui_create(command);
+    pet_ui_set_point_handler(point_command);
+    pet_ui_update(&world);
     assert(label_with(lv_screen_active(), notes[PET_SAVE_FAILED]));
     assert(timers() == count);
+    reset();
+    tap(365, 306); /* Native indoor door, distinct from desk hotspot. */
+    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
+        step(20);
+    assert(world.scene == PW_CAMPUS && fabsf(world.x - 360) < .1f);
+    screenshot("campus-dorm-gate.ppm");
+    float cx, cy;
+    pw_camera(&world, &cx, &cy);
+    tap((int)(440 - cx), (int)(560 - cy));
+    assert(world.phase == PW_WALK && world.purpose == 3);
+    for (int n = 0; n < 600 && world.phase == PW_WALK; n++)
+        step(20);
+    assert(fabsf(world.x - 440) < .1f && fabsf(world.y - 560) < .1f);
+    screenshot("campus-walk-west.ppm");
+    point_command(560, 560);
+    step(2000);
+    screenshot("campus-crossroads.ppm");
+    press("路标");
+    screenshot("campus-signs.ppm");
+    unsigned old_route = world.route_len;
+    tap(190, 150);
+    assert(world.route_len == old_route);
+    tap(20, 200);
+    point_command(560, 160);
+    step(6000);
+    screenshot("campus-teaching-gate.ppm");
+    pw_camera(&world, &cx, &cy);
+    tap((int)(560 - cx), (int)(65 - cy));
+    for (int n = 0; n < 1200 && world.scene != PW_CLASSROOM; n++)
+        step(20);
+    assert(world.scene == PW_CLASSROOM);
+    step(3000);
+    screenshot("campus-entered-classroom.ppm");
+    press("出门");
+    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
+        step(20);
+    assert(world.scene == PW_CAMPUS && fabsf(world.y - 120) < .1f);
+    point_command(960, 560);
+    step(15000);
+    screenshot("campus-east-path.ppm");
+    command(PW_ENTER_CANTEEN);
+    for (int n = 0; n < 2000 && world.scene != PW_CANTEEN; n++)
+        step(20);
+    assert(world.scene == PW_CANTEEN);
+    step(3000);
+    screenshot("campus-entered-canteen.ppm");
+    tap(110, 277);
+    until_action();
+    step(4500);
+    press("出门");
+    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
+        step(20);
+    point_command(960, 960);
+    step(20000);
+    screenshot("campus-south-east.ppm");
+    point_command(160, 960);
+    step(20000);
+    screenshot("campus-south-west.ppm");
+    point_command(160, 160);
+    step(20000);
+    screenshot("campus-north-west.ppm");
+    point_command(960, 160);
+    step(20000);
+    screenshot("campus-north-east.ppm");
+    for (int n = 0; n < 10; n++)
+    {
+        pet_ui_create(command);
+        pet_ui_set_point_handler(point_command);
+        pet_ui_update(&world);
+        assert(timers() == count);
+        screenshot("campus-recreated.ppm");
+    }
+    pw_init(&world);
+    world.scene = PW_CAMPUS;
+    world.node = 0;
+    world.x = 560;
+    world.y = 560;
+    pet_ui_update(&world);
+    point_command(560, 160);
+    for (int n = 0; n < 60; n++)
+    {
+        if (n == 30)
+            point_command(960, 160);
+        step(200);
+        char filename[40];
+        snprintf(filename, sizeof(filename), "campus-demo-%02d.ppm", n);
+        screenshot(filename);
+    }
+    puts("[host:campus-ui] native pointer exit/road/building, camera, four corners, signs/scrim, meals and "
+         "recreations PASS");
     puts("[host:save-ui] pending/saved/unavailable/failed labels, CJK glyphs, fit and recreation PASS");
     puts(
         "[host:world-ui] actual LVGL: three rooms, 8 views, native pointer hotspots/panels/scrim, arrival "

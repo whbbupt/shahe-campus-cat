@@ -4,10 +4,29 @@
 #include <math.h>
 #include <string.h>
 
-static const pw_point_t nodes[3][8] = {
+static const pw_point_t nodes[4][32] = {
     {{365, 300}, {339, 305}, {301, 342}, {211, 339}, {161, 346}, {198, 390}, {120, 268}, {303, 277}},
     {{368, 231}, {338, 267}, {295, 319}, {224, 338}, {186, 369}, {244, 410}, {154, 383}, {0, 0}},
-    {{365, 266}, {335, 290}, {288, 327}, {217, 349}, {183, 380}, {242, 411}, {125, 386}, {0, 0}}};
+    {{365, 266}, {335, 290}, {288, 327}, {217, 349}, {183, 380}, {242, 411}, {125, 386}, {0, 0}},
+    {{560, 560},
+     {360, 560},
+     {160, 560},
+     {560, 360},
+     {560, 160},
+     {760, 560},
+     {960, 560},
+     {560, 760},
+     {560, 960},
+     {160, 160},
+     {960, 160},
+     {960, 960},
+     {160, 960},
+     {360, 460},
+     {560, 120},
+     {760, 460}}};
+static const uint8_t campus_edges[][2] = {{0, 1},  {1, 2},  {0, 3},  {3, 4},  {0, 5},  {5, 6},  {0, 7},
+                                          {7, 8},  {2, 9},  {9, 4},  {4, 10}, {10, 6}, {6, 11}, {11, 8},
+                                          {8, 12}, {12, 2}, {1, 13}, {4, 14}, {5, 15}};
 static const uint8_t edges[9][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}, {3, 5}, {4, 6}, {1, 7}, {2, 7}};
 static const uint32_t durations[7] = {0, 4000, 1500, 600, 8000, 10000, 500};
 static const uint32_t cooldowns[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
@@ -38,7 +57,7 @@ static float distance(float ax, float ay, float bx, float by)
 }
 pw_point_t pw_node(pw_scene_t s, unsigned n)
 {
-    return nodes[s][n];
+    return (unsigned)s <= PW_CAMPUS && n < 32 ? nodes[s][n] : (pw_point_t){0, 0};
 }
 uint32_t pw_duration(pw_command_t a)
 {
@@ -81,6 +100,7 @@ void pw_init(pet_world_t *w)
     w->node = 3;
     w->edge_a = w->edge_b = -1;
     w->destination = -1;
+    w->point_edge_a = w->point_edge_b = -1;
     w->x = nodes[0][3].x;
     w->y = nodes[0][3].y;
     w->facing = 1;
@@ -116,6 +136,8 @@ static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
         return PW_ASLEEP;
     if (pw_busy(w))
         return PW_BUSY;
+    if (w->scene == PW_CAMPUS && a != PW_TOUCH)
+        return PW_WRONG_ROOM;
     if (a == PW_EAT && w->scene != PW_CANTEEN)
         return PW_WRONG_ROOM;
     if (a == PW_STUDY && w->scene != PW_CLASSROOM)
@@ -159,12 +181,36 @@ static void begin(pet_world_t *w, pw_command_t a)
            : a == PW_REST  ? MSG_REST
                            : MSG_WAKE);
 }
-static bool shortest(pw_scene_t s, int start, int goal, int8_t *route, unsigned *len, float *cost)
+static pw_point_t point(const pet_world_t *w, int n)
 {
-    float dist[8];
-    int8_t prev[8];
-    bool done[8] = {false};
-    int count = s == PW_DORM ? 8 : 7;
+    return w->scene == PW_CAMPUS && n == 16 ? w->point_goal : pw_node(w->scene, (unsigned)n);
+}
+unsigned pw_road_count(void)
+{
+    return sizeof(campus_edges) / sizeof(campus_edges[0]);
+}
+void pw_road(unsigned index, pw_point_t *a, pw_point_t *b)
+{
+    if (index >= pw_road_count())
+    {
+        *a = *b = (pw_point_t){0, 0};
+        return;
+    }
+    *a = pw_node(PW_CAMPUS, campus_edges[index][0]);
+    *b = pw_node(PW_CAMPUS, campus_edges[index][1]);
+}
+void pw_camera(const pet_world_t *w, float *x, float *y)
+{
+    *x = w->scene == PW_CAMPUS ? fmaxf(0, fminf(730, w->x - 195)) : 0;
+    *y = w->scene == PW_CAMPUS ? fmaxf(0, fminf(670, w->y - 260)) : 0;
+}
+static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, unsigned *len, float *cost)
+{
+    pw_scene_t s = w->scene;
+    float dist[32];
+    int8_t prev[32];
+    bool done[32] = {false};
+    int count = s == PW_CAMPUS ? 17 : (s == PW_DORM ? 8 : 7);
     for (int i = 0; i < count; i++)
     {
         dist[i] = FLT_MAX;
@@ -182,12 +228,30 @@ static bool shortest(pw_scene_t s, int start, int goal, int8_t *route, unsigned 
         done[at] = true;
         if (at == goal)
             break;
-        for (int e = 0; e < (s == PW_DORM ? 9 : 7); e++)
+        for (int e = 0; e < (s == PW_CAMPUS ? (int)pw_road_count() + 2 : (s == PW_DORM ? 9 : 7)); e++)
         {
-            int next = edges[e][0] == at ? edges[e][1] : (edges[e][1] == at ? edges[e][0] : -1);
+            int a, b;
+            if (s != PW_CAMPUS)
+            {
+                a = edges[e][0];
+                b = edges[e][1];
+            }
+            else if (e < (int)pw_road_count())
+            {
+                a = campus_edges[e][0];
+                b = campus_edges[e][1];
+            }
+            else
+            {
+                a = 16;
+                b = e == (int)pw_road_count() ? w->point_edge_a : w->point_edge_b;
+            }
+            if (a < 0 || b < 0)
+                continue;
+            int next = a == at ? b : (b == at ? a : -1);
             if (next < 0 || done[next])
                 continue;
-            float d = dist[at] + distance(nodes[s][at].x, nodes[s][at].y, nodes[s][next].x, nodes[s][next].y);
+            float d = dist[at] + distance(point(w, at).x, point(w, at).y, point(w, next).x, point(w, next).y);
             if (d < dist[next])
             {
                 dist[next] = d;
@@ -197,14 +261,14 @@ static bool shortest(pw_scene_t s, int start, int goal, int8_t *route, unsigned 
     }
     if (dist[goal] == FLT_MAX)
         return false;
-    int8_t rev[8];
+    int8_t rev[32];
     unsigned n = 0;
     for (int x = goal; x >= 0; x = prev[x])
     {
         rev[n++] = (int8_t)x;
         if (x == start)
             break;
-        if (n == 8)
+        if (n == 32)
             return false;
     }
     for (unsigned i = 0; i < n; i++)
@@ -239,18 +303,25 @@ static void arrived(pet_world_t *w)
         w->swapped = false;
     }
     else
+    {
         idle(w);
+        if (w->scene == PW_CAMPUS && w->node == 16)
+        {
+            w->edge_a = w->point_edge_a;
+            w->edge_b = w->point_edge_b;
+        }
+    }
 }
 static void consume(pet_world_t *w)
 {
     while (w->phase == PW_WALK && w->route_at < w->route_len)
     {
         int n = w->route[w->route_at];
-        if (distance(w->x, w->y, nodes[w->scene][n].x, nodes[w->scene][n].y) > .02f)
+        if (distance(w->x, w->y, point(w, n).x, point(w, n).y) > .02f)
             break;
         w->node = (int8_t)n;
-        w->x = nodes[w->scene][n].x;
-        w->y = nodes[w->scene][n].y;
+        w->x = point(w, n).x;
+        w->y = point(w, n).y;
         w->route_at++;
         w->edge_a = w->edge_b = -1;
     }
@@ -267,19 +338,24 @@ static void consume(pet_world_t *w)
 }
 static bool move(pet_world_t *w, int goal, unsigned purpose)
 {
+    if (w->scene == PW_CAMPUS && (w->edge_a == 16 || w->edge_b == 16))
+    {
+        w->edge_a = w->point_edge_a;
+        w->edge_b = w->point_edge_b;
+    }
     int anchor[2] = {w->edge_a >= 0 ? w->edge_a : w->node, w->edge_b};
-    int8_t best[12];
+    int8_t best[32];
     unsigned best_n = 0;
     float best_cost = FLT_MAX;
     for (int k = 0; k < 2; k++)
         if (anchor[k] >= 0)
         {
-            int8_t route[12];
+            int8_t route[32];
             unsigned n;
             float cost;
-            if (shortest(w->scene, anchor[k], goal, route, &n, &cost))
+            if (shortest(w, anchor[k], goal, route, &n, &cost))
             {
-                cost += distance(w->x, w->y, nodes[w->scene][anchor[k]].x, nodes[w->scene][anchor[k]].y);
+                cost += distance(w->x, w->y, point(w, anchor[k]).x, point(w, anchor[k]).y);
                 if (cost < best_cost)
                 {
                     best_cost = cost;
@@ -299,10 +375,78 @@ static bool move(pet_world_t *w, int goal, unsigned purpose)
     consume(w);
     return true;
 }
+pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
+{
+    if (w->scene != PW_CAMPUS || !isfinite(x) || !isfinite(y) || x < 0 || y < 0 || x > 1120 || y > 1120)
+        return PW_INVALID;
+    if (pw_busy(w))
+        return reject(w, PW_BUSY);
+    float best = FLT_MAX;
+    pw_point_t goal = {0, 0};
+    int edge = -1;
+    for (unsigned i = 0; i < pw_road_count(); i++)
+    {
+        pw_point_t a, b;
+        pw_road(i, &a, &b);
+        float dx = b.x - a.x, dy = b.y - a.y;
+        float t = fmaxf(0, fminf(1, ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy)));
+        pw_point_t p = {a.x + t * dx, a.y + t * dy};
+        float d = distance(x, y, p.x, p.y);
+        if (d < best)
+        {
+            best = d;
+            goal = p;
+            edge = (int)i;
+        }
+    }
+    if (best > 40 || edge < 0)
+        return PW_INVALID;
+    if (w->edge_a == 16 || w->edge_b == 16)
+    {
+        w->edge_a = w->point_edge_a;
+        w->edge_b = w->point_edge_b;
+    }
+    bool same_edge = (w->edge_a == campus_edges[edge][0] && w->edge_b == campus_edges[edge][1]) ||
+                     (w->edge_b == campus_edges[edge][0] && w->edge_a == campus_edges[edge][1]);
+    w->point_goal = goal;
+    w->point_edge_a = campus_edges[edge][0];
+    w->point_edge_b = campus_edges[edge][1];
+    w->target = PW_NONE;
+    w->destination = -1;
+    if (same_edge)
+    {
+        w->route[0] = 16;
+        w->route_at = 0;
+        w->route_len = 1;
+        w->phase = PW_WALK;
+        w->action = PW_NONE;
+        w->purpose = 3;
+        consume(w);
+        return PW_OK;
+    }
+    return move(w, 16, 3) ? PW_OK : PW_INVALID;
+}
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_EXIT || (cmd >= PW_ENTER_DORM && cmd <= PW_ENTER_CANTEEN))
+    {
+        if (pw_busy(w))
+            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if ((cmd == PW_EXIT) == (w->scene == PW_CAMPUS))
+            return PW_WRONG_ROOM;
+        int next = cmd == PW_EXIT ? PW_CAMPUS : cmd - PW_ENTER_DORM;
+        int goal = cmd == PW_EXIT ? 0 : 13 + next;
+        w->entry_node = cmd == PW_EXIT ? (int8_t)(13 + w->scene) : 0;
+        w->destination = (int8_t)next;
+        w->target = PW_NONE;
+        if (!move(w, goal, 2))
+            return reject(w, PW_INVALID);
+        say(w, MSG_TRAVEL);
+        return PW_OK;
+    }
     if (cmd >= PW_GO_DORM && cmd <= PW_GO_CANTEEN)
     {
+        w->entry_node = 0;
         int next = cmd - PW_GO_DORM;
         if (next == w->scene)
         {
@@ -379,7 +523,7 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         if (w->phase == PW_WALK)
         {
             int n = w->route[w->route_at];
-            float d = distance(w->x, w->y, nodes[w->scene][n].x, nodes[w->scene][n].y);
+            float d = distance(w->x, w->y, point(w, n).x, point(w, n).y);
             until = (uint64_t)ceilf(d / 70.0f * 1000.0f);
             if (!until)
                 until = 1;
@@ -401,13 +545,13 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         if (w->phase == PW_WALK)
         {
             int n = w->route[w->route_at];
-            float dx = nodes[w->scene][n].x - w->x, dy = nodes[w->scene][n].y - w->y, d = hypotf(dx, dy);
+            float dx = point(w, n).x - w->x, dy = point(w, n).y - w->y, d = hypotf(dx, dy);
             float fraction = d > .001f ? 70.0f * (float)dt / 1000.0f / d : 1;
             w->facing = heading(dx, dy);
             if (fraction >= 1)
             {
-                w->x = nodes[w->scene][n].x;
-                w->y = nodes[w->scene][n].y;
+                w->x = point(w, n).x;
+                w->y = point(w, n).y;
             }
             else
             {
@@ -423,23 +567,32 @@ void pw_advance(pet_world_t *w, uint32_t ms)
             if (!w->swapped && w->now >= w->transition_start + 200)
             {
                 w->scene = (pw_scene_t)w->destination;
-                w->node = 0;
-                w->x = nodes[w->scene][0].x;
-                w->y = nodes[w->scene][0].y;
+                w->node = w->scene == PW_CAMPUS ? w->entry_node : 0;
+                w->x = point(w, w->node).x;
+                w->y = point(w, w->node).y;
+                w->point_edge_a = w->point_edge_b = -1;
                 w->edge_a = w->edge_b = -1;
                 w->swapped = true;
             }
             else if (w->swapped && w->now >= w->transition_start + 400)
             {
                 w->destination = -1;
-                move(w, 3, 0);
+                if (w->scene == PW_CAMPUS)
+                    idle(w);
+                else
+                    move(w, 3, 0);
             }
         }
         else if (w->phase == PW_IDLE && w->now >= w->idle_until)
         {
+            if (w->scene == PW_CAMPUS)
+            {
+                w->idle_until = w->now + 60000;
+                continue;
+            }
             int choices[4], count = 0;
             for (int n = 2; n <= 5; n++)
-                if (distance(w->x, w->y, nodes[w->scene][n].x, nodes[w->scene][n].y) > 12)
+                if (distance(w->x, w->y, point(w, n).x, point(w, n).y) > 12)
                     choices[count++] = n;
             w->random = w->random * 1664525U + 1013904223U;
             if (count)
@@ -463,6 +616,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     v->y = w->y;
     v->facing = w->facing;
     v->scale = fmaxf(.91f, fminf(1.05f, .92f + (w->y - 240) / 1000));
+    if (w->scene == PW_CAMPUS)
+        v->scale = .82f;
     bool furniture = w->phase == PW_SLEEP || (w->phase == PW_ACTION && w->action != PW_TOUCH);
     bool settled = false;
     if (furniture)
@@ -533,7 +688,7 @@ const char *pw_message_text(const pet_world_t *w)
         return "";
     static const char *texts[] = {"",
                                   "走过去啦",
-                                  "去另一个房间",
+                                  "沿路走到门口",
                                   "开饭啦",
                                   "呼噜呼噜",
                                   "认真听课中",

@@ -2,17 +2,17 @@
   "source": "SourceHanSansSC-Normal.otf",
   "source_sha256": "1ee89e1669362dee13851129c0a8a791a87521eb4148e5efbf5d26596738e25b",
   "license": "SIL OFL 1.1; derived bitmap name Pet UI CJK",
-  "characters": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~·×♥、一上下不个中乎也了今代作保先具再写准出切前动去口另叫可吃后向听启呼哪啦喵噜场坐堂备复天失子存安完室家宿对小已床应开当往待很心态恢情成房换摸教散敲晚景暂束来档步满点热版状猫用的真睡码移稍等经结肚自舍行要觉认试请课败走起足过逛醒里重门闲间顿食饭饱饿，",
+  "characters": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~·×←↑→↓♥一上下不中也了今代作侧保先入具再写准出切到前动北十南去口叫可吃后向听启呼啦喵噜园场坪堂备复天失子字存学安完家宿对小已床应开当往待很心态恢情成换探摸教散敲晚景暂束来标校档楼步沙河沿满点状猫环用的真睡码稍等索经结肚自舍草要觉认试请课败走起足路过进逛邮醒重门闲面食饭饱饿，",
   "fonts": [
     {
       "size": 16,
-      "glyphs": 222,
-      "bitmap_bytes": 20589
+      "glyphs": 235,
+      "bitmap_bytes": 22213
     },
     {
       "size": 20,
-      "glyphs": 222,
-      "bitmap_bytes": 31808
+      "glyphs": 235,
+      "bitmap_bytes": 34388
     }
   ]
 }

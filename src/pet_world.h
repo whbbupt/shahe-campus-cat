@@ -7,7 +7,8 @@ typedef enum
 {
     PW_DORM,
     PW_CLASSROOM,
-    PW_CANTEEN
+    PW_CANTEEN,
+    PW_CAMPUS
 } pw_scene_t;
 typedef enum
 {
@@ -20,7 +21,11 @@ typedef enum
     PW_WAKE,
     PW_GO_DORM = 20,
     PW_GO_CLASSROOM,
-    PW_GO_CANTEEN
+    PW_GO_CANTEEN,
+    PW_EXIT,
+    PW_ENTER_DORM = 30,
+    PW_ENTER_CLASSROOM,
+    PW_ENTER_CANTEEN
 } pw_command_t;
 typedef enum
 {
@@ -50,9 +55,10 @@ typedef struct
     pw_scene_t scene;
     pw_phase_t phase;
     pw_command_t action, target;
-    int8_t node, edge_a, edge_b, route[12];
+    int8_t node, edge_a, edge_b, route[32];
     uint8_t route_at, route_len, purpose, food, mood, facing;
-    int8_t destination;
+    int8_t destination, entry_node, point_edge_a, point_edge_b;
+    pw_point_t point_goal;
     bool swapped;
     float x, y;
     uint64_t now, action_start, action_end, transition_start, idle_until;
@@ -73,6 +79,11 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v);
 bool pw_busy(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
+pw_result_t pw_walk_to(pet_world_t *w, float x, float y);
+void pw_camera(const pet_world_t *w, float *x, float *y);
+unsigned pw_road_count(void);
+void pw_road(unsigned index, pw_point_t *a, pw_point_t *b);
+bool pw_campus_selftest(void (*report)(const char *, bool));
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
 uint32_t pw_duration(pw_command_t action);
 bool pw_selftest(void (*report)(const char *, bool));

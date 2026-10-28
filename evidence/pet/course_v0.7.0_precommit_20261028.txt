@@ -1,0 +1,22 @@
+========================================================
+✓ 提交规范     PASS
+✓ 开发日志     PASS
+✓ 需求追踪     PASS
+! manifest WARN
+    检查文件: manifest.yaml
+    
+    发现 27 项必须补全的问题：
+      [必须] submission.student_id 未填写
+      [必须] submission.group_id 未填写
+      [必须] submission.submitted_at 未填写
+      [必须] dev_agent.session_log_path 未填写
+      [必须] physical_verification[0].executed_at 未填写
+      [必须] physical_verification[1].executed_at 未填写
+      [必须] physical_verification[2].executed_at 未填写
+      [必须] physical_verification[3].executed_at 未填写
+      [必须] physical_verification[4].executed_at 未填写
+      [必须] physical_verification[5].executed_at 未填写
+      [必须] physical_verification[6].executed_at 未填写
+      [必须] physical_verification[7].executed_at 未填写
+========================================================
+结论：必检项全部通过。

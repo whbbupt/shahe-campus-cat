@@ -14,6 +14,10 @@ static int writes, calls, capacity=16*1024*1024, alignment=4096;
 static bool fail_write;
 rt_tick_t rt_tick_get(void) { return tick; }
 int rt_kprintf(const char *f, ...) { (void)f; return 0; }
+void pet_ui_set_point_handler(pet_ui_point_fn handler)
+{
+    (void)handler;
+}
 void pet_ui_create(pet_ui_action_fn f) { action=f; }
 void pet_ui_update(const pet_world_t *w) { snapshot=*w; }
 void pet_ui_set_save_status(unsigned s) { status=s; }

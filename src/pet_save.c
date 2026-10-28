@@ -31,10 +31,11 @@ static bool committed(const uint8_t *r)
 }
 static bool valid(const uint8_t *r)
 {
-    if (!committed(r) || r[4] != 1 || r[5] || r[6] != 64 || r[7] ||
-        r[12] > 100 || r[13] > 100 || r[14] > PW_CANTEEN || r[15] > 1 ||
-        (r[15] && r[14] != PW_DORM) || get32(r + 16) >= 300000 ||
-        get32(r + 20) >= 600000 || get32(r + 24) >= 60000) return false;
+    if (!committed(r) || (r[4] != 1 && r[4] != 2) || r[5] || r[6] != 64 || r[7] || r[12] > 100 ||
+        r[13] > 100 || r[14] > (r[4] == 1 ? PW_CANTEEN : PW_CAMPUS) || r[15] > 1 ||
+        (r[15] && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
+        get32(r + 24) >= 60000)
+        return false;
     static const uint32_t limits[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
     for (unsigned i = 0; i < 7; i++)
         if (get32(r + 28 + 4 * i) > limits[i]) return false;
@@ -56,7 +57,10 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     /* Never persist an unfinished business intent or a half-swapped scene. */
     if (!snapshot_ready(w)) return false;
     memset(r, 0, 64);
-    put32(r, MAGIC); r[4] = 1; r[6] = 64; put32(r + 8, seq);
+    put32(r, MAGIC);
+    r[4] = 2;
+    r[6] = 64;
+    put32(r + 8, seq);
     r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = w->phase == PW_SLEEP;
     put32(r + 16, (uint32_t)w->food_elapsed);
     put32(r + 20, (uint32_t)w->mood_elapsed);
@@ -71,7 +75,7 @@ static void restore(const uint8_t *r, pet_world_t *w)
     pw_init(w);
     w->food = r[12]; w->mood = r[13]; w->scene = (pw_scene_t)r[14];
     w->phase = r[15] ? PW_SLEEP : PW_IDLE;
-    w->node = r[15] ? 6 : 3;
+    w->node = w->scene == PW_CAMPUS ? 0 : (r[15] ? 6 : 3);
     pw_point_t p = pw_node(w->scene, (unsigned)w->node);
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
@@ -85,7 +89,8 @@ ps_result_t ps_open(pet_save_t *s, ps_io_t io, pet_world_t *w)
     for (uint32_t offset = 0; offset < PS_AREA_SIZE; offset += 64)
     {
         if (!io.read(io.context, offset, r, 64)) return PS_IO_ERROR;
-        if (committed(r) && (r[4] != 1 || r[5] || r[6] != 64 || r[7])) future = true;
+        if (committed(r) && ((r[4] != 1 && r[4] != 2) || r[5] || r[6] != 64 || r[7]))
+            future = true;
         if (valid(r) && (!s->has_saved || newer(get32(r + 8), s->sequence)))
         {
             memcpy(s->saved, r, 64); s->sequence = get32(r + 8);
