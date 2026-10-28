@@ -26,8 +26,15 @@ static struct
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *dialog, *status, *travel, *food, *mood, *food_fill, *mood_fill, *state, *title,
         *dest[3], *dest_note[3];
-    lv_obj_t *corner[2], *bubble, *bubble_text;
+    lv_obj_t *corner[2], *bubble, *bubble_text, *save_note;
 } ui;
+static unsigned save_state = PET_SAVE_PENDING;
+static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
+void pet_ui_set_save_status(unsigned status)
+{
+    save_state = status <= PET_SAVE_FAILED ? status : PET_SAVE_UNAVAILABLE;
+    if (ui.save_note) lv_label_set_text(ui.save_note, save_notes[save_state]);
+}
 static void paint(void);
 static lv_obj_t *box(lv_obj_t *parent, int x, int y, int w, int h, uint32_t color, int radius)
 {
@@ -223,8 +230,8 @@ static void build_panel(lv_obj_t *screen)
     box(ui.status, 0, 85, 240, 7, 0xE1E9ED, 3);
     ui.mood_fill = box(ui.status, 0, 85, 144, 7, 0x88AA92, 3);
     ui.state = text(ui.status, "闲逛中", 0, 108, &pet_font_16, BLUE);
-    text(ui.status, "v" PET_FIRMWARE_VERSION " · 会话版", 0, 139, &pet_font_16, INK);
-    text(ui.status, "重启后状态重置", 0, 166, &pet_font_16, 0x62736B);
+    text(ui.status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
+    ui.save_note = text(ui.status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
     ui.travel = box(ui.dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
     static const char *names[] = {"宿舍", "教室", "食堂"},
                       *notes[] = {"睡觉、写代码", "坐下来上课", "吃一顿热乎的"};

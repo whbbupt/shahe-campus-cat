@@ -76,6 +76,8 @@ def build(sources, name, includes=(), defines=()):
 
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')
+build([root/'src/pet_world.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'tests/pet_save_test.c'], 'pet-save-test')
+build([root/'src/pet_model.c', root/'src/pet_world.c', root/'src/pet_world_selftest.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'src/pet_save_flash.c', root/'src/pet_app.c', root/'tests/pet_save_app_test.c'], 'pet-save-app-test', [root/'tests/save_include'])
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))

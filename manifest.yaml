@@ -73,7 +73,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.5.0_metadata_20261026.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.6.0_metadata_20261028.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -366,7 +366,54 @@ test_results:
     status: awaiting_boot_log
     pass: null
 
+  - test_id: TC-140
+    description: 存档格式与恢复共享自检
+    expected: 按docs/03第11节执行
+    actual: 主机8组共享及4组补充PASS，非板上输出
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.6.0_final_20261028.txt
+
+  - test_id: TC-141
+    description: NOR故障注入与旧记录保留
+    expected: 按docs/03第11节执行
+    actual: 主机65个写入中断点、半擦除失败、回读失败序号协调PASS
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.6.0_final_20261028.txt
+
+  - test_id: TC-142
+    description: 应用恢复与LVGL真实存档提示
+    expected: 按docs/03第11节执行
+    actual: 真实app/驱动回调模拟及4种生产LVGL提示/边界/重建PASS
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.6.0_final_20261028.txt
+
+  - test_id: TC-143
+    description: 存档固件构建与分区校验
+    expected: 按docs/03第11节执行
+    actual: 原构建成功，分区无重叠且旧项未变，下载仍3镜像
+    status: passed_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.6.0_attempt1_20261028.txt
+
+  - test_id: TC-144
+    description: 真实保存后复位恢复
+    expected: 按docs/03第11节执行
+    actual: 未执行，待用户本版真实保存和复位证据
+    status: not_executed
+    pass: null
+
+  - test_id: TC-145
+    description: 真实启动与断电恢复
+    expected: 按docs/03第11节执行
+    actual: 未执行，待真实启动/SAVE-TEST与保存后断电重启结果
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.6.0专用双区存档已软件/构建通过，TC-144/145未实测；须等待保存成功再断电，动作/主动路径中延后；无离线时间模拟，全片擦除会清档，动态峰值/帧率和Flash寿命未测。"
   - "v0.5.0已真正接入固定房间C/LVGL与八方向；TC-130/131/132软件通过；2026-10-28用户确认已烧录且使用暂未发现问题，TC-133完整判据与TC-134启动日志仍待核验；重启重置，无存档，动态内存/帧率未测。"
   - "v0.4.0沙河校园三场景/上课/吃饭/休息与较小猫已实现，TC-120/121/122仅软件通过；TC-123/124未实测，图是插画/主机渲染，仍无存档与真实运行时内存结论。"
   - "v0.3.2已按用户认可原图替换为AI生图猫；6态实际LVGL预览/回归与构建通过，动态堆栈和真实板端效果未测；不把原图认可当实物通过。"

@@ -1,0 +1,92 @@
+[host:pet] feed-clamp-spam-cooldown PASS
+
+[host:pet] touch-clamp-cooldown PASS
+
+[host:pet] elapsed-partition-large-gap PASS
+
+[host:pet] rest-reject-resume PASS
+
+[host:pet] view-priority PASS
+
+[host:pet] clock-wrap-fraction PASS
+
+[host:pet] invalid-event-reset PASS
+
+[host:pet] campus-travel-guards PASS
+
+[host:pet] campus-study-cost-cooldown PASS
+
+[host:pet] campus-action-routing-reset PASS
+
+[host:pet] all PASS; board not tested
+
+
+[host:world] initial-scene PASS
+
+[host:world] arrive-once PASS
+
+[host:world] retarget-no-snap PASS
+
+[host:world] arrival-eligibility PASS
+
+[host:world] busy-no-queue PASS
+
+[host:world] cooldown-from-finish PASS
+
+[host:world] capped-meal PASS
+
+[host:world] full-mood-study PASS
+
+[host:world] sleep-wake-support PASS
+
+[host:world] touch-cancels-intent PASS
+
+[host:world] elapsed-and-long-gap PASS
+
+[host:world] jump-and-seat PASS
+
+[host:world] eight-directions PASS
+
+[host:world] reset-invalid PASS
+
+[host:world] all PASS
+
+
+[host:save] format-restore-cooldowns PASS
+
+[host:save] sleep-elapsed-wake PASS
+
+[host:save] all-65-write-cut-points PASS
+
+[host:save] crc-fallback PASS
+
+[host:save] rotation-partial-erase PASS
+
+[host:save] short-io-no-success PASS
+
+[host:save] no-unfinished-action-replay PASS
+
+[host:save] autosave-throttle-checkpoint-retry PASS
+
+[host:save] committed-but-readback-failed reconciliation PASS
+
+[host:save] unknown-schema-write-protection PASS
+
+[host:save] sequence-wrap PASS
+
+[host:save] semantic-range-validation PASS
+
+[host:save] all PASS (RAM NOR simulation; not physical flash)
+
+
+[host:save-app] real app/driver callbacks: autosave, scenes, meals, sleep/wake, reboot, failure/retry PASS
+
+[host:save-app] capacity, erase-granularity, region bounds and truthful fallback PASS; no physical verdict
+
+
+[host:save-ui] pending/saved/unavailable/failed labels, CJK glyphs, fit and recreation PASS
+
+[host:world-ui] actual LVGL: three rooms, 8 views, native pointer hotspots/panels/scrim, arrival settlement, seats/bed/wake, glyphs, targets, 10 recreations and timer count PASS; no board verdict
+
+
+Actual LVGL software previews: D:\project\sifli\course_starter\build\pet-world-host

@@ -1,4 +1,4 @@
-/* Electronic pet v0.5.0. T1 source and its verified branch remain in Git.
+/* Electronic pet v0.6.0. T1 source and its verified branch remain in Git.
  * Display init follows SDK example/multimedia/lvgl/lvgl_v9_demos (Apache-2.0).
  */
 #include "rtthread.h"

@@ -2,9 +2,19 @@
 #include "pet_model.h"
 #include "pet_ui.h"
 #include "pet_world.h"
+#include "pet_save.h"
+#include "pet_save_flash.h"
+#include <string.h>
 static pet_world_t world;
+static pet_save_t save;
 static rt_tick_t previous_tick;
 static uint32_t fraction, display_elapsed;
+static unsigned save_status;
+static void show_save(unsigned status)
+{
+    save_status = status;
+    pet_ui_set_save_status(status);
+}
 static uint32_t sync_clock(void)
 {
     rt_tick_t now = rt_tick_get();
@@ -26,25 +36,55 @@ static void report(const char *name, bool ok)
 {
     rt_kprintf("[pet:WORLD] %s %s\n", name, ok ? "PASS" : "FAIL");
 }
+static void save_report(const char *name, bool ok)
+{
+    rt_kprintf("[pet:SAVE-TEST] %s %s\n", name, ok ? "PASS" : "FAIL");
+}
 rt_err_t pet_app_start(void)
 {
-    if (!pw_selftest(report))
+    if (!pw_selftest(report) || !ps_selftest(save_report))
     {
-        rt_kprintf("[pet:WORLD] all FAIL; UI not started\n");
+        rt_kprintf("[pet] selftest FAIL; UI not started\n");
         return -RT_ERROR;
     }
-    rt_kprintf("[pet:WORLD] all PASS\n");
+    rt_kprintf("[pet:WORLD] all PASS\n[pet:SAVE-TEST] all PASS (RAM only)\n");
     pw_init(&world);
+    memset(&save, 0, sizeof(save));
+    ps_io_t io;
+    ps_result_t loaded = PS_IO_ERROR;
+    if (ps_flash_io(&io)) loaded = ps_open(&save, io, &world);
     previous_tick = rt_tick_get();
     fraction = display_elapsed = 0;
     pet_ui_create(command);
+    show_save(loaded == PS_OK ? PET_SAVE_SAVED : (loaded == PS_EMPTY ? PET_SAVE_PENDING : PET_SAVE_UNAVAILABLE));
     pet_ui_update(&world);
-    rt_kprintf("[pet] fixed-room 390x450; eight directions; status/travel; session-only\n");
+    rt_kprintf("[pet:SAVE] load=%u seq=%u scene=%u food=%u mood=%u sleeping=%u\n", (unsigned)loaded,
+               (unsigned)save.sequence, (unsigned)world.scene, (unsigned)world.food, (unsigned)world.mood,
+               (unsigned)(world.phase == PW_SLEEP));
     return RT_EOK;
 }
 void pet_app_poll(void)
 {
     uint32_t ms = sync_clock();
+    if (save.enabled)
+    {
+        ps_result_t result = ps_poll(&save, &world);
+        if (result == PS_OK || result == PS_UNCHANGED)
+        {
+            show_save(PET_SAVE_SAVED);
+            if (result == PS_OK)
+                rt_kprintf("[pet:SAVE] saved seq=%u scene=%u food=%u mood=%u sleeping=%u\n", (unsigned)save.sequence,
+                           (unsigned)world.scene, (unsigned)world.food, (unsigned)world.mood,
+                           (unsigned)(world.phase == PW_SLEEP));
+        }
+        else if (result == PS_IO_ERROR || result == PS_VERSION)
+        {
+            if (save_status != PET_SAVE_FAILED)
+                rt_kprintf("[pet:SAVE] save failed result=%u; last committed snapshot retained\n", (unsigned)result);
+            show_save(PET_SAVE_FAILED);
+        }
+        else if (save.pending && save_status != PET_SAVE_FAILED) show_save(PET_SAVE_PENDING);
+    }
     display_elapsed += ms;
     if (display_elapsed >= 40)
     {

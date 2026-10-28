@@ -295,6 +295,24 @@ int main(void)
     reset();
     assert(world.food == 70 && world.mood == 60 && world.scene == PW_DORM);
     screenshot("world-restart.ppm");
+    static const char *notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
+    press("状态");
+    for (unsigned state = 0; state < 4; state++)
+    {
+        pet_ui_set_save_status(state);
+        lv_obj_update_layout(lv_screen_active());
+        lv_obj_t *note = label_with(lv_screen_active(), notes[state]);
+        assert(note && shown(note));
+        lv_area_t a; lv_obj_get_coords(note, &a);
+        assert(a.x1 >= 0 && a.x2 < 390 && a.y1 >= 0 && a.y2 < 450);
+        assert(lv_obj_get_width(note) <= 240);
+        char filename[40]; snprintf(filename, sizeof(filename), "world-save-status-%u.ppm", state);
+        screenshot(filename);
+    }
+    pet_ui_create(command); pet_ui_update(&world);
+    assert(label_with(lv_screen_active(), notes[PET_SAVE_FAILED]));
+    assert(timers() == count);
+    puts("[host:save-ui] pending/saved/unavailable/failed labels, CJK glyphs, fit and recreation PASS");
     puts(
         "[host:world-ui] actual LVGL: three rooms, 8 views, native pointer hotspots/panels/scrim, arrival "
         "settlement, seats/bed/wake, glyphs, targets, 10 recreations and timer count PASS; no board verdict");
