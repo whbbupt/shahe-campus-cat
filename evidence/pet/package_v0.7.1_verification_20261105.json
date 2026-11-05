@@ -1,0 +1,11 @@
+{
+  "zip": "北邮小猫-v0.7.1-插画校园样板固件-20261105.zip",
+  "bytes": 14038168,
+  "sha256": "4E37CB9150C5D44D071881FDF790C93BCA11D5F5902385B8E8D7934057038A06",
+  "crc": "PASS",
+  "payload_files_verified": 31,
+  "firmware_files_verified": 15,
+  "source_inputs_verified": 37,
+  "course_check": "FAIL: historical 8-day commit gap; other content checks pass; manifest WARN 28",
+  "physical_TC165": "not_executed"
+}

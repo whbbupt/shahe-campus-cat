@@ -484,7 +484,56 @@ test_results:
     status: not_executed
     pass: null
 
+  - test_id: TC-160
+    description: 插画素材与切块/铺装检查
+    expected: 按docs/03第13节执行
+    actual: 软件/构建通过，详见docs/04第28节及最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.1_final_20261105.txt
+
+  - test_id: TC-161
+    description: 分层遮挡与原生触摸
+    expected: 按docs/03第13节执行
+    actual: 软件/构建通过，详见docs/04第28节及最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.1_final_20261105.txt
+
+  - test_id: TC-162
+    description: 北侧镜头与模型存档回归
+    expected: 按docs/03第13节执行
+    actual: 软件/构建通过，详见docs/04第28节及最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.1_final_20261105.txt
+
+  - test_id: TC-163
+    description: 实际插画UI预览和重建
+    expected: 按docs/03第13节执行
+    actual: 软件/构建通过，详见docs/04第28节及最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.7.1_final_20261105.txt
+
+  - test_id: TC-164
+    description: 插画样板固件构建与交付
+    expected: 按docs/03第13节执行
+    actual: 软件/构建通过，详见docs/04第28节及最终软件结果
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.7.1_final_20261105.txt
+
+  - test_id: TC-165
+    description: 真实插画屏幕触摸滚动与启动存档
+    expected: 按docs/03第13节执行
+    actual: 未执行，待用户本版真实证据
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "2026-11-05 check_all开发日志项因10/28至11/05真实8天提交间隔FAIL；8个提交日均有日志且0内容问题，已说明已知事实但原检查器不豁免；不改规则/倒填提交。"
+  - "v0.7.1教学楼/路口局部插画样板软件与构建通过，周边室外仍旧矢量；TC-165未实测，动态内存/帧率未知；存档和路网不变。"
   - "v0.7.0连续校园与跟随镜头已软件/构建通过；TC-155/156未实测，动态峰值/帧率未知。地图为示意，户外恢复安全路口；新版存档格式2兼容读旧1，降级写保护，分区驱动不变。"
   - "v0.6.1已通过TC-146软件回归修复忙碌期保存提示误导，格式与v0.6.0兼容；TC-144/145真实存档验收仍待证据。"
   - "v0.6.0专用双区存档已软件/构建通过，TC-144/145未实测；须等待保存成功再断电，动作/主动路径中延后；无离线时间模拟，全片擦除会清档，动态峰值/帧率和Flash寿命未测。"
@@ -510,6 +559,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "校园素材路线、画风和局部样板范围"
+    student_confirmation: "选择第三种分层图片、左侧插画，并回复那也可以认可先做教学楼前与路口样板；不代表最终实机通过"
+    evidence_path: "evidence/pet/campus_art_choice_20261105_user.txt"
   - decision_point: "校园探索地图形式"
     student_confirmation: "连续大地图：点路面走动，镜头跟随小猫滚动，逛校园更连贯，但改动和性能验证更多。"
     evidence_path: "evidence/pet/campus_exploration_choice_20261028_user.txt"
