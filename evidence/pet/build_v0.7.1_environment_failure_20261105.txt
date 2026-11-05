@@ -1,0 +1,11 @@
+* Loaded runtime config ... OK
+* Loaded profile lock 'default' ... OK
+┌─────────────────────────────┐
+│ Activating SiFli-SDK v2.5.1 │
+│ profile=default             │
+└─────────────────────────────┘
+* Resolved tool plan ... OK
+* Checking environment compatibility ... OK
+[ OK ] Updated state file D:\development\sifli\tools\sifli-sdk-env.json
+* Identified shell ... cmd
+[ERR ] unsupported shell 'cmd'

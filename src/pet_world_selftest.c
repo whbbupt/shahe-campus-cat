@@ -330,7 +330,14 @@ static bool campus_clock_camera(void)
     a.x = 0;
     a.y = 0;
     pw_camera(&a, &x, &y);
-    CHECK(x == 0 && y == 0);
+    CHECK(x == 0 && y == -180);
+    a.y = 120;
+    pw_camera(&a, &x, &y);
+    CHECK(y == -180);
+    a.y = 160;
+    pw_camera(&a, &x, &y);
+    CHECK(y == -160);
+    CHECK(pw_walk_to(&a, 560, -100) == PW_INVALID);
     a.x = 1120;
     a.y = 1120;
     pw_camera(&a, &x, &y);
@@ -338,7 +345,7 @@ static bool campus_clock_camera(void)
     a.x = 560;
     a.y = 560;
     pw_camera(&a, &x, &y);
-    CHECK(x == 365 && y == 300);
+    CHECK(x == 365 && y == 240);
     a.x += 1;
     pw_camera(&a, &x, &y);
     CHECK(x == 366);

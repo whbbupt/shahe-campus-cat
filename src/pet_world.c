@@ -202,7 +202,7 @@ void pw_road(unsigned index, pw_point_t *a, pw_point_t *b)
 void pw_camera(const pet_world_t *w, float *x, float *y)
 {
     *x = w->scene == PW_CAMPUS ? fmaxf(0, fminf(730, w->x - 195)) : 0;
-    *y = w->scene == PW_CAMPUS ? fmaxf(0, fminf(670, w->y - 260)) : 0;
+    *y = w->scene == PW_CAMPUS ? fmaxf(-180, fminf(670, w->y - 320)) : 0;
 }
 static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, unsigned *len, float *cost)
 {

@@ -1,0 +1,166 @@
+[host:pet] feed-clamp-spam-cooldown PASS
+[host:pet] touch-clamp-cooldown PASS
+[host:pet] elapsed-partition-large-gap PASS
+[host:pet] rest-reject-resume PASS
+[host:pet] view-priority PASS
+[host:pet] clock-wrap-fraction PASS
+[host:pet] invalid-event-reset PASS
+[host:pet] campus-travel-guards PASS
+[host:pet] campus-study-cost-cooldown PASS
+[host:pet] campus-action-routing-reset PASS
+[host:pet] all PASS; board not tested
+
+[host:world] initial-scene PASS
+[host:world] arrive-once PASS
+[host:world] retarget-no-snap PASS
+[host:world] arrival-eligibility PASS
+[host:world] busy-no-queue PASS
+[host:world] cooldown-from-finish PASS
+[host:world] capped-meal PASS
+[host:world] full-mood-study PASS
+[host:world] sleep-wake-support PASS
+[host:world] touch-cancels-intent PASS
+[host:world] elapsed-and-long-gap PASS
+[host:world] jump-and-seat PASS
+[host:world] eight-directions PASS
+[host:world] reset-invalid PASS
+[host:world] campus-point-retarget-road PASS
+[host:world] campus-three-building-doors PASS
+[host:world] campus-guards-no-wander PASS
+[host:world] campus-clock-camera PASS
+[host:world] all PASS
+
+[host:save] format-restore-cooldowns PASS
+[host:save] sleep-elapsed-wake PASS
+[host:save] all-65-write-cut-points PASS
+[host:save] crc-fallback PASS
+[host:save] rotation-partial-erase PASS
+[host:save] short-io-no-success PASS
+[host:save] no-unfinished-action-replay PASS
+[host:save] autosave-throttle-checkpoint-retry PASS
+[host:save] visible-state-save-consistency PASS
+[host:save] campus-safe-restore PASS
+[host:save] committed-but-readback-failed reconciliation PASS
+[host:save] unknown-schema-write-protection PASS
+[host:save] sequence-wrap PASS
+[host:save] semantic-range-validation PASS
+[host:save] schema-v1-upgrade-and-campus-v2-safe-restore PASS
+[host:save] all PASS (RAM NOR simulation; not physical flash)
+
+[host:save-app] immediate pending, mid-action reboot, travel/wake and rejected-no-change feedback PASS
+[host:save-app] real app/driver callbacks: autosave, scenes, meals, sleep/wake, reboot, failure/retry PASS
+[host:save-app] capacity, erase-granularity, region bounds and truthful fallback PASS; no physical verdict
+
+
+[host:world-ui] world-dorm.ppm
+[host:world-ui] world-status.ppm
+[host:world-ui] world-code.ppm
+[host:world-ui] world-busy-travel.ppm
+[host:world-ui] world-classroom.ppm
+[host:world-ui] world-study.ppm
+[host:world-ui] world-canteen.ppm
+[host:world-ui] world-eat.ppm
+[host:world-ui] world-sleep.ppm
+[host:world-ui] world-sleep-status.ppm
+[host:world-ui] world-wake.ppm
+[host:world-ui] world-low-food.ppm
+[host:world-ui] world-angle-0.ppm
+[host:world-ui] world-angle-1.ppm
+[host:world-ui] world-angle-2.ppm
+[host:world-ui] world-angle-3.ppm
+[host:world-ui] world-angle-4.ppm
+[host:world-ui] world-angle-5.ppm
+[host:world-ui] world-angle-6.ppm
+[host:world-ui] world-angle-7.ppm
+[host:world-ui] world-restart.ppm
+[host:world-ui] world-save-status-0.ppm
+[host:world-ui] world-save-status-1.ppm
+[host:world-ui] world-save-status-2.ppm
+[host:world-ui] world-save-status-3.ppm
+[host:world-ui] campus-dorm-gate.ppm
+[host:world-ui] campus-walk-west.ppm
+[host:world-ui] campus-crossroads.ppm
+[host:world-ui] campus-signs.ppm
+[host:world-ui] campus-teaching-gate.ppm
+[host:world-ui] campus-entered-classroom.ppm
+[host:world-ui] campus-east-path.ppm
+[host:world-ui] campus-entered-canteen.ppm
+[host:world-ui] campus-south-east.ppm
+[host:world-ui] campus-south-west.ppm
+[host:world-ui] campus-north-west.ppm
+[host:world-ui] campus-north-east.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-recreated.ppm
+[host:world-ui] campus-demo-00.ppm
+[host:world-ui] campus-demo-01.ppm
+[host:world-ui] campus-demo-02.ppm
+[host:world-ui] campus-demo-03.ppm
+[host:world-ui] campus-demo-04.ppm
+[host:world-ui] campus-demo-05.ppm
+[host:world-ui] campus-demo-06.ppm
+[host:world-ui] campus-demo-07.ppm
+[host:world-ui] campus-demo-08.ppm
+[host:world-ui] campus-demo-09.ppm
+[host:world-ui] campus-demo-10.ppm
+[host:world-ui] campus-demo-11.ppm
+[host:world-ui] campus-demo-12.ppm
+[host:world-ui] campus-demo-13.ppm
+[host:world-ui] campus-demo-14.ppm
+[host:world-ui] campus-demo-15.ppm
+[host:world-ui] campus-demo-16.ppm
+[host:world-ui] campus-demo-17.ppm
+[host:world-ui] campus-demo-18.ppm
+[host:world-ui] campus-demo-19.ppm
+[host:world-ui] campus-demo-20.ppm
+[host:world-ui] campus-demo-21.ppm
+[host:world-ui] campus-demo-22.ppm
+[host:world-ui] campus-demo-23.ppm
+[host:world-ui] campus-demo-24.ppm
+[host:world-ui] campus-demo-25.ppm
+[host:world-ui] campus-demo-26.ppm
+[host:world-ui] campus-demo-27.ppm
+[host:world-ui] campus-demo-28.ppm
+[host:world-ui] campus-demo-29.ppm
+[host:world-ui] campus-demo-30.ppm
+[host:world-ui] campus-demo-31.ppm
+[host:world-ui] campus-demo-32.ppm
+[host:world-ui] campus-demo-33.ppm
+[host:world-ui] campus-demo-34.ppm
+[host:world-ui] campus-demo-35.ppm
+[host:world-ui] campus-demo-36.ppm
+[host:world-ui] campus-demo-37.ppm
+[host:world-ui] campus-demo-38.ppm
+[host:world-ui] campus-demo-39.ppm
+[host:world-ui] campus-demo-40.ppm
+[host:world-ui] campus-demo-41.ppm
+[host:world-ui] campus-demo-42.ppm
+[host:world-ui] campus-demo-43.ppm
+[host:world-ui] campus-demo-44.ppm
+[host:world-ui] campus-demo-45.ppm
+[host:world-ui] campus-demo-46.ppm
+[host:world-ui] campus-demo-47.ppm
+[host:world-ui] campus-demo-48.ppm
+[host:world-ui] campus-demo-49.ppm
+[host:world-ui] campus-demo-50.ppm
+[host:world-ui] campus-demo-51.ppm
+[host:world-ui] campus-demo-52.ppm
+[host:world-ui] campus-demo-53.ppm
+[host:world-ui] campus-demo-54.ppm
+[host:world-ui] campus-demo-55.ppm
+[host:world-ui] campus-demo-56.ppm
+[host:world-ui] campus-demo-57.ppm
+[host:world-ui] campus-demo-58.ppm
+[host:world-ui] campus-demo-59.ppm
+[host:world-ui] art-tree-behind.ppm
+[host:world-ui] art-tree-front.ppm
+[host:world-ui] art-junction.ppm
+FAIL line 241: world.phase == PW_WALK && world.purpose == 3
+

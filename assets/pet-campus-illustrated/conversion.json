@@ -1,0 +1,127 @@
+{
+  "generated_by": "make_campus_illustrated_assets.py",
+  "sources": [
+    {
+      "path": "assets/pet-campus-illustrated/source/building.png",
+      "sha256": "9C3F4FB7221C2DA341F67D683384FD47CACEE70C1753D8C9D746A2870B466B10"
+    },
+    {
+      "path": "assets/pet-campus-illustrated/source/ground.png",
+      "sha256": "E5E60AD3EE5E4CFC661D561D9B8CCC40532A2798C73E0E90512889AB4FE5063C"
+    },
+    {
+      "path": "assets/pet-campus-illustrated/source/tree.png",
+      "sha256": "83C5A837510970637F25AEEF882C8A8C1C40CA6289D68C3DA8297B13540BAFF9"
+    }
+  ],
+  "images": [
+    {
+      "symbol": "pc_ground_0",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "0D119198820E7F0E1C4FF8B3F3BC60BE261405FDD523CAE427863E02C3946925"
+    },
+    {
+      "symbol": "pc_ground_1",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "21A596F7430D7CC12F60CB8CA80A37D7C1C914723AB6379FC4D9645F2BFF0432"
+    },
+    {
+      "symbol": "pc_ground_2",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "F595649FD53FFD4ABD583BB0DB14000F0B8E97ED42FD71432D7EB0BA8443A0ED"
+    },
+    {
+      "symbol": "pc_ground_3",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "574BFBFEB68309CCA68B33A3FDE03DCFD976C2F5E8971CC764F7DFAF72224400"
+    },
+    {
+      "symbol": "pc_ground_4",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "1B3CA5905B883A40DB8D1EC30EFAE7F586A00BD6862EED49D4E5D72613BF0519"
+    },
+    {
+      "symbol": "pc_ground_5",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "6375ACFF9FC7E7A369C36B97E99BDA479E3F46AB2FB1C26BB48C42A89B55E3B6"
+    },
+    {
+      "symbol": "pc_ground_6",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "4B4AAA75BFCD8602FCDF6ABD1FCECCD708315513F165194E332AD963500B93F2"
+    },
+    {
+      "symbol": "pc_ground_7",
+      "width": 280,
+      "height": 220,
+      "bytes": 123200,
+      "sha256": "9B290E0AA3D3E7EFD7989D1C741D814CE9B02A811B0096BA7DFC89F84AC3D960"
+    },
+    {
+      "symbol": "pc_approach",
+      "width": 64,
+      "height": 100,
+      "bytes": 12800,
+      "sha256": "577C2148D31BC5A61F97097A830D47BBD7D506AB0E5B9C17ECB0AE3292CC7705"
+    },
+    {
+      "symbol": "pc_building",
+      "width": 320,
+      "height": 280,
+      "bytes": 268800,
+      "sha256": "F9D5D5578DF5268B5A0437F2AE47A823D892A21C12B8ED0C76EDF0DB189660BF"
+    },
+    {
+      "symbol": "pc_tree",
+      "width": 180,
+      "height": 250,
+      "bytes": 135000,
+      "sha256": "6F409BDAC8865EEF6F75F44D48C046032150CAF3338CF3CC59B4BF2A9AFBEFA2"
+    }
+  ],
+  "total_rom_pixel_bytes": 1402200,
+  "ground_tiles_pixel_identical_to_full_image": true,
+  "crop_and_resize": {
+    "building": {
+      "alpha_crop": [
+        72,
+        66,
+        1308,
+        1112
+      ],
+      "target_size": [
+        320,
+        280
+      ]
+    },
+    "tree": {
+      "alpha_crop": [
+        3,
+        12,
+        1062,
+        1380
+      ],
+      "target_size": [
+        180,
+        250
+      ]
+    }
+  },
+  "road_center_paving_checks": 382,
+  "runtime_image_decoder_added": false,
+  "full_map_ram_buffer_added": false
+}

@@ -3,6 +3,7 @@
 #include "lvgl.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
+#include "pet_campus_assets.h"
 #include "pet_world_font.h"
 #include "src/core/lv_obj_event_private.h"
 #include <math.h>
@@ -22,7 +23,8 @@ static struct
 {
     pet_ui_action_fn action;
     pet_ui_point_fn point;
-    lv_obj_t *campus, *door, *location, *location_text, *corner_name, *goal;
+    lv_obj_t *campus, *door, *location, *location_text, *corner_name, *goal, *campus_tree;
+    bool tree_in_front;
     pet_world_t world;
     int panel, scene;
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
@@ -174,7 +176,7 @@ static void building(lv_obj_t *p, int x, int y, int w, int h, int room, const ch
 }
 static void build_campus(lv_obj_t *screen)
 {
-    ui.campus = box(screen, 0, 0, 1120, 1120, 0xC5D8AC, 0);
+    ui.campus = box(screen, 0, 0, 1120, 1300, 0xC5D8AC, 0);
     lv_obj_add_flag(ui.campus, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.campus, road_click, LV_EVENT_CLICKED, NULL);
     box(ui.campus, 220, 650, 250, 260, 0xB7CEA0, 50);
@@ -203,8 +205,20 @@ static void build_campus(lv_obj_t *screen)
         box(ui.campus, 536, k, 48, 2, 0xD2C4A9, 0);
     }
     box(ui.campus, 520, 520, 80, 80, 0xEBDFC7, 20);
+    /* Illustrated sample ground: eight ROM tiles, no full-map RAM surface. */
+    for (int row = 0; row < 4; row++)
+        for (int col = 0; col < 2; col++)
+            image(ui.campus, pc_ground[row * 2 + col], 280 + col * 280, -180 + row * 220);
+    /* Preserve the two existing indoor approach lanes through the sample. */
+    image(ui.campus, &pc_approach, 328, 460);
+    image(ui.campus, &pc_approach, 728, 460);
+    image(ui.campus, &pc_building, 424, -160);
+    lv_obj_t *school_door = button(ui.campus, 510, 57, 100, 76, PW_ENTER_CLASSROOM, PAPER, 3);
+    lv_obj_set_style_bg_opa(school_door, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(school_door, LV_OPA_20, LV_STATE_PRESSED);
+    text(ui.campus, "教学楼", 536, 13, &pet_font_16, INK);
     building(ui.campus, 270, 270, 180, 190, PW_DORM, "宿舍");
-    building(ui.campus, 470, 20, 180, 100, PW_CLASSROOM, "教学楼");
+
     building(ui.campus, 670, 270, 180, 190, PW_CANTEEN, "食堂");
     static const int16_t trees[][2] = {
         {60, 65},    {260, 60},    {370, 66},   {730, 65},   {845, 55},   {1030, 80},  {60, 280},
@@ -212,7 +226,8 @@ static void build_campus(lv_obj_t *screen)
         {825, 1020}, {1035, 1010}, {1035, 830}, {1035, 660}, {1030, 440}, {1035, 280}, {455, 265},
         {655, 265},  {270, 690},   {380, 830},  {710, 820},  {825, 680},  {425, 650},  {650, 650}};
     for (unsigned i = 0; i < sizeof(trees) / sizeof(trees[0]); i++)
-        tree(ui.campus, trees[i][0], trees[i][1], 45 + (i % 3) * 5);
+        if (!(trees[i][0] >= 280 && trees[i][0] < 840 && trees[i][1] < 700))
+            tree(ui.campus, trees[i][0], trees[i][1], 45 + (i % 3) * 5);
     /* Two shaded benches beside the southern loop. */
     for (int i = 0; i < 2; i++)
     {
@@ -222,17 +237,19 @@ static void build_campus(lv_obj_t *screen)
         box(ui.campus, x + 8, 742, 5, 8, INK, 0);
         box(ui.campus, x + 56, 742, 5, 8, INK, 0);
     }
-    box(ui.campus, 610, 465, 7, 65, 0x8D795B, 2);
-    lv_obj_t *sign = box(ui.campus, 599, 456, 110, 30, PAPER, 5);
-    text(sign, "↑ 教学楼", 8, 3, &pet_font_16, INK);
-    sign = box(ui.campus, 599, 489, 110, 30, 0x8BA295, 5);
-    text(sign, "食堂 →", 8, 3, &pet_font_16, PAPER);
-    text(ui.campus, "宿舍 ←", 390, 607, &pet_font_16, INK);
+    lv_obj_t *tree_shade = box(ui.campus, 633, 648, 90, 18, 0x35564B, LV_RADIUS_CIRCLE);
+    lv_obj_set_style_bg_opa(tree_shade, LV_OPA_20, 0);
     text(ui.campus, "草坪环路", 595, 835, &pet_font_20, INK);
     ui.goal = box(ui.campus, 0, 0, 20, 20, BLUE, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.goal, LV_OPA_20, 0);
     lv_obj_set_style_border_width(ui.goal, 2, 0);
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
+    /* Container origin is y=-180; all children keep world coordinates. */
+    for (unsigned i = 0; i < lv_obj_get_child_count(ui.campus); i++)
+    {
+        lv_obj_t *child = lv_obj_get_child(ui.campus, i);
+        lv_obj_set_y(child, lv_obj_get_style_y(child, LV_PART_MAIN) + 180);
+    }
     visible(ui.campus, false);
 }
 static const int16_t zones[3][2][6][2] = {
@@ -375,6 +392,11 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_remove_flag(ui.sprite, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ui.sprite, pw_frames[0]);
     lv_image_set_pivot(ui.sprite, 36, 64);
+    ui.campus_tree = lv_image_create(screen);
+    lv_obj_remove_flag(ui.campus_tree, LV_OBJ_FLAG_CLICKABLE);
+    lv_image_set_src(ui.campus_tree, &pc_tree);
+    ui.tree_in_front = true;
+    visible(ui.campus_tree, false);
     ui.cat_hit = button(screen, 0, 0, 64, 68, PW_TOUCH, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, LV_STATE_PRESSED);
@@ -433,7 +455,7 @@ static void paint(void)
     lv_label_set_text(ui.corner_name, campus ? "路标" : "出门");
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
-    lv_obj_set_pos(ui.campus, -(int)lroundf(cx), -(int)lroundf(cy));
+    lv_obj_set_pos(ui.campus, -(int)lroundf(cx), -(int)lroundf(cy) - 180);
     if (campus)
     {
         const char *place =
@@ -445,7 +467,20 @@ static void paint(void)
         lv_label_set_text(ui.location_text, place);
     }
     visible(ui.goal, campus && ui.world.phase == PW_WALK && ui.world.purpose == 3);
-    lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10);
+    lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10 + 180);
+    visible(ui.campus_tree, campus);
+    lv_obj_set_pos(ui.campus_tree, 583 - (int)lroundf(cx), 410 - (int)lroundf(cy));
+    bool tree_in_front = ui.world.y < 660;
+    bool canopy_overlap = tree_in_front && ui.world.x + 18 > 583 && ui.world.x - 18 < 763
+                          && ui.world.y > 410 && ui.world.y < 620;
+    lv_obj_set_style_image_opa(ui.campus_tree, canopy_overlap ? LV_OPA_50 : LV_OPA_COVER, 0);
+    if (tree_in_front != ui.tree_in_front)
+    {
+        /* Move both cat and its contact shadow behind/in front of the tree. */
+        lv_obj_move_to_index(ui.campus_tree, tree_in_front
+            ? lv_obj_get_index(ui.cat_hit) - 1 : lv_obj_get_index(ui.shadow));
+        ui.tree_in_front = tree_in_front;
+    }
     pw_visual_t v;
     pw_visual(&ui.world, &v);
     v.x -= cx;

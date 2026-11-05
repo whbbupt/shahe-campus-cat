@@ -2,6 +2,7 @@
 #include "lvgl.h"
 #include "pet_ui.h"
 #include "pet_world_assets.h"
+#include "pet_campus_assets.h"
 #include "pet_world_font.h"
 #include <stdio.h>
 #include <math.h>
@@ -185,6 +186,74 @@ static pw_result_t point_command(float x, float y)
     result = pw_walk_to(&world, x, y);
     pet_ui_update(&world);
     return result;
+}
+static lv_obj_t *image_with(lv_obj_t *parent, const lv_image_dsc_t *source)
+{
+    for (unsigned i = 0; i < lv_obj_get_child_count(parent); i++)
+    {
+        lv_obj_t *child = lv_obj_get_child(parent, i);
+        if (lv_obj_check_type(child, &lv_image_class) && lv_image_get_src(child) == source)
+            return child;
+        lv_obj_t *found = image_with(child, source);
+        if (found)
+            return found;
+    }
+    return NULL;
+}
+static void illustrated_sample(void)
+{
+    pw_init(&world);
+    world.scene = PW_CAMPUS;
+    world.node = 0;
+    world.x = 560;
+    world.y = 560;
+    world.now = 5000;
+    pet_ui_update(&world);
+    lv_obj_update_layout(lv_screen_active());
+    lv_obj_t *tree = image_with(lv_screen_active(), &pc_tree);
+    assert(tree && !lv_obj_has_flag(tree, LV_OBJ_FLAG_CLICKABLE));
+    lv_obj_t *cat = image_with(lv_screen_active(), pw_frames[2]);
+    assert(cat && lv_obj_get_index(tree) > lv_obj_get_index(cat));
+    float cx, cy;
+    pw_camera(&world, &cx, &cy);
+    for (int row = 0; row < 4; row++)
+        for (int col = 0; col < 2; col++)
+        {
+            lv_obj_t *tile = image_with(lv_screen_active(), pc_ground[row * 2 + col]);
+            lv_area_t bounds;
+            assert(tile && !lv_obj_has_flag(tile, LV_OBJ_FLAG_CLICKABLE));
+            lv_obj_get_coords(tile, &bounds);
+            assert(bounds.x1 == 280 + col * 280 - (int)lroundf(cx));
+            assert(bounds.y1 == -180 + row * 220 - (int)lroundf(cy));
+        }
+    screenshot("art-tree-behind.ppm");
+    world.y = 690;
+    pet_ui_update(&world);
+    assert(lv_obj_get_index(tree) < lv_obj_get_index(cat));
+    screenshot("art-tree-front.ppm");
+    world.y = 560;
+    pet_ui_update(&world);
+    assert(lv_obj_get_index(tree) > lv_obj_get_index(cat));
+    screenshot("art-junction.ppm");
+    /* Actual pointer through canopy reaches the road, rather than a decoration. */
+    pw_camera(&world, &cx, &cy);
+    tap((int)(660 - cx), (int)(560 - cy));
+    assert(world.phase == PW_WALK && world.purpose == 3);
+    step(2000);
+    assert(fabsf(world.x - 660) < .1f && fabsf(world.y - 560) < .1f);
+    assert(lv_obj_get_style_image_opa(tree, 0) == LV_OPA_50);
+    screenshot("art-canopy-walk.ppm");
+    assert(point_command(560, 120) == PW_OK);
+    step(10000);
+    pw_camera(&world, &cx, &cy);
+    assert(cy == -180 && fabsf(world.y - 120) < .1f);
+    screenshot("art-teaching-front.ppm");
+    lv_obj_t *building = image_with(lv_screen_active(), &pc_building);
+    lv_area_t bounds;
+    assert(building);
+    lv_obj_get_coords(building, &bounds);
+    assert(bounds.x1 + 136 == 560 - (int)cx && bounds.y1 + 280 == 120 - (int)cy);
+    puts("[host:illustrated] tiled world-camera coordinates, north padding, tree depth swaps, pointer-through-canopy and entry anchor PASS");
 }
 static void reset(void)
 {
@@ -420,6 +489,7 @@ int main(void)
         snprintf(filename, sizeof(filename), "campus-demo-%02d.ppm", n);
         screenshot(filename);
     }
+    illustrated_sample();
     puts("[host:campus-ui] native pointer exit/road/building, camera, four corners, signs/scrim, meals and "
          "recreations PASS");
     puts("[host:save-ui] pending/saved/unavailable/failed labels, CJK glyphs, fit and recreation PASS");

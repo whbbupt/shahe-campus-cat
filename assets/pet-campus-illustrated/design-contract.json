@@ -23,11 +23,29 @@
     "tile_size": [
       280,
       220
+    ],
+    "approach_tiles": [
+      {
+        "world_bounds": [
+          328,
+          460,
+          64,
+          100
+        ]
+      },
+      {
+        "world_bounds": [
+          728,
+          460,
+          64,
+          100
+        ]
+      }
     ]
   },
   "building": {
     "world_bounds": [
-      400,
+      424,
       -160,
       320,
       280
@@ -35,19 +53,25 @@
     "door_world": [
       560,
       120
+    ],
+    "door_asset_anchor": [
+      136,
+      280
     ]
   },
   "tree": {
     "world_bounds": [
-      508,
+      583,
       410,
       180,
       250
     ],
-    "depth_anchor_y": 650
+    "depth_anchor_y": 660,
+    "image_opacity_when_occluding": 127
   },
   "map_display_top": -180,
   "playable_roads": "existing 16 nodes/19 edges unchanged; northern visual padding only",
   "runtime": "C / RT-Thread / existing LVGL v9, ROM RGB565 + cropped RGB565A8; no extra decoder, filesystem, full-map RAM image or SDK changes",
-  "acceptance": "390x450 production rendering, matching road/door coordinates, depth sorting, real pointer clicks, camera clipping, model/save regressions, firmware build; physical display/performance pending"
+  "acceptance": "390x450 production rendering, matching road/door coordinates, depth sorting, real pointer clicks, camera clipping, model/save regressions, firmware build; physical display/performance pending",
+  "camera_follow_foot_y": 320
 }
