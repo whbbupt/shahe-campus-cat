@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-05",
+  "scope": "teaching-building and central-junction sample; other exterior art remains v0.7.0",
+  "authority": "user selected layered images and illustrated style; exact palette, extents and integration are AI implementation choices",
+  "palette": {
+    "roof": "#536E88",
+    "limestone": "#E5D4B6",
+    "foliage": "#74936A",
+    "shade": "#35564B",
+    "paving": "#DCCFB7",
+    "sunlight": "#F2C97D"
+  },
+  "typography": "retain SDK OFL Chinese subset for labels and UI; no decorative fonts in tiny viewport",
+  "signature": "sunlit blue-roof teaching building and layered leafy courtyard, matching existing painted dorm",
+  "camera": "fixed elevated orthographic-looking 2.5D; no rotation; world roads unchanged",
+  "ground": {
+    "world_bounds": [
+      280,
+      -180,
+      560,
+      880
+    ],
+    "tile_size": [
+      280,
+      220
+    ]
+  },
+  "building": {
+    "world_bounds": [
+      400,
+      -160,
+      320,
+      280
+    ],
+    "door_world": [
+      560,
+      120
+    ]
+  },
+  "tree": {
+    "world_bounds": [
+      508,
+      410,
+      180,
+      250
+    ],
+    "depth_anchor_y": 650
+  },
+  "map_display_top": -180,
+  "playable_roads": "existing 16 nodes/19 edges unchanged; northern visual padding only",
+  "runtime": "C / RT-Thread / existing LVGL v9, ROM RGB565 + cropped RGB565A8; no extra decoder, filesystem, full-map RAM image or SDK changes",
+  "acceptance": "390x450 production rendering, matching road/door coordinates, depth sorting, real pointer clicks, camera clipping, model/save regressions, firmware build; physical display/performance pending"
+}

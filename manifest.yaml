@@ -73,6 +73,11 @@ design:
       rationale: "小快照无需文件系统；专用区域避开dfu/ble/fs，提交前保留旧记录，固定输入可测中断恢复"
       decided_by: "用户明确选择A，见ADR-0006及evidence/pet/save_choice_20261028_user.txt"
 
+    - decision: "分块地面和独立景物的精致插画校园样板"
+      alternatives_considered: "矢量、整幅大图、分层图片、规则图块；插画与像素风对照"
+      rationale: "用户选择第三种和左侧插画，认可先做教学楼前＋路口；沿用C/LVGL和室内猫，实机另验"
+      decided_by: "王焕博选择路线/画风/样板范围；具体工程参数AI提出，ADR-0008"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
