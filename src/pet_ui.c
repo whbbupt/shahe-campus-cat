@@ -3,17 +3,15 @@
 #include "lvgl.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
-#include "pet_campus_assets.h"
 #include "pet_shahe_assets.h"
 #include "pet_world_font.h"
-#include "src/core/lv_obj_event_private.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-#define INK 0x30423E
-#define BLUE 0x466F94
-#define PAPER 0xFAFCF7
+#define INK 0x304C4A
+#define BLUE 0x456B77
+#define PAPER 0xF8F3DF
 enum
 {
     TAG_STATUS = 100,
@@ -24,14 +22,13 @@ static struct
 {
     pet_ui_action_fn action;
     pet_ui_point_fn point;
-    lv_obj_t *campus, *door, *location, *location_text, *corner_name, *goal, *campus_tree;
-    bool tree_in_front;
+    lv_obj_t *campus, *gates, *door, *location, *location_text, *goal;
     pet_world_t world;
     int panel, scene;
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *dialog, *status, *travel, *food, *mood, *food_fill, *mood_fill, *state, *title,
-        *dest[3], *dest_note[3];
-    lv_obj_t *corner[2], *bubble, *bubble_text, *save_note;
+        *save_note;
+    lv_obj_t *corner[2], *bubble, *bubble_text;
 } ui;
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
@@ -57,7 +54,7 @@ static void ground_click(lv_event_t *e)
     lv_indev_get_point(indev, &p);
     float x, y;
     pw_camera(&ui.world, &x, &y);
-    ui.point(p.x + x, p.y + y);
+    ui.point(p.x + (int)lroundf(x), p.y + (int)lroundf(y));
 }
 static lv_obj_t *box(lv_obj_t *parent, int x, int y, int w, int h, uint32_t color, int radius)
 {
@@ -107,14 +104,8 @@ static void click(lv_event_t *e)
         paint();
         return;
     }
-    if (ui.panel && cmd < PW_GO_DORM)
-        return;
-    pw_result_t result = ui.action ? ui.action((pw_command_t)cmd) : PW_INVALID;
-    if (cmd >= PW_GO_DORM && cmd <= PW_GO_CANTEEN && result == PW_OK)
-    {
-        ui.panel = 0;
-        paint();
-    }
+    if (!ui.panel && ui.action)
+        ui.action((pw_command_t)cmd);
 }
 static lv_obj_t *button(lv_obj_t *parent, int x, int y, int w, int h, int tag, uint32_t color, int radius)
 {
@@ -138,114 +129,106 @@ static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
     lv_obj_set_pos(o, x, y);
     lv_obj_remove_flag(o, LV_OBJ_FLAG_CLICKABLE);
 }
-static void tree(lv_obj_t *p, int x, int y, int size)
+static const lv_image_dsc_t *const campus_building[] = {
+    &shahe_building_0, &shahe_building_1, &shahe_building_2};
+static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
+
+static void gate_badge(lv_obj_t *parent, const char *name, int x, int y, int width)
 {
-    lv_obj_t *shade = box(p, x + 8, y + size - 7, size, 14, 0xA9BC91, LV_RADIUS_CIRCLE);
-    lv_obj_set_style_bg_opa(shade, LV_OPA_50, 0);
-    box(p, x + size / 2 - 4, y + size / 2, 8, size / 2 + 9, 0x957C54, 2);
-    box(p, x, y + 6, size, size - 8, 0x6E916A, LV_RADIUS_CIRCLE);
-    box(p, x + 5, y, size - 9, size - 12, 0x8FAA79, LV_RADIUS_CIRCLE);
+    lv_obj_t *sign = box(parent, x, y, width, 28, PAPER, 7);
+    box(sign, 7, 11, 6, 6, 0xBF795F, 3);
+    text(sign, name, 19, 2, &pet_font_16, INK);
 }
-static void building(lv_obj_t *p, int x, int y, int w, int h, int room, const char *name)
-{
-    box(p, x + 8, y + 9, w, h, 0xAEBC98, 7);
-    box(p, x, y, w, h, 0xEAD9B7, 5);
-    box(p, x - 6, y - 6, w + 12, 32, room == PW_CANTEEN ? 0x819E86 : 0x738C99, 5);
-    box(p, x - 6, y + 20, w + 12, 5, 0x506E78, 0);
-    for (int row = 0; row < (h > 120 ? 2 : 0); row++)
-        for (int col = 0; col < 3; col++)
-        {
-            int wx = x + 18 + col * (w - 36) / 3, wy = y + 42 + row * 36;
-            box(p, wx, wy, 30, 24, 0xA9C5C6, 2);
-            box(p, wx + 14, wy, 2, 24, 0xF6EDDA, 0);
-        }
-    lv_obj_t *sign = box(p, x + w / 2 - 45, y + h - 72, 90, 26, PAPER, 4);
-    lv_obj_t *label = text(sign, name, 0, 0, &pet_font_16, INK);
-    lv_obj_center(label);
-    box(p, x + w / 2 - 19, y + h - 43, 38, 43, 0x567C86, 3);
-    box(p, x + w / 2 - 1, y + h - 40, 2, 37, 0xB5D3D1, 0);
-    lv_obj_t *door = button(p, x + 10, y + h - 90, w - 20, 102, PW_ENTER_DORM + room, PAPER, 3);
-    lv_obj_set_style_bg_opa(door, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(door, LV_OPA_20, LV_STATE_PRESSED);
-    text(p, "进入", x + w / 2 - 16, y + h + 13, &pet_font_16, BLUE);
-}
+
 static void build_campus(lv_obj_t *screen)
 {
-    ui.campus = box(screen, 0, 0, 1120, 1300, 0xC5D8AC, 0);
+    ui.campus = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, 0xB9CEA2, 0);
     lv_obj_add_flag(ui.campus, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.campus, ground_click, LV_EVENT_CLICKED, NULL);
-    box(ui.campus, 220, 650, 250, 260, 0xB7CEA0, 50);
-    box(ui.campus, 670, 650, 230, 260, 0xB7CEA0, 50);
-    static lv_point_precise_t road_points[24][2];
+    box(ui.campus, 12, 108, 96, 239, 0xA9C093, 22);
+    box(ui.campus, 316, 150, 212, 195, 0xACC596, 28);
+    box(ui.campus, 620, 116, 283, 224, 0xAFC994, 36);
+    box(ui.campus, 207, 438, 311, 275, 0xACC596, 38);
+    box(ui.campus, 620, 656, 348, 273, 0xAFC994, 36);
+    box(ui.campus, 334, 657, 207, 57, 0x99B9B6, 29);
+    box(ui.campus, 347, 666, 185, 39, 0xABC9C1, 20);
+    box(ui.campus, 378, 679, 58, 2, 0xC6DCD1, 1);
+    box(ui.campus, 461, 691, 38, 2, 0xC6DCD1, 1);
     for (int pass = 0; pass < 2; pass++)
+    {
+        int r = pass ? PW_ROAD_RADIUS : PW_ROAD_RADIUS + 4;
         for (unsigned i = 0; i < pw_road_count(); i++)
         {
             pw_point_t a, b;
             pw_road(i, &a, &b);
-            road_points[i][0] = (lv_point_precise_t){a.x, a.y};
-            road_points[i][1] = (lv_point_precise_t){b.x, b.y};
-            {
-                lv_obj_t *line = lv_line_create(ui.campus);
-                lv_line_set_points(line, road_points[i], 2);
-                lv_obj_set_style_line_width(line, pass ? 64 : 76, 0);
-                lv_obj_set_style_line_color(line, lv_color_hex(pass ? 0xE2D5BA : 0xC1BCA1), 0);
-                lv_obj_set_style_line_rounded(line, true, 0);
-                lv_obj_remove_flag(line, LV_OBJ_FLAG_CLICKABLE);
-            }
+            int x = (int)fminf(a.x, b.x), y = (int)fminf(a.y, b.y);
+            box(ui.campus, x - r, y - r, (int)fabsf(a.x - b.x) + 2 * r,
+                (int)fabsf(a.y - b.y) + 2 * r, pass ? 0xE8D8B4 : 0xA9AD89, r);
         }
-    /* Paving marks encode distance along the main avenues. */
-    for (int k = 240; k < 930; k += 80)
-    {
-        box(ui.campus, k, 536, 2, 48, 0xD2C4A9, 0);
-        box(ui.campus, 536, k, 48, 2, 0xD2C4A9, 0);
     }
-    box(ui.campus, 520, 520, 80, 80, 0xEBDFC7, 20);
-    /* Illustrated sample ground: eight ROM tiles, no full-map RAM surface. */
-    for (int row = 0; row < 4; row++)
-        for (int col = 0; col < 2; col++)
-            image(ui.campus, pc_ground[row * 2 + col], 280 + col * 280, -180 + row * 220);
-    /* Preserve the two existing indoor approach lanes through the sample. */
-    image(ui.campus, &pc_approach, 328, 460);
-    image(ui.campus, &pc_approach, 728, 460);
-    image(ui.campus, &pc_building, 424, -160);
-    lv_obj_t *school_door = button(ui.campus, 510, 57, 100, 76, PW_ENTER_CLASSROOM, PAPER, 3);
-    lv_obj_set_style_bg_opa(school_door, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(school_door, LV_OPA_20, LV_STATE_PRESSED);
-    text(ui.campus, "教学楼", 536, 13, &pet_font_16, INK);
-    building(ui.campus, 270, 270, 180, 190, PW_DORM, "宿舍");
-
-    building(ui.campus, 670, 270, 180, 190, PW_CANTEEN, "食堂");
+    for (int x = 218; x <= 743; x += 75)
+    {
+        box(ui.campus, x, 363, 1, 54, 0xD5C8A5, 0);
+        box(ui.campus, x + 15, 388, 19, 3, 0xF4E7CD, 1);
+    }
+    for (int y = 453; y <= 732; y += 70)
+    {
+        box(ui.campus, 544, y, 52, 1, 0xD5C8A5, 0);
+        box(ui.campus, 569, y + 14, 3, 20, 0xF4E7CD, 1);
+    }
+    static const int16_t meadows[][2] = {
+        {80,153}, {365,190}, {420,211}, {648,208}, {721,175}, {794,239},
+        {935,314}, {355,563}, {467,540}, {641,602}, {724,719}, {823,832}};
+    for (unsigned i = 0; i < sizeof(meadows) / sizeof(meadows[0]); i++)
+    {
+        int x = meadows[i][0], y = meadows[i][1];
+        box(ui.campus, x, y, 20, 5, 0x9FB88B, 3);
+        box(ui.campus, x + 6, y - 2, 7, 4, 0xD8D5A0, 3);
+    }
     static const int16_t trees[][2] = {
-        {60, 65},    {260, 60},    {370, 66},   {730, 65},   {845, 55},   {1030, 80},  {60, 280},
-        {55, 440},   {70, 650},    {65, 800},   {70, 1010},  {260, 1030}, {410, 1030}, {690, 1030},
-        {825, 1020}, {1035, 1010}, {1035, 830}, {1035, 660}, {1030, 440}, {1035, 280}, {455, 265},
-        {655, 265},  {270, 690},   {380, 830},  {710, 820},  {825, 680},  {425, 650},  {650, 650}};
+        {32,190}, {49,293}, {243,215}, {303,262}, {448,257}, {598,262},
+        {690,256}, {853,274}, {197,424}, {310,466}, {420,434}, {615,453},
+        {651,545}, {929,489}, {932,575}, {626,690}, {677,794}, {477,817},
+        {249,765}, {287,860}, {522,879}};
     for (unsigned i = 0; i < sizeof(trees) / sizeof(trees[0]); i++)
-        if (!(trees[i][0] >= 280 && trees[i][0] < 840 && trees[i][1] < 700))
-            tree(ui.campus, trees[i][0], trees[i][1], 45 + (i % 3) * 5);
-    /* Two shaded benches beside the southern loop. */
-    for (int i = 0; i < 2; i++)
+        image(ui.campus, &shahe_tree, trees[i][0], trees[i][1]);
+    for (unsigned room = 0; room < 3; room++)
     {
-        int x = 375 + i * 290;
-        box(ui.campus, x, 710, 70, 10, 0x8B7856, 2);
-        box(ui.campus, x, 728, 70, 14, 0xAC9064, 3);
-        box(ui.campus, x + 8, 742, 5, 8, INK, 0);
-        box(ui.campus, x + 56, 742, 5, 8, INK, 0);
+        pw_point_t door = pw_node(PW_CAMPUS, 13 + room);
+        int x = (int)door.x, y = (int)door.y;
+        image(ui.campus, campus_building[room], x - 96, room == PW_DORM ? y - 154 : y + 20);
+        if (room != PW_DORM)
+        {
+            /* North-facing entry canopy on the road side of the building. */
+            box(ui.campus, x - 23, y + 1, 46, 34, 0xA3B2A5, 5);
+            box(ui.campus, x - 16, y + 4, 32, 14, 0x5A7C85, 4);
+            box(ui.campus, x - 16, y + 19, 32, 4, 0xC1D4CE, 2);
+            box(ui.campus, x - 20, y + 25, 40, 4, 0xBAC9BD, 2);
+        }
     }
-    lv_obj_t *tree_shade = box(ui.campus, 633, 648, 90, 18, 0x35564B, LV_RADIUS_CIRCLE);
-    lv_obj_set_style_bg_opa(tree_shade, LV_OPA_20, 0);
-    text(ui.campus, "草坪环路", 595, 835, &pet_font_20, INK);
+    text(ui.campus, "国脉西路", 80, 385, &pet_font_16, INK);
+    text(ui.campus, "鸿雁路", 410, 379, &pet_font_16, INK);
+    text(ui.campus, "国脉路", 622, 618, &pet_font_16, INK);
     ui.goal = box(ui.campus, 0, 0, 20, 20, BLUE, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.goal, LV_OPA_20, 0);
     lv_obj_set_style_border_width(ui.goal, 2, 0);
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
-    /* Container origin is y=-180; all children keep world coordinates. */
-    for (unsigned i = 0; i < lv_obj_get_child_count(ui.campus); i++)
+}
+
+static void build_gates(lv_obj_t *screen)
+{
+    ui.gates = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, PAPER, 0);
+    lv_obj_set_style_bg_opa(ui.gates, LV_OPA_TRANSP, 0);
+    for (unsigned room = 0; room < 3; room++)
     {
-        lv_obj_t *child = lv_obj_get_child(ui.campus, i);
-        lv_obj_set_y(child, lv_obj_get_style_y(child, LV_PART_MAIN) + 180);
+        pw_point_t door = pw_node(PW_CAMPUS, 13 + room);
+        int y = (int)door.y - (room == PW_DORM ? 66 : 44);
+        lv_obj_t *gate = button(ui.gates, (int)door.x - 48, y, 96, 70,
+                                PW_ENTER_DORM + room, PAPER, 5);
+        lv_obj_set_style_bg_opa(gate, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
+        gate_badge(gate, campus_names[room], 3, 2, 90);
     }
-    visible(ui.campus, false);
 }
 typedef struct
 {
@@ -316,9 +299,9 @@ static void build_panel(lv_obj_t *screen)
     text(ui.status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
     ui.save_note = text(ui.status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
     ui.travel = box(ui.dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
-    text(ui.travel, "教学楼  ↑  北侧", 8, 6, &pet_font_20, INK);
-    text(ui.travel, "宿舍  ←     →  食堂", 8, 49, &pet_font_20, INK);
-    text(ui.travel, "草坪环路  ↓  南侧", 8, 92, &pet_font_20, INK);
+    text(ui.travel, "鸿雁路西 · 雁北园", 8, 6, &pet_font_20, INK);
+    text(ui.travel, "鸿雁路东 · 教综楼", 8, 49, &pet_font_20, INK);
+    text(ui.travel, "国脉路南 · 学生餐厅", 8, 92, &pet_font_20, INK);
     text(ui.travel, "点路面走，点楼门进入", 8, 145, &pet_font_16, BLUE);
     visible(ui.layer, false);
 }
@@ -344,11 +327,6 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_remove_flag(ui.sprite, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ui.sprite, pw_frames[0]);
     lv_image_set_pivot(ui.sprite, 36, 64);
-    ui.campus_tree = lv_image_create(screen);
-    lv_obj_remove_flag(ui.campus_tree, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui.campus_tree, &pc_tree);
-    ui.tree_in_front = true;
-    visible(ui.campus_tree, false);
     ui.cat_hit = button(screen, 0, 0, 64, 68, PW_TOUCH, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, LV_STATE_PRESSED);
@@ -358,10 +336,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.door = button(screen, 314, 94, 65, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
-    lv_obj_t *door_sign = box(ui.door, 7, 65, 51, 28, PAPER, 6);
-    box(door_sign, 5, 12, 5, 5, 0xBF795F, 4);
-    text(door_sign, "出门", 14, 2, &pet_font_16, INK);
-    ui.location = box(screen, 13, 13, 174, 52, PAPER, 14);
+    gate_badge(ui.door, "出门", 1, 65, 63);
+    build_gates(screen);
+    ui.location = box(screen, 13, 13, 206, 52, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     text(ui.location, "沙河校园小猫", 12, 2, &pet_font_16, BLUE);
     ui.location_text = text(ui.location, room_names[0], 12, 22, &pet_font_20, INK);
@@ -378,9 +355,7 @@ void pet_ui_create(pet_ui_action_fn callback)
         ui.corner[i] = button(screen, 265 + i * 60, 13, 52, 52, i ? TAG_TRAVEL : TAG_STATUS, PAPER, 14);
         lv_obj_set_style_bg_opa(ui.corner[i], LV_OPA_90, 0);
         image(ui.corner[i], pw_icons[i], 14, 4);
-        lv_obj_t *name = text(ui.corner[i], i ? "路标" : "状态", 10, 29, &pet_font_16, BLUE);
-        if (i)
-            ui.corner_name = name;
+        text(ui.corner[i], i ? "路标" : "状态", 10, 29, &pet_font_16, BLUE);
     }
 }
 static int limit(int x, int lo, int hi)
@@ -405,36 +380,18 @@ static void paint(void)
         lv_label_set_text(ui.location_text, room_names[ui.scene]);
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
-    lv_obj_set_pos(ui.campus, -(int)lroundf(cx), -(int)lroundf(cy) - 180);
+    int left = (int)lroundf(cx), top = (int)lroundf(cy);
+    lv_obj_set_pos(ui.campus, -left, -top);
+    lv_obj_set_pos(ui.gates, -left, -top);
+    visible(ui.gates, campus);
     if (campus)
-    {
-        const char *place =
-            ui.world.y < 280
-                ? "教学楼前"
-                : (ui.world.y > 700
-                       ? "草坪环路"
-                       : (ui.world.x < 450 ? "宿舍小路" : (ui.world.x > 670 ? "食堂小路" : "十字路口")));
-        lv_label_set_text(ui.location_text, place);
-    }
+        lv_label_set_text(ui.location_text, ui.world.y > 475 ? "国脉路南段" : "鸿雁路一带");
     visible(ui.goal, campus && ui.world.phase == PW_WALK && ui.world.purpose == 3);
-    lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10 + 180);
-    visible(ui.campus_tree, campus);
-    lv_obj_set_pos(ui.campus_tree, 583 - (int)lroundf(cx), 410 - (int)lroundf(cy));
-    bool tree_in_front = ui.world.y < 660;
-    bool canopy_overlap = tree_in_front && ui.world.x + 18 > 583 && ui.world.x - 18 < 763
-                          && ui.world.y > 410 && ui.world.y < 620;
-    lv_obj_set_style_image_opa(ui.campus_tree, canopy_overlap ? LV_OPA_50 : LV_OPA_COVER, 0);
-    if (tree_in_front != ui.tree_in_front)
-    {
-        /* Move both cat and its contact shadow behind/in front of the tree. */
-        lv_obj_move_to_index(ui.campus_tree, tree_in_front
-            ? lv_obj_get_index(ui.cat_hit) - 1 : lv_obj_get_index(ui.shadow));
-        ui.tree_in_front = tree_in_front;
-    }
+    lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10);
     pw_visual_t v;
     pw_visual(&ui.world, &v);
-    v.x -= cx;
-    v.y -= cy;
+    v.x -= left;
+    v.y -= top;
     lv_image_set_src(ui.sprite, pw_frames[v.frame]);
     lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(v.y) - 64);
     lv_image_set_scale(ui.sprite, (uint32_t)lroundf(v.scale * 256));
@@ -473,7 +430,7 @@ static void paint(void)
         lv_obj_set_style_bg_color(ui.corner[i], lv_color_hex(ui.panel == i + 1 ? 0xDCEAF3 : PAPER), 0);
     const char *msg = pw_message_text(&ui.world);
     if (ui.world.now < 2300 && !*msg)
-        msg = "v" PET_FIRMWARE_VERSION " · 校园探索";
+        msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";
     if (ui.world.phase == PW_ACTION && ui.world.action == PW_EAT && ui.world.now < ui.world.message_until)
         lv_label_set_text_fmt(ui.bubble_text, "开饭啦，饱食 +%d", ui.world.gain);
     else

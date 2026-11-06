@@ -70,7 +70,7 @@ int main(void)
     w.x = 560;
     w.y = 560;
     assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 2);
-    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_CAMPUS && w.x == 560 && w.y == 560 &&
+    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_CAMPUS && w.x == pw_node(PW_CAMPUS, 0).x && w.y == pw_node(PW_CAMPUS, 0).y &&
            w.phase == PW_IDLE);
     FILE *fixture = fopen("campus-v2-nor.bin", "wb");
     assert(fixture);

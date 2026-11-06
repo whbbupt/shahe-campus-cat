@@ -221,10 +221,15 @@ def building(kind):
     return p.finish()
 
 
+def rgba_pixels(image):
+    data = image.tobytes()
+    return zip(data[::4], data[1::4], data[2::4], data[3::4])
+
+
 def grain(image, seed):
     rng = random.Random(seed)
     pixels = []
-    for r, g, b, a in image.getdata():
+    for r, g, b, a in rgba_pixels(image):
         shift = rng.choice((-3, -2, -1, 0, 0, 1, 2, 3))
         pixels.append(tuple(max(0, min(255, ch + shift)) for ch in (r, g, b)) + (a,))
     image.putdata(pixels)
@@ -243,7 +248,7 @@ def main():
     def emit(name, im, alpha):
         im.save(args.preview / (name + ".png"))
         rgb, opacity = bytearray(), bytearray()
-        for r, g, b, a in im.getdata():
+        for r, g, b, a in rgba_pixels(im):
             rgb.extend((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)).to_bytes(2, "little"))
             if alpha:
                 opacity.append(a)

@@ -174,8 +174,8 @@ static bool campus_restore(void)
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
-    CHECK(w.x == 560 && w.y == 560 && w.phase == PW_IDLE && w.target == PW_NONE);
-    CHECK(pw_walk_to(&w, 560, 400) == PW_OK && !ps_visible_saved(&s, &w));
+    CHECK(w.x == pw_node(PW_CAMPUS, 0).x && w.y == pw_node(PW_CAMPUS, 0).y && w.phase == PW_IDLE && w.target == PW_NONE);
+    CHECK(pw_walk_to(&w, 570, 510) == PW_OK && !ps_visible_saved(&s, &w));
     CHECK(ps_save(&s, &w) == PS_WAIT);
     pw_advance(&w, 3000);
     CHECK(ps_visible_saved(&s, &w));

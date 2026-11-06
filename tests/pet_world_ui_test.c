@@ -275,6 +275,98 @@ static void dorm(void)
     pw_point_t ladder = pw_node(PW_DORM, 6);
     settled_at((int)ladder.x, (int)ladder.y);
 }
+static void road(int x, int y)
+{
+    float cx, cy;
+    pw_camera(&world, &cx, &cy);
+    int sx = x - (int)lroundf(cx), sy = y - (int)lroundf(cy);
+    assert(sx >= 0 && sx < 390 && sy >= 0 && sy < 450);
+    tap(sx, sy);
+    assert(result == PW_OK && world.phase == PW_WALK && world.purpose == 3);
+    idle(PW_CAMPUS);
+    settled_at(x, y);
+}
+static void gate(pw_scene_t scene)
+{
+    assert(world.phase == PW_IDLE && world.scene == PW_CAMPUS);
+    pw_point_t door = pw_node(PW_CAMPUS, 13 + scene);
+    settled_at((int)door.x, (int)door.y);
+}
+static void leave(pw_scene_t scene)
+{
+    press("出门");
+    assert(result == PW_OK && world.scene == scene && world.purpose == 2);
+    idle(PW_CAMPUS);
+    gate(scene);
+}
+static void enter(const char *name, pw_scene_t scene)
+{
+    press(name);
+    assert(result == PW_OK && world.destination == scene);
+    idle(scene);
+    float x, y;
+    pw_camera(&world, &x, &y);
+    assert(x == 0 && y == 0);
+}
+static void campus_round_trip(void)
+{
+    leave(PW_DORM);
+    screenshot("shahe-yanbei.ppm");
+    road(155, 330);
+    road(255, 390);
+    road(410, 390);
+    road(570, 390);
+    screenshot("shahe-hongyan-guomai.ppm");
+    press("路标");
+    screenshot("shahe-signs.ppm");
+    press("×");
+    road(715, 390);
+    screenshot("shahe-teaching-gate.ppm");
+    enter("教综楼", PW_CLASSROOM);
+    screenshot("shahe-classroom.ppm");
+    tap(189, 408);
+    idle(PW_CLASSROOM);
+    settled_at(189, 408);
+    tap(99, 255);
+    assert(world.settlements[PW_STUDY] == 0);
+    until_action(PW_STUDY);
+    step(550);
+    screenshot("shahe-classroom-study.ppm");
+    tap(99, 255);
+    assert(result == PW_BUSY && world.settlements[PW_STUDY] == 1);
+    step(pw_duration(PW_STUDY));
+    leave(PW_CLASSROOM);
+    road(630, 390);
+    road(570, 520);
+    road(570, 650);
+    road(570, 760);
+    road(416, 760);
+    screenshot("shahe-canteen-gate.ppm");
+    enter("学生餐厅", PW_CANTEEN);
+    screenshot("shahe-canteen.ppm");
+    tap(261, 396);
+    idle(PW_CANTEEN);
+    settled_at(261, 396);
+    tap(103, 267);
+    assert(world.settlements[PW_EAT] == 0);
+    until_action(PW_EAT);
+    step(550);
+    screenshot("shahe-canteen-meal.ppm");
+    tap(103, 267);
+    assert(result == PW_BUSY && world.settlements[PW_EAT] == 1);
+    step(pw_duration(PW_EAT));
+    leave(PW_CANTEEN);
+    road(540, 760);
+    road(570, 638);
+    road(570, 485);
+    road(465, 390);
+    road(315, 390);
+    road(160, 390);
+    road(155, 305);
+    enter("雁北园", PW_DORM);
+    assert(world.settlements[PW_EAT] == 1 && world.settlements[PW_STUDY] == 1);
+    screenshot("shahe-return-home.ppm");
+}
 int main(void)
 {
     lv_init();
@@ -288,5 +380,13 @@ int main(void)
     reset();
     dorm();
     puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
+    campus_round_trip();
+    unsigned expected_timers = timers();
+    for (unsigned i = 0; i < 10; i++)
+    {
+        reset();
+        assert(timers() == expected_timers);
+    }
+    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, signs, glyphs and recreation PASS");
     return 0;
 }

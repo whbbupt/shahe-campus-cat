@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+enum { PW_CAMPUS_WIDTH = 1120, PW_CAMPUS_HEIGHT = 1040, PW_ROAD_RADIUS = 32 };
+
 typedef enum
 {
     PW_DORM,

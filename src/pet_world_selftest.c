@@ -227,6 +227,25 @@ static bool indoor_floor(void)
     CHECK(w.x == 296 && w.y == 309);
     return true;
 }
+static bool other_room_detours(void)
+{
+    for (pw_scene_t scene = PW_CLASSROOM; scene <= PW_CANTEEN; scene++)
+    {
+        pet_world_t w;
+        pw_init(&w);
+        w.scene = scene;
+        w.x = 42;
+        w.y = 274;
+        CHECK(pw_walk_to(&w, 173, 274) == PW_OK);
+        for (int i = 0; i < 400 && w.phase == PW_WALK; i++)
+        {
+            pw_advance(&w, 10);
+            CHECK(pw_room_ground(scene, w.x, w.y));
+        }
+        CHECK(w.phase == PW_IDLE && w.x == 173 && w.y == 274);
+    }
+    return true;
+}
 static bool reset_invalid(void)
 {
     pet_world_t w;
@@ -243,8 +262,9 @@ static void campus_spawn(pet_world_t *w)
     pw_init(w);
     w->scene = PW_CAMPUS;
     w->node = 0;
-    w->x = 560;
-    w->y = 560;
+    pw_point_t origin = pw_node(PW_CAMPUS, 0);
+    w->x = origin.x;
+    w->y = origin.y;
 }
 static bool on_road(const pet_world_t *w)
 {
@@ -263,23 +283,23 @@ static bool campus_point_routes(void)
 {
     pet_world_t w;
     campus_spawn(&w);
-    CHECK(pw_walk_to(&w, 560, 300) == PW_OK);
+    CHECK(pw_walk_to(&w, 570, 550) == PW_OK);
     pw_advance(&w, 1000);
     float x = w.x, y = w.y;
-    CHECK(pw_walk_to(&w, 340, 560) == PW_OK && w.x == x && w.y == y);
+    CHECK(pw_walk_to(&w, 340, 390) == PW_OK && w.x == x && w.y == y);
     for (int i = 0; i < 300; i++)
     {
         pw_advance(&w, 50);
         CHECK(on_road(&w));
     }
-    CHECK(fabsf(w.x - 340) < .1f && fabsf(w.y - 560) < .1f && w.phase == PW_IDLE);
-    CHECK(pw_walk_to(&w, 440, 560) == PW_OK);
+    CHECK(fabsf(w.x - 340) < .1f && fabsf(w.y - 390) < .1f && w.phase == PW_IDLE);
+    CHECK(pw_walk_to(&w, 440, 390) == PW_OK);
     pw_advance(&w, 3000);
     CHECK(fabsf(w.x - 440) < .1f);
-    CHECK(pw_walk_to(&w, 500, 560) == PW_OK);
+    CHECK(pw_walk_to(&w, 500, 390) == PW_OK);
     pw_advance(&w, 900);
     CHECK(fabsf(w.x - 500) < .1f && w.phase == PW_IDLE);
-    const pw_point_t targets[] = {{160, 800}, {960, 260}, {560, 300}, {760, 510}};
+    const pw_point_t targets[] = {{155, 318}, {790, 420}, {570, 585}, {475, 760}};
     for (unsigned k = 0; k < 4; k++)
     {
         CHECK(pw_walk_to(&w, targets[k].x, targets[k].y) == PW_OK);
@@ -289,10 +309,10 @@ static bool campus_point_routes(void)
             CHECK(on_road(&w));
         }
     }
-    CHECK(pw_walk_to(&w, 350, 350) == PW_INVALID);
-    CHECK(pw_walk_to(&w, -1, 560) == PW_INVALID);
-    CHECK(pw_walk_to(&w, NAN, 560) == PW_INVALID);
-    CHECK(pw_walk_to(&w, INFINITY, 560) == PW_INVALID);
+    CHECK(pw_walk_to(&w, 350, 320) == PW_INVALID);
+    CHECK(pw_walk_to(&w, -1, 390) == PW_INVALID);
+    CHECK(pw_walk_to(&w, NAN, 390) == PW_INVALID);
+    CHECK(pw_walk_to(&w, INFINITY, 390) == PW_INVALID);
     return true;
 }
 static bool campus_doors(void)
@@ -333,7 +353,7 @@ static bool campus_guards(void)
     CHECK(pw_request(&w, PW_EAT) == PW_WRONG_ROOM);
     CHECK(pw_request(&w, PW_EXIT) == PW_WRONG_ROOM);
     CHECK(pw_request(&w, PW_TOUCH) == PW_OK);
-    CHECK(pw_walk_to(&w, 560, 300) == PW_BUSY);
+    CHECK(pw_walk_to(&w, 570, 550) == PW_BUSY);
     CHECK(pw_request(&w, PW_ENTER_DORM) == PW_BUSY);
     return true;
 }
@@ -342,7 +362,7 @@ static bool campus_clock_camera(void)
     pet_world_t a, b;
     campus_spawn(&a);
     b = a;
-    CHECK(pw_walk_to(&a, 960, 900) == PW_OK && pw_walk_to(&b, 960, 900) == PW_OK);
+    CHECK(pw_walk_to(&a, 395, 785) == PW_OK && pw_walk_to(&b, 395, 785) == PW_OK);
     pw_advance(&a, 20000);
     for (int i = 0; i < 1000; i++)
         pw_advance(&b, 20);
@@ -351,25 +371,25 @@ static bool campus_clock_camera(void)
     a.x = 0;
     a.y = 0;
     pw_camera(&a, &x, &y);
-    CHECK(x == 0 && y == -180);
+    CHECK(x == 0 && y == 0);
     a.y = 120;
     pw_camera(&a, &x, &y);
-    CHECK(y == -180);
-    a.y = 160;
+    CHECK(y == 0);
+    CHECK(pw_walk_to(&a, 570, -100) == PW_INVALID);
+    a.x = PW_CAMPUS_WIDTH;
+    a.y = PW_CAMPUS_HEIGHT;
     pw_camera(&a, &x, &y);
-    CHECK(y == -160);
-    CHECK(pw_walk_to(&a, 560, -100) == PW_INVALID);
-    a.x = 1120;
-    a.y = 1120;
+    CHECK(x == PW_CAMPUS_WIDTH - 390 && y == PW_CAMPUS_HEIGHT - 450);
+    a.x = 570;
+    a.y = 390;
     pw_camera(&a, &x, &y);
-    CHECK(x == 730 && y == 670);
-    a.x = 560;
-    a.y = 560;
-    pw_camera(&a, &x, &y);
-    CHECK(x == 365 && y == 240);
+    CHECK(x == 375 && y == 135);
     a.x += 1;
     pw_camera(&a, &x, &y);
-    CHECK(x == 366);
+    CHECK(x == 376);
+    a.scene = PW_DORM;
+    pw_camera(&a, &x, &y);
+    CHECK(x == 0 && y == 0);
     return true;
 }
 bool pw_campus_selftest(void (*report)(const char *, bool))
@@ -412,6 +432,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"jump-and-seat", jump_support},
                  {"eight-directions", all_directions},
                  {"indoor-floor-detour-and-retarget", indoor_floor},
+                 {"classroom-and-canteen-detours", other_room_detours},
                  {"reset-invalid", reset_invalid}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
