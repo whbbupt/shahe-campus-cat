@@ -5,9 +5,9 @@
 #include <string.h>
 
 static const pw_point_t nodes[4][32] = {
-    {{365, 300}, {339, 305}, {301, 342}, {211, 339}, {161, 346}, {198, 390}, {120, 268}, {303, 277}},
-    {{368, 231}, {338, 267}, {295, 319}, {224, 338}, {186, 369}, {244, 410}, {154, 383}, {0, 0}},
-    {{365, 266}, {335, 290}, {288, 327}, {217, 349}, {183, 380}, {242, 411}, {125, 386}, {0, 0}},
+    {{347, 235}, [3] = {189, 367}, [6] = {169, 297}, [7] = {118, 305}},
+    {{347, 235}, [3] = {188, 358}, [6] = {151, 296}},
+    {{347, 235}, [3] = {189, 330}, [6] = {155, 311}},
     {{560, 560},
      {360, 560},
      {160, 560},
@@ -27,11 +27,61 @@ static const pw_point_t nodes[4][32] = {
 static const uint8_t campus_edges[][2] = {{0, 1},  {1, 2},  {0, 3},  {3, 4},  {0, 5},  {5, 6},  {0, 7},
                                           {7, 8},  {2, 9},  {9, 4},  {4, 10}, {10, 6}, {6, 11}, {11, 8},
                                           {8, 12}, {12, 2}, {1, 13}, {4, 14}, {5, 15}};
-static const uint8_t edges[9][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}, {3, 5}, {4, 6}, {1, 7}, {2, 7}};
+enum { ROOM_CORNERS = 8, ROOM_START = 20, ROOM_GOAL = 21, ROAD_GOAL = 16 };
+
+typedef struct
+{
+    float left, top, right, bottom;
+} floor_block_t;
+
+/* These are foot-space obstacles, expanded slightly beyond the painted bases. */
+static const floor_block_t blocks[3][3] = {
+    {{33, 221, 151, 285}, {207, 283, 264, 333}},
+    {{54, 248, 132, 292}, {204, 248, 281, 293}, {54, 329, 132, 371}},
+    {{54, 251, 139, 309}, {218, 251, 300, 309}, {104, 351, 181, 394}}
+};
+static const unsigned block_count[] = {2, 3, 3};
+
+bool pw_room_ground(pw_scene_t scene, float x, float y)
+{
+    if ((unsigned)scene >= PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
+        x < 22 || x > 368 || y < 222 || y > 423)
+        return false;
+    for (unsigned i = 0; i < block_count[scene]; i++)
+    {
+        floor_block_t b = blocks[scene][i];
+        if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom)
+            return false;
+    }
+    return true;
+}
+
+static bool clip_axis(float start, float delta, float lo, float hi, float *enter, float *exit)
+{
+    if (fabsf(delta) < .0001f)
+        return start >= lo && start <= hi;
+    float first = (lo - start) / delta, last = (hi - start) / delta;
+    *enter = fmaxf(*enter, fminf(first, last));
+    *exit = fminf(*exit, fmaxf(first, last));
+    return *enter <= *exit;
+}
+
+static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
+{
+    for (unsigned i = 0; i < block_count[scene]; i++)
+    {
+        floor_block_t obstacle = blocks[scene][i];
+        float enter = 0, exit = 1;
+        if (clip_axis(a.x, b.x - a.x, obstacle.left, obstacle.right, &enter, &exit) &&
+            clip_axis(a.y, b.y - a.y, obstacle.top, obstacle.bottom, &enter, &exit))
+            return false;
+    }
+    return true;
+}
 static const uint32_t durations[7] = {0, 4000, 1500, 600, 8000, 10000, 500};
 static const uint32_t cooldowns[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
 static const int food_delta[7] = {0, 15, 0, 0, -5, -3, 0}, mood_delta[7] = {0, 0, 10, 0, 5, 4, 0};
-static const pw_point_t supports[3][2] = {{{62, 195}, {293, 210}}, {{108, 310}, {0, 0}}, {{79, 336}, {0, 0}}};
+static const pw_point_t supports[3][2] = {{{100, 147}, {117, 271}}, {{116, 279}, {0, 0}}, {{122, 289}, {0, 0}}};
 enum
 {
     MSG_NONE,
@@ -87,8 +137,7 @@ static void idle(pet_world_t *w)
     w->phase = PW_IDLE;
     w->action = PW_NONE;
     w->purpose = 0;
-    w->random = w->random * 1664525U + 1013904223U;
-    w->idle_until = w->now + 2500 + (w->random % 2501U);
+
 }
 void pw_init(pet_world_t *w)
 {
@@ -104,8 +153,6 @@ void pw_init(pet_world_t *w)
     w->x = nodes[0][3].x;
     w->y = nodes[0][3].y;
     w->facing = 1;
-    w->random = 0xC0FAU;
-    w->idle_until = 3200;
 }
 static void clock_step(pet_world_t *w, uint64_t dt)
 {
@@ -183,7 +230,19 @@ static void begin(pet_world_t *w, pw_command_t a)
 }
 static pw_point_t point(const pet_world_t *w, int n)
 {
-    return w->scene == PW_CAMPUS && n == 16 ? w->point_goal : pw_node(w->scene, (unsigned)n);
+    if (w->scene == PW_CAMPUS)
+        return n == ROAD_GOAL ? w->point_goal : pw_node(w->scene, (unsigned)n);
+    if (n == ROOM_START)
+        return (pw_point_t){w->x, w->y};
+    if (n == ROOM_GOAL)
+        return w->point_goal;
+    if (n >= ROOM_CORNERS)
+    {
+        unsigned k = (unsigned)(n - ROOM_CORNERS);
+        floor_block_t b = blocks[w->scene][k / 4];
+        return (pw_point_t){k & 1 ? b.right + 1 : b.left - 1, k & 2 ? b.bottom + 1 : b.top - 1};
+    }
+    return pw_node(w->scene, (unsigned)n);
 }
 unsigned pw_road_count(void)
 {
@@ -210,7 +269,7 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
     float dist[32];
     int8_t prev[32];
     bool done[32] = {false};
-    int count = s == PW_CAMPUS ? 17 : (s == PW_DORM ? 8 : 7);
+    int count = s == PW_CAMPUS ? ROAD_GOAL + 1 : ROOM_GOAL + 1;
     for (int i = 0; i < count; i++)
     {
         dist[i] = FLT_MAX;
@@ -228,27 +287,30 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
         done[at] = true;
         if (at == goal)
             break;
-        for (int e = 0; e < (s == PW_CAMPUS ? (int)pw_road_count() + 2 : (s == PW_DORM ? 9 : 7)); e++)
+        int links = s == PW_CAMPUS ? (int)pw_road_count() + 2 : count;
+        for (int e = 0; e < links; e++)
         {
-            int a, b;
-            if (s != PW_CAMPUS)
+            int next;
+            if (s == PW_CAMPUS)
             {
-                a = edges[e][0];
-                b = edges[e][1];
-            }
-            else if (e < (int)pw_road_count())
-            {
-                a = campus_edges[e][0];
-                b = campus_edges[e][1];
+                int a = e < (int)pw_road_count() ? campus_edges[e][0] : ROAD_GOAL;
+                int b = e < (int)pw_road_count() ? campus_edges[e][1]
+                          : e == (int)pw_road_count() ? w->point_edge_a : w->point_edge_b;
+                if (a < 0 || b < 0)
+                    continue;
+                next = a == at ? b : (b == at ? a : -1);
             }
             else
             {
-                a = 16;
-                b = e == (int)pw_road_count() ? w->point_edge_a : w->point_edge_b;
+                next = e;
+                bool corner = next >= ROOM_CORNERS &&
+                              next < ROOM_CORNERS + (int)block_count[s] * 4;
+                if (done[next] || (next != goal && !corner))
+                    continue;
+                pw_point_t a = point(w, at), b = point(w, next);
+                if (!pw_room_ground(s, b.x, b.y) || !clear_segment(s, a, b))
+                    continue;
             }
-            if (a < 0 || b < 0)
-                continue;
-            int next = a == at ? b : (b == at ? a : -1);
             if (next < 0 || done[next])
                 continue;
             float d = dist[at] + distance(point(w, at).x, point(w, at).y, point(w, next).x, point(w, next).y);
@@ -305,7 +367,7 @@ static void arrived(pet_world_t *w)
     else
     {
         idle(w);
-        if (w->scene == PW_CAMPUS && w->node == 16)
+        if (w->scene == PW_CAMPUS && w->node == ROAD_GOAL)
         {
             w->edge_a = w->point_edge_a;
             w->edge_b = w->point_edge_b;
@@ -338,12 +400,17 @@ static void consume(pet_world_t *w)
 }
 static bool move(pet_world_t *w, int goal, unsigned purpose)
 {
-    if (w->scene == PW_CAMPUS && (w->edge_a == 16 || w->edge_b == 16))
+    if (w->scene == PW_CAMPUS && (w->edge_a == ROAD_GOAL || w->edge_b == ROAD_GOAL))
     {
         w->edge_a = w->point_edge_a;
         w->edge_b = w->point_edge_b;
     }
-    int anchor[2] = {w->edge_a >= 0 ? w->edge_a : w->node, w->edge_b};
+    int anchor[2] = {ROOM_START, -1};
+    if (w->scene == PW_CAMPUS)
+    {
+        anchor[0] = w->edge_a >= 0 ? w->edge_a : w->node;
+        anchor[1] = w->edge_b;
+    }
     int8_t best[32];
     unsigned best_n = 0;
     float best_cost = FLT_MAX;
@@ -377,7 +444,18 @@ static bool move(pet_world_t *w, int goal, unsigned purpose)
 }
 pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 {
-    if (w->scene != PW_CAMPUS || !isfinite(x) || !isfinite(y) || x < 0 || y < 0 || x > 1120 || y > 1120)
+    if (w->scene != PW_CAMPUS)
+    {
+        if (!pw_room_ground(w->scene, x, y))
+            return PW_INVALID;
+        if (pw_busy(w))
+            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        w->point_goal = (pw_point_t){x, y};
+        w->target = PW_NONE;
+        w->destination = -1;
+        return move(w, ROOM_GOAL, 3) ? PW_OK : PW_INVALID;
+    }
+    if (!isfinite(x) || !isfinite(y) || x < 0 || y < 0 || x > 1120 || y > 1120)
         return PW_INVALID;
     if (pw_busy(w))
         return reject(w, PW_BUSY);
@@ -401,7 +479,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
     }
     if (best > 40 || edge < 0)
         return PW_INVALID;
-    if (w->edge_a == 16 || w->edge_b == 16)
+    if (w->edge_a == ROAD_GOAL || w->edge_b == ROAD_GOAL)
     {
         w->edge_a = w->point_edge_a;
         w->edge_b = w->point_edge_b;
@@ -415,7 +493,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
     w->destination = -1;
     if (same_edge)
     {
-        w->route[0] = 16;
+        w->route[0] = ROAD_GOAL;
         w->route_at = 0;
         w->route_len = 1;
         w->phase = PW_WALK;
@@ -424,7 +502,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
         consume(w);
         return PW_OK;
     }
-    return move(w, 16, 3) ? PW_OK : PW_INVALID;
+    return move(w, ROAD_GOAL, 3) ? PW_OK : PW_INVALID;
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
@@ -532,8 +610,6 @@ void pw_advance(pet_world_t *w, uint32_t ms)
             until = w->action_end - w->now;
         else if (w->phase == PW_TRANSITION)
             until = w->transition_start + (w->swapped ? 400 : 200) - w->now;
-        else if (w->phase == PW_IDLE)
-            until = w->idle_until > w->now ? w->idle_until - w->now : 1;
         uint64_t dt = left < until ? left : until;
         if (!dt)
             dt = 1;
@@ -583,23 +659,7 @@ void pw_advance(pet_world_t *w, uint32_t ms)
                     move(w, 3, 0);
             }
         }
-        else if (w->phase == PW_IDLE && w->now >= w->idle_until)
-        {
-            if (w->scene == PW_CAMPUS)
-            {
-                w->idle_until = w->now + 60000;
-                continue;
-            }
-            int choices[4], count = 0;
-            for (int n = 2; n <= 5; n++)
-                if (distance(w->x, w->y, point(w, n).x, point(w, n).y) > 12)
-                    choices[count++] = n;
-            w->random = w->random * 1664525U + 1013904223U;
-            if (count)
-                move(w, choices[w->random % (unsigned)count], 0);
-            else
-                idle(w);
-        }
+
     }
     if (left)
     {
@@ -649,8 +709,20 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
         float ease = progress * progress * (3 - 2 * progress);
         amount = mode == 2 ? 1 - ease : (mode == 1 ? ease : 1);
         v->lift = mode ? sinf(3.141592654f * progress) * (bed ? 23 : 17) : 0;
-        v->x += (target.x - w->x) * amount;
-        v->y += (target.y - w->y) * amount - v->lift;
+        if (bed)
+        {
+            /* Climb at the ladder, then turn in onto the upper bunk. */
+            float climb = fminf(amount / .72f, 1);
+            float onto_bed = fmaxf((amount - .72f) / .28f, 0);
+            v->x += (target.x - w->x) * onto_bed;
+            v->y += (target.y - w->y) * climb;
+            v->lift = 0;
+        }
+        else
+        {
+            v->x += (target.x - w->x) * amount;
+            v->y += (target.y - w->y) * amount - v->lift;
+        }
         settled = !mode || (mode == 1 && progress >= .88f);
         v->airborne = mode != 0;
         float scale = bed ? 1 : (w->scene == PW_DORM ? .94f : (w->scene == PW_CLASSROOM ? 1.02f : .98f));

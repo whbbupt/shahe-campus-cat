@@ -126,13 +126,14 @@ static bool sleep_wake(void)
     CHECK(w.phase == PW_SLEEP);
     pw_visual_t v;
     pw_visual(&w, &v);
-    CHECK(v.frame == 18 && fabsf(v.x - 62) < .01f && fabsf(v.y - 195) < .01f);
+    CHECK(v.frame == 18 && fabsf(v.x - 100) < .01f && fabsf(v.y - 147) < .01f);
     CHECK(pw_request(&w, PW_GO_CANTEEN) == PW_ASLEEP);
     pw_advance(&w, 60000);
     CHECK(w.mood == 61);
     CHECK(pw_request(&w, PW_REST) == PW_OK);
     pw_advance(&w, 500);
-    CHECK(w.phase == PW_IDLE && w.x == 120 && w.y == 268);
+    pw_point_t ladder = pw_node(PW_DORM, 6);
+    CHECK(w.phase == PW_IDLE && w.x == ladder.x && w.y == ladder.y);
     return true;
 }
 static bool touch_cancel(void)
@@ -176,34 +177,54 @@ static bool jump_support(void)
     CHECK(v.airborne && v.frame < 16 && v.lift > 16);
     pw_advance(&w, 300);
     pw_visual(&w, &v);
-    CHECK(v.frame >= 16 && v.frame <= 17 && v.occlusion && fabsf(v.y - 210) < .01f);
+    CHECK(v.frame >= 16 && v.frame <= 17 && v.occlusion && fabsf(v.y - 271) < .01f);
     pw_advance(&w, (uint32_t)(w.action_end - w.now - 250));
     pw_visual(&w, &v);
     CHECK(v.airborne && v.frame < 16);
     pw_advance(&w, 250);
-    CHECK(w.phase == PW_IDLE && w.x == 303 && w.y == 277);
+    pw_point_t desk = pw_node(PW_DORM, 7);
+    CHECK(w.phase == PW_IDLE && w.x == desk.x && w.y == desk.y);
     return true;
 }
 static bool all_directions(void)
 {
     pet_world_t w;
     pw_init(&w);
-    unsigned seen = 0;
-    for (int i = 0; i < 9000; i++)
+    static const pw_point_t steps[] = {
+        {0, 21}, {-21, 21}, {-21, 0}, {-21, -21},
+        {0, -21}, {21, -21}, {21, 0}, {21, 21}};
+    for (unsigned i = 0; i < 8; i++)
     {
-        pw_advance(&w, 40);
-        pw_visual_t v;
-        pw_visual(&w, &v);
-        if (w.phase == PW_WALK)
-            seen |= 1U << v.facing;
-        if (i == 700)
-            pw_request(&w, PW_REST);
-        if (w.phase == PW_SLEEP)
-            pw_request(&w, PW_REST);
-        if (i == 2000)
-            pw_request(&w, PW_CODE);
+        w.x = 325;
+        w.y = 365;
+        CHECK(pw_walk_to(&w, w.x + steps[i].x, w.y + steps[i].y) == PW_OK);
+        pw_advance(&w, 50);
+        CHECK(w.phase == PW_WALK && w.facing == i);
     }
-    CHECK(seen == 255);
+    return true;
+}
+static bool indoor_floor(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(pw_walk_to(&w, 185, 306) == PW_OK);
+    pw_advance(&w, 1500);
+    CHECK(w.phase == PW_IDLE && w.x == 185 && w.y == 306);
+    CHECK(pw_walk_to(&w, 302, 306) == PW_OK);
+    pw_advance(&w, 100);
+    float x = w.x, y = w.y;
+    CHECK(pw_walk_to(&w, 231, 305) == PW_INVALID);
+    CHECK(pw_walk_to(&w, 120, 90) == PW_INVALID);
+    CHECK(w.x == x && w.y == y && w.point_goal.x == 302);
+    CHECK(pw_walk_to(&w, 296, 309) == PW_OK && w.x == x && w.y == y);
+    for (int i = 0; i < 260; i++)
+    {
+        pw_advance(&w, 10);
+        CHECK(pw_room_ground(PW_DORM, w.x, w.y));
+    }
+    CHECK(w.phase == PW_IDLE && w.x == 296 && w.y == 309);
+    pw_advance(&w, 10000);
+    CHECK(w.x == 296 && w.y == 309);
     return true;
 }
 static bool reset_invalid(void)
@@ -390,6 +411,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"elapsed-and-long-gap", elapsed_partition},
                  {"jump-and-seat", jump_support},
                  {"eight-directions", all_directions},
+                 {"indoor-floor-detour-and-retarget", indoor_floor},
                  {"reset-invalid", reset_invalid}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)

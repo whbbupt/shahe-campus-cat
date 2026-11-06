@@ -4,6 +4,7 @@
 #include "pet_version.h"
 #include "pet_world_assets.h"
 #include "pet_campus_assets.h"
+#include "pet_shahe_assets.h"
 #include "pet_world_font.h"
 #include "src/core/lv_obj_event_private.h"
 #include <math.h>
@@ -44,10 +45,10 @@ void pet_ui_set_point_handler(pet_ui_point_fn handler)
 {
     ui.point = handler;
 }
-static void road_click(lv_event_t *e)
+static void ground_click(lv_event_t *e)
 {
     (void)e;
-    if (ui.panel || ui.world.scene != PW_CAMPUS || !ui.point)
+    if (ui.panel || !ui.point)
         return;
     lv_indev_t *indev = lv_indev_active();
     if (!indev)
@@ -93,12 +94,6 @@ static void click(lv_event_t *e)
     if (lv_obj_has_state(o, LV_STATE_DISABLED))
         return;
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
-    if (cmd == TAG_TRAVEL && ui.world.scene != PW_CAMPUS)
-    {
-        if (ui.action)
-            ui.action(PW_EXIT);
-        return;
-    }
     if (cmd == TAG_STATUS || cmd == TAG_TRAVEL)
     {
         int p = cmd == TAG_STATUS ? 1 : 2;
@@ -178,7 +173,7 @@ static void build_campus(lv_obj_t *screen)
 {
     ui.campus = box(screen, 0, 0, 1120, 1300, 0xC5D8AC, 0);
     lv_obj_add_flag(ui.campus, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(ui.campus, road_click, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(ui.campus, ground_click, LV_EVENT_CLICKED, NULL);
     box(ui.campus, 220, 650, 250, 260, 0xB7CEA0, 50);
     box(ui.campus, 670, 650, 230, 260, 0xB7CEA0, 50);
     static lv_point_precise_t road_points[24][2];
@@ -252,32 +247,22 @@ static void build_campus(lv_obj_t *screen)
     }
     visible(ui.campus, false);
 }
-static const int16_t zones[3][2][6][2] = {
-    {{{0, 146}, {72, 91}, {150, 104}, {121, 250}, {72, 305}, {0, 256}},
-     {{250, 140}, {310, 127}, {371, 173}, {370, 256}, {320, 280}, {264, 247}}},
-    {{{61, 242}, {137, 208}, {198, 246}, {178, 316}, {94, 373}, {51, 321}}, {{0}}},
-    {{{24, 269}, {93, 226}, {163, 281}, {144, 355}, {58, 390}, {22, 337}}, {{0}}}};
-static const int16_t marker[3][2][2] = {{{43, 247}, {327, 154}}, {{143, 249}, {0, 0}}, {{110, 277}, {0, 0}}};
-static bool in_polygon(int x, int y, unsigned target)
+typedef struct
 {
-    bool hit = false;
-    for (int i = 0, j = 5; i < 6; j = i++)
-    {
-        int ax = zones[ui.world.scene][target][i][0], ay = zones[ui.world.scene][target][i][1],
-            bx = zones[ui.world.scene][target][j][0], by = zones[ui.world.scene][target][j][1];
-        if ((ay > y) != (by > y) && x < (float)(bx - ax) * (y - ay) / (by - ay) + ax)
-            hit = !hit;
-    }
-    int dx = x - marker[ui.world.scene][target][0], dy = y - marker[ui.world.scene][target][1];
-    return hit || dx * dx + dy * dy <= 22 * 22;
-}
-static void hit_test(lv_event_t *e)
-{
-    lv_hit_test_info_t *h = lv_event_get_param(e);
-    unsigned target = (unsigned)(uintptr_t)lv_event_get_user_data(e);
-    if (h && h->res)
-        h->res = in_polygon(h->point->x, h->point->y, target);
-}
+    int x, y, w, h, badge_x, badge_y;
+    pw_command_t command;
+    unsigned icon;
+} furniture_hotspot_t;
+
+static const furniture_hotspot_t furniture[3][2] = {
+    {{31, 101, 147, 63, 107, 110, PW_REST, 2}, {38, 174, 105, 64, 85, 214, PW_CODE, 3}},
+    {{49, 230, 91, 58, 102, 239, PW_STUDY, 4}},
+    {{50, 239, 94, 60, 101, 247, PW_EAT, 5}}
+};
+
+static const lv_image_dsc_t *const room_art[] = {&shahe_room_0, &shahe_room_1, &shahe_room_2};
+static const char *const room_names[] = {"雁北园 · 宿舍", "教综楼 · 教室", "学生餐厅 · 食堂"};
+
 static void build_hotspots(void)
 {
     for (int i = 0; i < 2; i++)
@@ -288,52 +273,18 @@ static void build_hotspots(void)
         }
     if (ui.world.scene == PW_CAMPUS)
         return;
-    for (unsigned t = 0; t < (ui.world.scene == PW_DORM ? 2U : 1U); t++)
+    unsigned count = ui.world.scene == PW_DORM ? 2 : 1;
+    for (unsigned t = 0; t < count; t++)
     {
-        int minx = 390, miny = 450, maxx = 0, maxy = 0;
-        for (int n = 0; n < 6; n++)
-        {
-            int x = zones[ui.world.scene][t][n][0], y = zones[ui.world.scene][t][n][1];
-            if (x < minx)
-                minx = x;
-            if (x > maxx)
-                maxx = x;
-            if (y < miny)
-                miny = y;
-            if (y > maxy)
-                maxy = y;
-        }
-        int mx = marker[ui.world.scene][t][0], my = marker[ui.world.scene][t][1];
-        if (mx - 22 < minx)
-            minx = mx - 22;
-        if (my - 22 < miny)
-            miny = my - 22;
-        if (mx + 22 > maxx)
-            maxx = mx + 22;
-        if (my + 22 > maxy)
-            maxy = my + 22;
-        if (minx < 0)
-            minx = 0;
-        if (miny < 0)
-            miny = 0;
-        if (maxx > 389)
-            maxx = 389;
-        if (maxy > 449)
-            maxy = 449;
-        pw_command_t cmd = ui.world.scene == PW_DORM ? (t ? PW_CODE : PW_REST)
-                                                     : (ui.world.scene == PW_CLASSROOM ? PW_STUDY : PW_EAT);
-        lv_obj_t *o = button(lv_screen_active(), minx, miny, maxx - minx + 1, maxy - miny + 1, cmd, PAPER, 0);
+        const furniture_hotspot_t *f = &furniture[ui.world.scene][t];
+        lv_obj_t *o = button(lv_screen_active(), f->x, f->y, f->w, f->h, f->command, PAPER, 0);
         ui.hotspot[t] = o;
         lv_obj_set_style_bg_opa(o, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_bg_opa(o, LV_OPA_TRANSP, LV_STATE_PRESSED);
-        lv_obj_add_flag(o, LV_OBJ_FLAG_ADV_HITTEST);
-        lv_obj_add_event_cb(o, hit_test, LV_EVENT_HIT_TEST, (void *)(uintptr_t)t);
-        lv_obj_t *disc = box(o, mx - minx - 12, my - miny - 12, 24, 24, PAPER, 12);
-        lv_obj_set_style_bg_opa(disc, LV_OPA_90, 0);
-        image(disc, pw_icons[cmd == PW_REST ? 2 : cmd == PW_CODE ? 3 : cmd == PW_STUDY ? 4 : 5], 2, 2);
-        lv_obj_set_size(lv_obj_get_child(disc, 0), 20, 20);
-        lv_image_set_scale(lv_obj_get_child(disc, 0), 213);
-        lv_obj_move_to_index(o, 1 + t);
+        lv_obj_set_style_bg_opa(o, LV_OPA_20, LV_STATE_PRESSED);
+        lv_obj_t *disc = box(o, f->badge_x - f->x - 11, f->badge_y - f->y - 11, 23, 23, PAPER, 12);
+        image(disc, pw_icons[f->icon], 0, 0);
+        /* Furniture takes precedence over the cat, with the modal above both. */
+        lv_obj_move_to_index(o, lv_obj_get_index(ui.door));
     }
 }
 static void build_panel(lv_obj_t *screen)
@@ -382,9 +333,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(screen, lv_color_hex(PAPER), 0);
     ui.background = lv_image_create(screen);
-    lv_obj_remove_flag(ui.background, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(ui.background, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(ui.background, ground_click, LV_EVENT_CLICKED, NULL);
     lv_obj_set_pos(ui.background, 0, 0);
-    lv_image_set_src(ui.background, pw_backgrounds[0]);
+    lv_image_set_src(ui.background, room_art[0]);
     build_campus(screen);
     ui.shadow = box(screen, 0, 0, 32, 8, 0x60523D, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.shadow, LV_OPA_20, 0);
@@ -402,14 +354,17 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, LV_STATE_PRESSED);
     ui.foreground = lv_image_create(screen);
     lv_obj_remove_flag(ui.foreground, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui.foreground, pw_occluders[0]);
-    ui.door = button(screen, 344, 284, 44, 44, PW_EXIT, PAPER, 0);
+    lv_image_set_src(ui.foreground, &shahe_front_0);
+    ui.door = button(screen, 314, 94, 65, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
+    lv_obj_t *door_sign = box(ui.door, 7, 65, 51, 28, PAPER, 6);
+    box(door_sign, 5, 12, 5, 5, 0xBF795F, 4);
+    text(door_sign, "出门", 14, 2, &pet_font_16, INK);
     ui.location = box(screen, 13, 13, 174, 52, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
-    text(ui.location, "北邮 · 沙河", 12, 2, &pet_font_16, BLUE);
-    ui.location_text = text(ui.location, "十字路口", 12, 24, &pet_font_16, INK);
+    text(ui.location, "沙河校园小猫", 12, 2, &pet_font_16, BLUE);
+    ui.location_text = text(ui.location, room_names[0], 12, 22, &pet_font_20, INK);
     ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
     ui.bubble = box(screen, 67, 398, 256, 36, PAPER, 12);
     lv_obj_set_style_bg_opa(ui.bubble, LV_OPA_90, 0);
@@ -423,7 +378,7 @@ void pet_ui_create(pet_ui_action_fn callback)
         ui.corner[i] = button(screen, 265 + i * 60, 13, 52, 52, i ? TAG_TRAVEL : TAG_STATUS, PAPER, 14);
         lv_obj_set_style_bg_opa(ui.corner[i], LV_OPA_90, 0);
         image(ui.corner[i], pw_icons[i], 14, 4);
-        lv_obj_t *name = text(ui.corner[i], i ? "出门" : "状态", 10, 29, &pet_font_16, BLUE);
+        lv_obj_t *name = text(ui.corner[i], i ? "路标" : "状态", 10, 29, &pet_font_16, BLUE);
         if (i)
             ui.corner_name = name;
     }
@@ -439,20 +394,15 @@ static void paint(void)
         ui.scene = ui.world.scene;
         build_hotspots();
         if (ui.scene != PW_CAMPUS)
-        {
-            lv_image_set_src(ui.background, pw_backgrounds[ui.scene]);
-            lv_image_set_src(ui.foreground, pw_occluders[ui.scene]);
-            lv_obj_set_pos(ui.foreground, pw_occluder_bounds[ui.scene][0], pw_occluder_bounds[ui.scene][1]);
-            pw_point_t door = pw_node(ui.world.scene, 0);
-            lv_obj_set_pos(ui.door, 344, (int)door.y - 16);
-        }
+            lv_image_set_src(ui.background, room_art[ui.scene]);
     }
     bool campus = ui.world.scene == PW_CAMPUS;
     visible(ui.campus, campus);
-    visible(ui.location, campus);
     visible(ui.background, !campus);
     visible(ui.door, !campus);
-    lv_label_set_text(ui.corner_name, campus ? "路标" : "出门");
+    visible(ui.corner[1], campus);
+    if (!campus)
+        lv_label_set_text(ui.location_text, room_names[ui.scene]);
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
     lv_obj_set_pos(ui.campus, -(int)lroundf(cx), -(int)lroundf(cy) - 180);
@@ -493,7 +443,17 @@ static void paint(void)
     lv_obj_set_size(ui.shadow, rx * 2, v.sleeping ? 12 : 6);
     lv_obj_set_pos(ui.shadow, (int)v.x - rx, (int)v.y + (v.sleeping ? -16 : -2));
     lv_obj_set_style_bg_opa(ui.shadow, v.airborne ? LV_OPA_0 : LV_OPA_20, 0);
-    visible(ui.foreground, !campus && v.occlusion);
+    bool bed = ui.world.phase == PW_SLEEP || ui.world.action == PW_REST || ui.world.action == PW_WAKE;
+    bool show_front = !campus && (v.occlusion || (bed && v.y < 170));
+    if (show_front)
+    {
+        static const lv_image_dsc_t *const front[] = {&shahe_seat_0, &shahe_front_1, &shahe_front_2};
+        static const int16_t *const anchor[] = {shahe_seat_0_xy, shahe_front_1_xy, shahe_front_2_xy};
+        const int16_t *xy = bed ? shahe_front_0_xy : anchor[ui.scene];
+        lv_image_set_src(ui.foreground, bed ? &shahe_front_0 : front[ui.scene]);
+        lv_obj_set_pos(ui.foreground, xy[0], xy[1]);
+    }
+    visible(ui.foreground, show_front);
     lv_label_set_text(ui.marks,
                       v.sleeping ? "z z"
                                  : (ui.world.phase == PW_ACTION && ui.world.action == PW_TOUCH ? "♥" : ""));

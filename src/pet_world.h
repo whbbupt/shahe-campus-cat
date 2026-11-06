@@ -61,9 +61,9 @@ typedef struct
     pw_point_t point_goal;
     bool swapped;
     float x, y;
-    uint64_t now, action_start, action_end, transition_start, idle_until;
+    uint64_t now, action_start, action_end, transition_start;
     uint64_t cooldown[7], food_elapsed, mood_elapsed, rest_elapsed, message_until;
-    uint32_t settlements[7], random;
+    uint32_t settlements[7];
     int message, gain;
 } pet_world_t;
 typedef struct
@@ -80,6 +80,7 @@ bool pw_busy(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
 pw_result_t pw_walk_to(pet_world_t *w, float x, float y);
+bool pw_room_ground(pw_scene_t scene, float x, float y);
 void pw_camera(const pet_world_t *w, float *x, float *y);
 unsigned pw_road_count(void);
 void pw_road(unsigned index, pw_point_t *a, pw_point_t *b);

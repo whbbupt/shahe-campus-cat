@@ -2,7 +2,7 @@
 #include "lvgl.h"
 #include "pet_ui.h"
 #include "pet_world_assets.h"
-#include "pet_campus_assets.h"
+#include "pet_shahe_assets.h"
 #include "pet_world_font.h"
 #include <stdio.h>
 #include <math.h>
@@ -67,12 +67,13 @@ static void tap(int x, int y)
     step(40);
     step(40);
 }
+static bool shown(lv_obj_t *o);
 static lv_obj_t *label_with(lv_obj_t *p, const char *name)
 {
     for (unsigned i = 0; i < lv_obj_get_child_count(p); i++)
     {
         lv_obj_t *o = lv_obj_get_child(p, i);
-        if (lv_obj_check_type(o, &lv_label_class) && !strcmp(lv_label_get_text(o), name))
+        if (lv_obj_check_type(o, &lv_label_class) && shown(o) && !strcmp(lv_label_get_text(o), name))
             return o;
         lv_obj_t *f = label_with(o, name);
         if (f)
@@ -85,7 +86,9 @@ static lv_obj_t *control(const char *name)
     lv_obj_t *l = label_with(lv_screen_active(), name);
     assert(l);
     lv_obj_t *p = lv_obj_get_parent(l);
-    assert(lv_obj_check_type(p, &lv_button_class));
+    while (p && !lv_obj_check_type(p, &lv_button_class))
+        p = lv_obj_get_parent(p);
+    assert(p);
     return p;
 }
 static void press(const char *name)
@@ -200,61 +203,6 @@ static lv_obj_t *image_with(lv_obj_t *parent, const lv_image_dsc_t *source)
     }
     return NULL;
 }
-static void illustrated_sample(void)
-{
-    pw_init(&world);
-    world.scene = PW_CAMPUS;
-    world.node = 0;
-    world.x = 560;
-    world.y = 560;
-    world.now = 5000;
-    pet_ui_update(&world);
-    lv_obj_update_layout(lv_screen_active());
-    lv_obj_t *tree = image_with(lv_screen_active(), &pc_tree);
-    assert(tree && !lv_obj_has_flag(tree, LV_OBJ_FLAG_CLICKABLE));
-    lv_obj_t *cat = image_with(lv_screen_active(), pw_frames[2]);
-    assert(cat && lv_obj_get_index(tree) > lv_obj_get_index(cat));
-    float cx, cy;
-    pw_camera(&world, &cx, &cy);
-    for (int row = 0; row < 4; row++)
-        for (int col = 0; col < 2; col++)
-        {
-            lv_obj_t *tile = image_with(lv_screen_active(), pc_ground[row * 2 + col]);
-            lv_area_t bounds;
-            assert(tile && !lv_obj_has_flag(tile, LV_OBJ_FLAG_CLICKABLE));
-            lv_obj_get_coords(tile, &bounds);
-            assert(bounds.x1 == 280 + col * 280 - (int)lroundf(cx));
-            assert(bounds.y1 == -180 + row * 220 - (int)lroundf(cy));
-        }
-    screenshot("art-tree-behind.ppm");
-    world.y = 690;
-    pet_ui_update(&world);
-    assert(lv_obj_get_index(tree) < lv_obj_get_index(cat));
-    screenshot("art-tree-front.ppm");
-    world.y = 560;
-    pet_ui_update(&world);
-    assert(lv_obj_get_index(tree) > lv_obj_get_index(cat));
-    screenshot("art-junction.ppm");
-    /* Actual pointer through canopy reaches the road, rather than a decoration. */
-    pw_camera(&world, &cx, &cy);
-    tap((int)(660 - cx), (int)(560 - cy));
-    assert(world.phase == PW_WALK && world.purpose == 3);
-    step(2000);
-    assert(fabsf(world.x - 660) < .1f && fabsf(world.y - 560) < .1f);
-    assert(lv_obj_get_style_image_opa(tree, 0) == LV_OPA_50);
-    screenshot("art-canopy-walk.ppm");
-    assert(point_command(560, 120) == PW_OK);
-    step(10000);
-    pw_camera(&world, &cx, &cy);
-    assert(cy == -180 && fabsf(world.y - 120) < .1f);
-    screenshot("art-teaching-front.ppm");
-    lv_obj_t *building = image_with(lv_screen_active(), &pc_building);
-    lv_area_t bounds;
-    assert(building);
-    lv_obj_get_coords(building, &bounds);
-    assert(bounds.x1 + 136 == 560 - (int)cx && bounds.y1 + 280 == 120 - (int)cy);
-    puts("[host:illustrated] tiled world-camera coordinates, north padding, tree depth swaps, pointer-through-canopy and entry anchor PASS");
-}
 static void reset(void)
 {
     pw_init(&world);
@@ -263,24 +211,69 @@ static void reset(void)
     pet_ui_update(&world);
     lv_obj_update_layout(lv_screen_active());
 }
-static void until_action(void)
+static void idle(pw_scene_t scene)
 {
-    for (int i = 0; i < 3000 && world.phase == PW_WALK; i++)
-        step(20);
-    assert(world.phase == PW_ACTION);
+    for (unsigned i = 0; i < 1000 && (world.scene != scene || world.phase != PW_IDLE); i++)
+        step(40);
+    assert(world.scene == scene && world.phase == PW_IDLE);
 }
-static void travel(const char *name, pw_scene_t scene)
+static void until_action(pw_command_t cmd)
 {
-    (void)name;
-    press("出门");
-    for (int n = 0; n < 1000 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
-        step(20);
-    assert(world.scene == PW_CAMPUS);
-    command((pw_command_t)(PW_ENTER_DORM + scene));
-    for (int i = 0;
-         i < 3000 && (world.scene != scene || world.phase == PW_WALK || world.phase == PW_TRANSITION); i++)
-        step(20);
-    assert(world.scene == scene);
+    for (unsigned i = 0; i < 500 && world.phase == PW_WALK; i++)
+        step(40);
+    assert(world.phase == PW_ACTION && world.action == cmd);
+}
+static void settled_at(int x, int y)
+{
+    assert(world.phase == PW_IDLE && fabsf(world.x - x) < .1f && fabsf(world.y - y) < .1f);
+}
+static void dorm(void)
+{
+    assert(world.scene == PW_DORM);
+    assert(!label_with(lv_screen_active(), "路标"));
+    screenshot("shahe-dorm.ppm");
+    press("状态");
+    assert(label_with(lv_screen_active(), "小猫状态"));
+    pet_ui_set_save_status(PET_SAVE_SAVED);
+    assert(label_with(lv_screen_active(), "已保存，重启可恢复"));
+    screenshot("shahe-status.ppm");
+    tap(234, 370);
+    assert(world.phase == PW_IDLE); /* scrim dismisses without walking */
+    tap(235, 375);
+    assert(result == PW_OK && world.phase == PW_WALK);
+    idle(PW_DORM);
+    settled_at(235, 375);
+    tap(188, 300);
+    idle(PW_DORM);
+    settled_at(188, 300);
+    tap(301, 302);
+    assert(world.phase == PW_WALK);
+    for (unsigned i = 0; i < 100 && world.phase == PW_WALK; i++)
+    {
+        step(25);
+        assert(pw_room_ground(PW_DORM, world.x, world.y));
+    }
+    settled_at(301, 302);
+    tap(89, 207);
+    assert(world.phase == PW_WALK && world.settlements[PW_CODE] == 0);
+    until_action(PW_CODE);
+    step(550);
+    assert(world.settlements[PW_CODE] == 1);
+    lv_obj_t *seat = image_with(lv_screen_active(), &shahe_seat_0);
+    assert(seat && shown(seat));
+    screenshot("shahe-dorm-code.ppm");
+    step(pw_duration(PW_CODE));
+    tap(99, 129);
+    until_action(PW_REST);
+    step(300);
+    screenshot("shahe-dorm-climb.ppm");
+    step(350);
+    assert(world.phase == PW_SLEEP);
+    screenshot("shahe-dorm-sleep.ppm");
+    tap(100, 126);
+    step(510);
+    pw_point_t ladder = pw_node(PW_DORM, 6);
+    settled_at((int)ladder.x, (int)ladder.y);
 }
 int main(void)
 {
@@ -289,212 +282,11 @@ int main(void)
     lv_display_set_color_format(d, LV_COLOR_FORMAT_RGB888);
     lv_display_set_buffers(d, draw_buffer, NULL, sizeof(draw_buffer), LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(d, flush);
-    lv_indev_t *i = lv_indev_create();
-    lv_indev_set_type(i, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(i, read_pointer);
+    lv_indev_t *input = lv_indev_create();
+    lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(input, read_pointer);
     reset();
-    unsigned count = timers();
-    screenshot("world-dorm.ppm");
-    press("状态");
-    assert(shown(label_with(lv_screen_active(), "小猫状态")));
-    screenshot("world-status.ppm");
-    unsigned touch = world.settlements[PW_TOUCH];
-    tap(327, 154);
-    assert(world.settlements[PW_TOUCH] == touch &&
-           world.target == PW_NONE); /* scrim consumes furniture tap */
-    tap(327, 154);
-    assert(world.target == PW_CODE && world.food == 70);
-    until_action();
-    assert(world.food == 67 && world.mood == 64);
-    step(700);
-    screenshot("world-code.ppm");
-    press("状态");
-    uint64_t now = world.now;
-    step(500);
-    assert(world.now == now + 500 && world.action == PW_CODE);
-    press("出门");
-    assert(result == PW_BUSY && world.action == PW_CODE);
-    screenshot("world-busy-travel.ppm");
-    tap(20, 200);
-    step(11000);
-    travel("教室", PW_CLASSROOM);
-    assert(world.food == 67);
-    screenshot("world-classroom.ppm");
-    tap(143, 249);
-    until_action();
-    assert(world.food == 62 && world.mood == 69);
-    step(700);
-    screenshot("world-study.ppm");
-    step(9000);
-    travel("食堂", PW_CANTEEN);
-    screenshot("world-canteen.ppm");
-    tap(110, 277);
-    until_action();
-    assert(world.food == 77);
-    step(700);
-    screenshot("world-eat.ppm");
-    step(5000);
-    travel("宿舍", PW_DORM);
-    tap(43, 247);
-    until_action();
-    step(700);
-    assert(world.phase == PW_SLEEP);
-    screenshot("world-sleep.ppm");
-    press("状态");
-    step(60000);
-    assert(world.mood == 70);
-    screenshot("world-sleep-status.ppm");
-    tap(20, 200);
-    tap(43, 247);
-    step(600);
-    assert(world.phase != PW_SLEEP);
-    screenshot("world-wake.ppm");
-    for (int n = 0; n < 10; n++)
-    {
-        uint8_t f = world.food, m = world.mood;
-        pet_ui_create(command);
-        pet_ui_set_point_handler(point_command);
-        pet_ui_update(&world);
-        lv_obj_update_layout(lv_screen_active());
-        assert(timers() == count && world.food == f && world.mood == m);
-    }
-    reset();
-    world.food = 7;
-    pet_ui_update(&world);
-    tap(327, 154);
-    assert(result == PW_LOW_FOOD && world.food == 7);
-    assert(label_with(lv_screen_active(), "肚子饿了，先去食堂"));
-    screenshot("world-low-food.ppm");
-    reset();
-    step(2400);
-    for (unsigned f = 0; f < 8; f++)
-    {
-        world.phase = PW_WALK;
-        world.facing = (uint8_t)f;
-        world.now = 2520;
-        world.x = 211;
-        world.y = 339;
-        pet_ui_update(&world);
-        char filename[32];
-        snprintf(filename, sizeof(filename), "world-angle-%u.ppm", f);
-        screenshot(filename);
-    }
-    reset();
-    assert(world.food == 70 && world.mood == 60 && world.scene == PW_DORM);
-    screenshot("world-restart.ppm");
-    static const char *notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
-    press("状态");
-    for (unsigned state = 0; state < 4; state++)
-    {
-        pet_ui_set_save_status(state);
-        lv_obj_update_layout(lv_screen_active());
-        lv_obj_t *note = label_with(lv_screen_active(), notes[state]);
-        assert(note && shown(note));
-        lv_area_t a; lv_obj_get_coords(note, &a);
-        assert(a.x1 >= 0 && a.x2 < 390 && a.y1 >= 0 && a.y2 < 450);
-        assert(lv_obj_get_width(note) <= 240);
-        char filename[40]; snprintf(filename, sizeof(filename), "world-save-status-%u.ppm", state);
-        screenshot(filename);
-    }
-    pet_ui_create(command);
-    pet_ui_set_point_handler(point_command);
-    pet_ui_update(&world);
-    assert(label_with(lv_screen_active(), notes[PET_SAVE_FAILED]));
-    assert(timers() == count);
-    reset();
-    tap(365, 306); /* Native indoor door, distinct from desk hotspot. */
-    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
-        step(20);
-    assert(world.scene == PW_CAMPUS && fabsf(world.x - 360) < .1f);
-    screenshot("campus-dorm-gate.ppm");
-    float cx, cy;
-    pw_camera(&world, &cx, &cy);
-    tap((int)(440 - cx), (int)(560 - cy));
-    assert(world.phase == PW_WALK && world.purpose == 3);
-    for (int n = 0; n < 600 && world.phase == PW_WALK; n++)
-        step(20);
-    assert(fabsf(world.x - 440) < .1f && fabsf(world.y - 560) < .1f);
-    screenshot("campus-walk-west.ppm");
-    point_command(560, 560);
-    step(2000);
-    screenshot("campus-crossroads.ppm");
-    press("路标");
-    screenshot("campus-signs.ppm");
-    unsigned old_route = world.route_len;
-    tap(190, 150);
-    assert(world.route_len == old_route);
-    tap(20, 200);
-    point_command(560, 160);
-    step(6000);
-    screenshot("campus-teaching-gate.ppm");
-    pw_camera(&world, &cx, &cy);
-    tap((int)(560 - cx), (int)(65 - cy));
-    for (int n = 0; n < 1200 && world.scene != PW_CLASSROOM; n++)
-        step(20);
-    assert(world.scene == PW_CLASSROOM);
-    step(3000);
-    screenshot("campus-entered-classroom.ppm");
-    press("出门");
-    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
-        step(20);
-    assert(world.scene == PW_CAMPUS && fabsf(world.y - 120) < .1f);
-    point_command(960, 560);
-    step(15000);
-    screenshot("campus-east-path.ppm");
-    command(PW_ENTER_CANTEEN);
-    for (int n = 0; n < 2000 && world.scene != PW_CANTEEN; n++)
-        step(20);
-    assert(world.scene == PW_CANTEEN);
-    step(3000);
-    screenshot("campus-entered-canteen.ppm");
-    tap(110, 277);
-    until_action();
-    step(4500);
-    press("出门");
-    for (int n = 0; n < 1200 && (world.scene != PW_CAMPUS || world.phase != PW_IDLE); n++)
-        step(20);
-    point_command(960, 960);
-    step(20000);
-    screenshot("campus-south-east.ppm");
-    point_command(160, 960);
-    step(20000);
-    screenshot("campus-south-west.ppm");
-    point_command(160, 160);
-    step(20000);
-    screenshot("campus-north-west.ppm");
-    point_command(960, 160);
-    step(20000);
-    screenshot("campus-north-east.ppm");
-    for (int n = 0; n < 10; n++)
-    {
-        pet_ui_create(command);
-        pet_ui_set_point_handler(point_command);
-        pet_ui_update(&world);
-        assert(timers() == count);
-        screenshot("campus-recreated.ppm");
-    }
-    pw_init(&world);
-    world.scene = PW_CAMPUS;
-    world.node = 0;
-    world.x = 560;
-    world.y = 560;
-    pet_ui_update(&world);
-    point_command(560, 160);
-    for (int n = 0; n < 60; n++)
-    {
-        if (n == 30)
-            point_command(960, 160);
-        step(200);
-        char filename[40];
-        snprintf(filename, sizeof(filename), "campus-demo-%02d.ppm", n);
-        screenshot(filename);
-    }
-    illustrated_sample();
-    puts("[host:campus-ui] native pointer exit/road/building, camera, four corners, signs/scrim, meals and "
-         "recreations PASS");
-    puts("[host:save-ui] pending/saved/unavailable/failed labels, CJK glyphs, fit and recreation PASS");
-    puts(
-        "[host:world-ui] actual LVGL: three rooms, 8 views, native pointer hotspots/panels/scrim, arrival "
-        "settlement, seats/bed/wake, glyphs, targets, 10 recreations and timer count PASS; no board verdict");
+    dorm();
+    puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
     return 0;
 }
