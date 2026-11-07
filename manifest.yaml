@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "48倍24小时校园日程、关机暂停、时段替代玩法"
+      alternatives_considered: "15/30/60分钟一日；关机暂停/离线继续；仅提醒/严格开放/保留替代活动"
+      rationale: "用户明确选择30分钟一日、开机续玩、按时段保留替代活动；保存布局尚待评审"
+      decided_by: "用户三次明确选择；具体参数AI拟定，ADR-0014"
     - decision: "短音效加循环背景音乐"
       alternatives_considered: "仅互动短音效；短音效与循环背景音乐"
       rationale: "用户明确选择同时加入，离线素材混音并提供三种声音模式"
@@ -814,7 +818,64 @@ test_results:
     status: pending_physical
     pass: null
 
+  - test_id: TC-203
+    description: 日程流速与跨日
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-204
+    description: 课程餐点与替代活动
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-205
+    description: 操作时钟独立
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-206
+    description: 按日程数值和余量
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-207
+    description: 日程存档与兼容
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-208
+    description: 时间昼夜与原玩法
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-209
+    description: 日程增量容量构建
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-210
+    description: 时间系统实机
+    expected: 按docs/03时间系统计划用例
+    actual: 文档登记，代码尚未实现，用例尚未执行
+    status: planned_not_executed
+    pass: null
+
 known_issues:
+  - "时间系统已确认三项方向并登记REQ-191至REQ-195与TC-203至TC-210，代码未实现；保存布局待评审，初始时刻/窗口/数值是AI初版参数。"
   - "v0.12.0音质、持续送音和声画时序待TC-202；格式5保存声音模式、读1至4；全量阶段有SDK lv_obj_swap潜在空指针告警2次，SDK未改且应用未调用。"
   - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
   - "v0.10.0使用格式3，旧固件读取时写保护；实际屏幕、触摸和订单复位恢复待TC-190。"
@@ -849,6 +910,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "校园时间规则"
+    student_confirmation: "现实30分钟＝游戏一天；关机暂停、开机继续；按时段区分、保留替代活动"
+    evidence_path: evidence/pet/time_choices_20261107_user.txt
   - decision_point: "声音范围"
     student_confirmation: "短音效加循环背景音乐"
     evidence_path: evidence/pet/audio_choice_20261107_user.txt

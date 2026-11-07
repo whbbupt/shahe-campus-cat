@@ -1,0 +1,2 @@
+Document checks PASS: 48x arithmetic, seven day windows, table layout, links, copies, eight planned tests still unexecuted.
+Arithmetic verification is document-only; it is not a runtime calendar test or hardware verdict.

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "D:\project\sifli\course_starter\build\verify_pet_time_docs.py", line 12, in <module>
+    assert len(windows)==7,windows
+           ^^^^^^^^^^^^^^^
+AssertionError: [('06', '00', '', '08', '00', '2', '30'), ('12', '00', '', '14', '00', '2', '30'), ('14', '00', '', '17', '00', '3', '45'), ('17', '00', '', '19', '00', '2', '30'), ('23', '00', '次日', '06', '00', '8', '45')]
