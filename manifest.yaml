@@ -874,7 +874,15 @@ test_results:
     status: planned_not_executed
     pass: null
 
+  - test_id: TC-214
+    description: iPhone与小猫BLE连接探针
+    expected: 按docs/03的TC-214扫描连接、读信息、PING/PONG及断开重连
+    actual: 实现前登记，未取得新物理证据
+    status: planned_not_executed
+    pass: null
+
 known_issues:
+  - "BLE探针REQ-196、REQ-197、REQ-198实现前登记；TC-214待iPhone真实连接，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"
   - "时间系统已确认三项方向并登记REQ-191至REQ-195与TC-203至TC-210，代码未实现；保存布局待评审，初始时刻/窗口/数值是AI初版参数。"
   - "v0.12.0音质、持续送音和声画时序待TC-202；格式5保存声音模式、读1至4；全量阶段有SDK lv_obj_swap潜在空指针告警2次，SDK未改且应用未调用。"
   - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
