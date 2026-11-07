@@ -1,0 +1,7 @@
+来源：用户本轮20:34:51分段RX，以下仅重组为可读三行，非原始会话导出。
+TX pet_ble_status
+[pet:BLE:STATUS] query version=0.12.2-blediag tick=494421 stage=wait-ready result=0
+[pet:BLE:STATUS] callbacks=0 power=0 queued=0 handled=0 loops=4767
+[pet:BLE:STATUS] last_cb=0x0000 last_handled=0x0000 recv=-2 adv_events=0 adv_result=0 fault=0
+
+确认：本版查询命令真实执行，SDK启用调用已返回，应用任务循环活跃、队列未故障；无应用层SDK回调、就绪、广播或连接。不能因此单独断言控制器损坏、某配置就是根因。

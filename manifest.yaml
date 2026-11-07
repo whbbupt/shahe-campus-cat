@@ -884,11 +884,19 @@ test_results:
   - test_id: TC-216
     description: BLE启动阶段与只读诊断命令实机
     expected: 按docs/03的TC-216取得15秒状态和pet_ble_status结果
-    actual: 诊断代码与构建已通过，尚未取得v0.12.2真实状态输出
+    actual: 用户20:34:51查询返回wait-ready且0回调、loops4767、fault0；查询部分已实测，15秒自动报告未回传
+    status: partial_user_log
+    pass: null
+
+  - test_id: TC-218
+    description: SDK内部启动日志实机
+    expected: 按TC-218采集SDK日志和状态，不宣称无线修复
+    actual: 实现前登记，尚未执行
     status: planned_not_executed
     pass: null
 
 known_issues:
+  - "v0.12.2真实查询显示wait-ready、0回调、循环活跃且队列无故障；新增TC-217/218单独开启SDK日志，底层原因尚不确定。"
   - "v0.12.2只增加启动阶段/计数及pet_ble_status查询，TC-215软件通过、TC-216待实机；原v0.12.1扫描失败根因未定位，不把诊断版等同修复。"
   - "TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"
