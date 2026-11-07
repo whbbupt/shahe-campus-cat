@@ -1,0 +1,1605 @@
+
+Serial:c2,Chip:4,Package:3,Rev:3
+23:42:39
+RX
+  Reason:00000000
+
+
+ \ | /
+- 
+23:42:39
+RX
+SiFli Corporation
+ / | \     bu
+23:42:39
+RX
+ild on Nov  7 2026, 2.5.1 build 
+23:42:39
+RX
+421126d9
+ 2020 - 2022 Copyright
+23:42:39
+RX
+ by SiFli team
+aw32001_init ok,
+23:42:39
+RX
+  time consum: 0.00 ms.
+mount /
+23:42:39
+RX
+dev sucess
+[1965] I/drv.rtc mai
+23:42:39
+RX
+n: PSCLR=0x80000100 DivAI=128 Di
+23:42:39
+RX
+vAF=0 B=256
+
+[1991] I/drv.rtc m
+23:42:39
+RX
+ain: RTC use LXT RTC_CR=00000001
+23:42:39
+RX
+
+
+
+[2011] I/drv.rtc main: Init
+23:42:39
+RX
+ RTC, wake = 0
+
+
+23:42:39
+RX
+[2167] I/drv.audprc main: init 0
+23:42:39
+RX
+0 ADC_PATH_CFG0 0x606
+
+
+[2188]
+23:42:39
+RX
+ I/drv.audprc main: HAL_AUDPRC_I
+23:42:39
+RX
+nit res 0
+
+
+[2208] I/drv.audco
+23:42:39
+RX
+dec main: HAL_AUDCODEC_Init res 
+23:42:39
+RX
+0
+
+
+[2229] I/drv.rgb main: rgb
+23:42:39
+RX
+led register success, supporting
+23:42:39
+RX
+ 1 LEDs
+
+[2254] I/TOUCH main: R
+23:42:39
+RX
+egist touch screen driver, probe
+23:42:39
+RX
+=12027599 
+
+[I/FAL] Fla
+23:42:39
+RX
+sh Abstraction Layer (V0.5.99) i
+23:42:39
+RX
+nitialize success.
+23:42:39
+RX
+[I/FAL] The FAL MTD NOR device (
+23:42:39
+RX
+dfu) created successfully
+23:42:39
+RX
+[32;22m[I/FAL] The FAL MTD NOR d
+23:42:39
+RX
+evice (ble) created successfully
+23:42:39
+RX
+
+LV_MEM_RT: using rt_malloc
+23:42:39
+RX
+ path (psram private heap build 
+23:42:39
+RX
+condition not met)
+[2392] I/drv
+23:42:39
+RX
+.epic main: drv_gpu opened.
+
+23:42:39
+RX
+call par CFG1(3313)
+
+fc 9, xtal
+23:42:39
+RX
+ 2000, pll 2152
+
+call par CFG1(
+23:42:39
+RX
+3313)
+
+fc 7, xtal 2000, pll 172
+23:42:39
+RX
+5
+
+[2548] I/audio audiosvr: aud
+23:42:39
+RX
+io server run
+
+[2566] I/audio b
+23:42:39
+RX
+t_downv: audio_btdownlink run
+
+23:42:39
+RX
+
+[pet] v0.12.4-blefix boot ok
+23:42:39
+RX
+[2604] I/drv.lcd main: [NONE] ->
+23:42:39
+RX
+ [OPENING]
+
+[2622] I/drv.lcd lc
+23:42:39
+RX
+d_task: open
+
+[2634] I/drv.lcd 
+23:42:39
+RX
+lcd_task: HW open
+
+[2669] I/drv
+23:42:39
+RX
+.lcd lcd_task: Try registered LC
+23:42:39
+RX
+D driver...
+
+msh />
+23:42:39
+RX
+
+CO5300_ReadID 0x331100 
+[4997
+23:42:39
+RX
+] I/co5300 lcd_task: LCD module 
+23:42:39
+RX
+use CO5300 IC 
+
+
+23:42:39
+RX
+
+CO5300_ReadID 0x331100 
+[1127
+23:42:39
+RX
+3] I/co5300 lcd_task: LCD module
+23:42:39
+RX
+ use CO5300 IC 
+
+
+[11293] I/dr
+23:42:39
+RX
+v.lcd lcd_task: Found lcd co5300
+23:42:39
+RX
+ id:331100h
+
+[11314] I/drv.lcd 
+23:42:39
+RX
+lcd_task: HW open done.
+
+[11330
+23:42:39
+RX
+] I/drv.lcd lcd_task: [OPENING] 
+23:42:39
+RX
+-> [INITIALIZED]
+
+[11351] I/drv
+23:42:39
+RX
+.lcd lcd_task: open done.
+
+23:42:39
+RX
+[11448] I/drv.lcd_fb main: drv_l
+23:42:39
+RX
+cd_fb_init
+
+[11469] I/drv.lcd_f
+23:42:39
+RX
+b main: drv_lcd_fb_init done.
+
+23:42:39
+RX
+[User]	(0.292, +292)	 lv_touchsc
+23:42:39
+RX
+reen_create: touchscreen touch o
+23:42:39
+RX
+pening lv_touch.c:153
+[11528] I
+23:42:39
+RX
+/TOUCH main: Open
+
+[11542] I/TO
+23:42:39
+RX
+UCH tp_init: Find touch screen d
+23:42:39
+RX
+river...
+
+[11562] I/TOUCH tp_in
+23:42:39
+RX
+it: Probe 12027599
+
+[11580] I/T
+23:42:39
+RX
+OUCH tp_init: touch screen found
+23:42:39
+RX
+ driver  2001e698, ft6146
+
+[116
+23:42:39
+RX
+06] I/TOUCH main: Opened.
+
+[Use
+23:42:39
+RX
+r]	(0.296, +4)	 lv_touchscreen_c
+23:42:39
+RX
+reate: touchscreen touch open su
+23:42:39
+RX
+ccess lv_touch.c:172
+[11654] I/
+23:42:39
+RX
+LVGL main: [littlevgl2rtt] Welco
+23:42:39
+RX
+me to the littlevgl2rtt lib.
+
+[
+23:42:39
+RX
+pet:WORLD] initial-scene PASS
+23:42:39
+RX
+[pet:WORLD] arrive-once PASS
+[p
+23:42:39
+RX
+et:WORLD] retarget-no-snap PASS
+23:42:39
+RX
+
+23:42:39
+RX
+[pet:WORLD] arrival-eligibility 
+23:42:39
+RX
+PASS
+23:42:39
+RX
+[pet:WORLD] busy-no-queue PASS
+23:42:39
+RX
+[pet:WORLD] cooldown-from-finish
+23:42:39
+RX
+ PASS
+[pet:WORLD] capped-meal P
+23:42:39
+RX
+ASS
+23:42:40
+RX
+[pet:WORLD] full-mood-study PASS
+23:42:40
+RX
+
+[pet:WORLD] sleep-wake-support
+23:42:40
+RX
+ PASS
+[pet:WORLD] touch-cancels
+23:42:40
+RX
+-intent PASS
+23:42:40
+RX
+[pet:WORLD] elapsed-and-long-gap
+23:42:40
+RX
+ PASS
+23:42:40
+RX
+[pet:WORLD] jump-and-seat PASS
+23:42:40
+RX
+[pet:WORLD] eight-directions PAS
+23:42:40
+RX
+S
+23:42:40
+RX
+[pet:WORLD] indoor-floor-detour-
+23:42:40
+RX
+and-retarget PASS
+23:42:40
+RX
+[pet:WORLD] classroom-and-cantee
+23:42:40
+RX
+n-detours PASS
+[pet:WORLD] rese
+23:42:40
+RX
+t-invalid PASS
+23:42:40
+RX
+[pet:WORLD] journal-wishes-stamp
+23:42:40
+RX
+-and-page PASS
+23:42:40
+RX
+[pet:WORLD] memory-rounds-wrong-
+23:42:40
+RX
+cancel-and-once PASS
+23:42:40
+RX
+[pet:WORLD] rebalanced-actions-a
+23:42:40
+RX
+nd-sleep-clamp PASS
+[pet:WORLD]
+23:42:40
+RX
+ gym-access-workout-and-return P
+23:42:40
+RX
+ASS
+23:42:40
+RX
+[pet:WORLD] takeout-delivery-gua
+23:42:40
+RX
+rds-and-once PASS
+23:42:40
+RX
+[pet:WORLD] four-room-decor-and-
+23:42:40
+RX
+expanded-floor PASS
+23:42:40
+RX
+[14393] E/drv.ft6146 tp_init: ft
+23:42:40
+RX
+6146 id_H=64
+
+[14415] E/drv.ft6
+23:42:40
+RX
+146 tp_init: ft6146 id_L=56
+
+23:42:40
+RX
+[pet:WORLD] campus-point-retarge
+23:42:40
+RX
+t-road PASS
+23:42:40
+RX
+[pet:WORLD] campus-three-buildin
+23:42:40
+RX
+g-doors PASS
+[pet:WORLD] campus
+23:42:40
+RX
+-guards-no-wander PASS
+23:42:40
+RX
+[pet:WORLD] campus-clock-camera 
+23:42:40
+RX
+PASS
+23:42:40
+RX
+[pet:WORLD] campus-all-road-endp
+23:42:40
+RX
+oints PASS
+[pet:SAVE-TEST] form
+23:42:40
+RX
+at-restore-cooldowns PASS
+[pet:
+23:42:40
+RX
+SAVE-TEST] sleep-elapsed-wake PA
+23:42:40
+RX
+SS
+23:42:40
+RX
+[pet:SAVE-TEST] all-65-write-cut
+23:42:40
+RX
+-points PASS
+[pet:SAVE-TEST] cr
+23:42:40
+RX
+c-fallback PASS
+23:42:40
+RX
+[pet:SAVE-TEST] rotation-partial
+23:42:40
+RX
+-erase PASS
+[pet:SAVE-TEST] sho
+23:42:40
+RX
+rt-io-no-success PASS
+[pet:SAVE
+23:42:40
+RX
+-TEST] no-unfinished-action-repl
+23:42:40
+RX
+ay PASS
+23:42:40
+RX
+[pet:SAVE-TEST] autosave-throttl
+23:42:40
+RX
+e-checkpoint-retry PASS
+[pet:SA
+23:42:40
+RX
+VE-TEST] visible-state-save-cons
+23:42:40
+RX
+istency PASS
+[pet:SAVE-TEST] ca
+23:42:40
+RX
+mpus-safe-restore PASS
+23:42:40
+RX
+[pet:SAVE-TEST] takeout-resume-a
+23:42:40
+RX
+nd-atomic-pickup PASS
+23:42:40
+RX
+[pet:SAVE-TEST] takeout-autosave
+23:42:40
+RX
+-phase-key PASS
+23:42:40
+RX
+[pet:SAVE-TEST] journal-atomic-s
+23:42:40
+RX
+tamp-and-game-restore PASS
+23:42:40
+RX
+[pet:SAVE-TEST] sound-mode-autos
+23:42:40
+RX
+ave-and-reboot PASS
+23:42:40
+RX
+[pet:AUDIO-TEST] pcm-loop-modes-
+23:42:40
+RX
+duck-and-four-notes PASS
+[pet:A
+23:42:40
+RX
+UDIO-TEST] world-events-once-no-
+23:42:40
+RX
+replay PASS
+[pet:WORLD] all PAS
+23:42:40
+RX
+S
+[pet:SAVE-TEST] all PASS (RAM
+23:42:40
+RX
+ only)
+[pet:AUDIO] worker ready
+23:42:40
+RX
+, mode=1, 16000Hz mono PCM
+23:42:40
+RX
+[pet:SAVE] load=0 seq=2068 scene
+23:42:40
+RX
+=3 food=0 mood=0 sleeping=0
+[pe
+23:42:40
+RX
+t:BLE] stage=queue result=0
+[pe
+23:42:40
+RX
+t:BLE-TEST] protocol PASS (RAM o
+23:42:40
+RX
+nly, no radio verdict)
+[pet:BLE
+23:42:40
+RX
+] stage=thread result=0
+23:42:40
+RX
+[pet:BLE] stage=stack-call resul
+23:42:40
+RX
+t=0
+23:42:40
+RX
+[35486] D/nvds mbox: NVDS Update
+23:42:40
+RX
+ Addr res 6, addr d1-0c-80-52-fd
+23:42:40
+RX
+-5c
+
+[35515] I/nvds mbox: read 
+23:42:40
+RX
+sleep time 3500
+
+23:42:41
+RX
+[71580] D/sibles_utils mbox: del
+23:42:41
+RX
+ay
+
+[71624] I/sibles pet_ble: e
+23:42:41
+RX
+nable BLE Core. Lib ver: bt.2.0.
+23:42:41
+RX
+3d25ed62
+
+[pet:BLE] stage=wait-
+23:42:41
+RX
+ready result=0
+23:42:41
+RX
+[74683] I/drv.lcd lcd_task: Auto
+23:42:41
+RX
+ turn on display.
+
+[74704] I/dr
+23:42:41
+RX
+v.lcd lcd_task: set brightness 5
+23:42:41
+RX
+0
+
+[74724] I/drv.lcd lcd_task: 
+23:42:41
+RX
+display on
+
+[74739] I/drv.lcd l
+23:42:41
+RX
+cd_task: [INITIALIZED] -> [ON]
+
+23:42:41
+RX
+
+23:42:42
+RX
+[104487] I/nvds mbox: hci en 32
+23:42:42
+RX
+
+23:42:42
+RX
+[104732] I/ble_cm mbox: read_bon
+23:42:42
+RX
+d_infor_from_flash: 1
+
+le p256 
+23:42:42
+RX
+nvds get 0
+23:42:42
+RX
+le p256 nvds get 0
+app addr nvd
+23:42:42
+RX
+s get 1
+23:42:42
+RX
+[105211] I/sibles KE_EVT2: 
+BLE
+23:42:42
+RX
+ ready!
+
+
+[105232] I/btcomm KE
+23:42:42
+RX
+_EVT2: Clear mask 1
+
+act num:0
+23:42:42
+RX
+
+set cmd 0x91, stop_status:0, ms
+23:42:42
+RX
+g_status:2
+act num:0
+set cmd 0
+23:42:42
+RX
+x91, stop_status:0, msg_status:2
+23:42:42
+RX
+
+act num:0
+set cmd 0x91, stop_
+23:42:42
+RX
+status:0, msg_status:1
+[105340]
+23:42:42
+RX
+ D/BLE_GAP KE_EVT2: evt 5, ret 0
+23:42:42
+RX
+
+
+
+
+[105371] D/BLE_GAP KE_EVT2
+23:42:42
+RX
+: evt 145, ret 0
+
+
+
+[pet:BLE] 
+23:42:42
+RX
+stage=gatt resul
+23:42:42
+RX
+t=0
+23:42:42
+RX
+[105728] I/sibles KE_EVT2: statu
+23:42:42
+RX
+s=0, start_handle=0x10
+
+23:42:42
+RX
+[pet:BLE] stage=name resu
+23:42:42
+RX
+lt=0
+23:42:42
+RX
+[pet:BLE] s
+23:42:42
+RX
+ta
+23:42:42
+RX
+ge=adv-init result=0
+[pet:BLE] 
+23:42:42
+RX
+stage=adv-start res
+23:42:42
+RX
+ult=0
+[pet:BLE] name=ShaheCat-8
+23:42:42
+RX
+00CD1; open LightBlue, scan and 
+23:42:42
+RX
+connect
+[106864] D/BLE_GAP KE_E
+23:42:42
+RX
+VT2: evt 160, ret 0
+
+
+
+[106886
+23:42:42
+RX
+] I/NO_TAG KE_EVT2: Sibles ADV s
+23:42:42
+RX
+tart 0!
+
+
+
+23:42:42
+RX
+[106948] D/BLE_GAP KE_EVT2: evt 
+23:42:42
+RX
+169, ret 0
+
+
+
+[106975] D/BLE_G
+23:42:42
+RX
+AP KE_EVT2: evt 170, ret 0
+
+
+
+23:42:42
+RX
+[107008] D/BLE_GAP KE_EVT2: evt 
+23:42:42
+RX
+164, ret 0
+
+
+
+23:42:42
+RX
+[pet:BLE] stage=advertising resu
+23:42:42
+RX
+lt
+23:42:42
+RX
+=0
+[pet:BLE] advertising result
+23:42:42
+RX
+=
+23:42:42
+RX
+0
+23:42:55
+RX
+[pet:BLE:STATUS] 15s version=0.1
+23:42:55
+RX
+2.4-blefix tick=16033 stage=adve
+23:42:55
+RX
+rtising result=0
+[pet:BLE:STATU
+23:42:55
+RX
+S] callbacks=8 power=1 queued=2 
+23:42:55
+RX
+handled=2 loops=138
+[pet:BLE:ST
+23:42:55
+RX
+ATUS] last_cb=0x002E last_handle
+23:42:55
+RX
+d=0xF100 recv=-2 adv_events=1 ad
+23:42:55
+RX
+v_result=0 fault=0
+23:42:57
+RX
+[pet:WALK] x=994 y=552 result=6
+23:42:57
+RX
+
+23:42:57
+RX
+[pet:WALK] x=994 y=909 result=0
+23:42:57
+RX
+
+23:42:57
+RX
+[pet:WALK] x=994 y=536 result=6
+23:42:57
+RX
+
+23:42:58
+RX
+[pet:WALK] x=984 y=956 result=0
+23:42:58
+RX
+
+23:43:01
+RX
+[pet:WALK] x=979 y=783 result=6
+23:43:01
+RX
+
+23:43:01
+RX
+[pet:WALK] x=703 y=813 result=6
+23:43:01
+RX
+
+23:43:04
+RX
+[pet:WALK] x=953 y=712 result=0
+23:43:04
+RX
+
+23:43:24
+RX
+[1473399] I/sibles KE_EVT2: conn
+23:43:24
+RX
+ected 0
+
+[1473418] I/ble_cm KE_
+23:43:24
+RX
+EVT2: SIBLES_REMOTE_CONNECTED_IN
+23:43:24
+RX
+D
+
+[1473444] I/ble_cm KE_EVT2: 
+23:43:24
+RX
+BLE_GAP_CONNECTED_IND
+
+[1473463
+23:43:24
+RX
+] D/ble_cm KE_EVT2: connection_m
+23:43:24
+RX
+anager_event_process 0x40
+
+[147
+23:43:24
+RX
+3490] I/ble_cm KE_EVT2: connecti
+23:43:24
+RX
+on_manager_connection_state_chan
+23:43:24
+RX
+ge 0x20 to 0x23
+
+23:43:24
+RX
+[pet:BLE] stag
+23:43:24
+RX
+e=connected resul
+23:43:24
+RX
+t=0
+23:43:24
+RX
+
+[pet:BLE] connected index=0; li
+23:43:24
+RX
+nk only, read/write not verified
+23:43:24
+RX
+
+[pet:BLE] advertising stopped 
+23:43:24
+RX
+reason=0
+23:43:25
+RX
+[1490142] I/ble_cm KE_EVT2: SIBL
+23:43:25
+RX
+ES_MTU_EXCHANGE_IND 0, 527
+
+[14
+23:43:25
+RX
+90168] I/ble_cm KE_EVT2: update_
+23:43:25
+RX
+data_length
+
+23:43:25
+RX
+[1506670] D/BLE_GAP KE_EVT2: GAP
+23:43:25
+RX
+C event status, op: 20, ret 0
+
+23:43:31
+RX
+[pet] cmd=2 result=0 scene=3 pha
+23:43:31
+RX
+se=2 food=0 mood=8
+[1713290] I/
+23:43:31
+RX
+audio pet_sfx: private volume[4]
+23:43:31
+RX
+=5
+
+[1713310] I/audio pet_sfx: 
+23:43:31
+RX
+audio_open type=4 d=0 rw=1 tx ca
+23:43:31
+RX
+che=1024 rx cache=0
+
+[1713342] 
+23:43:31
+RX
+I/audio audiosvr: audio cmd=0
+
+23:43:31
+RX
+[1713358] I/audio audiosvr: audi
+23:43:31
+RX
+o_client_start h=2002f3ec n=musi
+23:43:31
+RX
+c t=4 f=1 d=0
+
+[1713387] I/audi
+23:43:31
+RX
+o audiosvr: audio_device_open in
+23:43:31
+RX
+ d=0 busy=0 reg=1 c=2002f3ec
+
+[
+23:43:31
+RX
+1713416] I/audio audiosvr: devic
+23:43:31
+RX
+e 0 info reg=1 busy=0:
+
+[171343
+23:43:31
+RX
+7] I/audio audiosvr: device 0 in
+23:43:31
+RX
+fo end
+
+[1713454] I/audio audio
+23:43:31
+RX
+svr: server first stream
+
+[1713
+23:43:31
+RX
+472] I/audio audiosvr: device 0 
+23:43:31
+RX
+first stream
+
+[1713491] I/audio
+23:43:31
+RX
+ audiosvr: device count tx=0 rx=
+23:43:31
+RX
+0 busy=0
+
+[1713513] I/audio aud
+23:43:31
+RX
+iosvr: hardware_device_open in: 
+23:43:31
+RX
+r=0 t=0 b=0 d=0 c=0x2002f3ec f=1
+23:43:31
+RX
+
+
+[1713546] I/audio audiosvr: a
+23:43:31
+RX
+udio_device_speaker_open in r=0 
+23:43:31
+RX
+t=0 c=0x2002f3ec f=1 mic=0 mic_c
+23:43:31
+RX
+h=0 3a=0
+
+[1713583] I/audio aud
+23:43:31
+RX
+iosvr: need init tx=1 rx=0
+
+[17
+23:43:31
+RX
+13602] I/drv.audprc audiosvr: se
+23:43:31
+RX
+t g_eq_enable=1
+
+[1713621] I/au
+23:43:31
+RX
+dio audiosvr: (tx rx): ch[1,0] r
+23:43:31
+RX
+ate(16000 0)
+
+[1713666] I/audio
+23:43:31
+RX
+ audiosvr: set tx callback dma s
+23:43:31
+RX
+ize=960 t=4
+
+[1713690] I/audio 
+23:43:31
+RX
+audiosvr: prc_codec : sub_type=1
+23:43:31
+RX
+ channel 1, samplerate 16000, bi
+23:43:31
+RX
+ts 16
+
+[1713723] I/audio audios
+23:43:31
+RX
+vr: speaker OUTPUTSRC channel=1 
+23:43:31
+RX
+in_rate=16000 out_rate=16000
+
+[
+23:43:31
+RX
+1713755] I/audio audiosvr: speak
+23:43:31
+RX
+er select=0x5050 mixer=0x5050
+
+23:43:31
+RX
+[1713779] I/audio audiosvr: tx[0
+23:43:31
+RX
+]: sub_type 0, ch 1, samrate 160
+23:43:31
+RX
+00, bits 16
+
+
+[1713813] I/audi
+23:43:31
+RX
+o audiosvr: no eq init volume=-5
+23:43:31
+RX
+2
+
+[1713832] I/drv.audcodec aud
+23:43:31
+RX
+iosvr: dac set volume: prc=0 cod
+23:43:31
+RX
+ec=-52
+
+
+[1713858] I/drv.audco
+23:43:31
+RX
+dec audiosvr: codec dac mute set
+23:43:31
+RX
+:1
+
+
+[1713880] I/audio audiosv
+23:43:31
+RX
+r: speaker START stream=0x100
+
+23:43:31
+RX
+[1713900] I/drv.audprc audiosvr:
+23:43:31
+RX
+ samplerate = 16000, select voic
+23:43:31
+RX
+e eq
+
+
+[1713927] I/drv.audprc 
+23:43:31
+RX
+audiosvr: -----tx dma size = 960
+23:43:31
+RX
+
+
+[1713949] I/audio audiosvr: c
+23:43:31
+RX
+odec START stream=0x100
+
+23:43:31
+RX
+[1714041] I/drv.audcodec audiosv
+23:43:31
+RX
+r: pll config state:1, samplerat
+23:43:31
+RX
+e:0 
+
+
+23:43:31
+RX
+[1714396] I/audio audiosvr: open
+23:43:31
+RX
+ PA, unmute DAC
+
+sifli_aw8155 t
+23:43:31
+RX
+o do power handle 
+sifli_aw8155
+23:43:31
+RX
+_start,mode:1 42
+23:43:32
+RX
+[1717719] I/drv.audcodec audiosv
+23:43:32
+RX
+r: codec dac mute set:0
+
+
+[1717744] I/audio audiosvr: audio_device_speaker_open out
+
+[1717766] I/audio audiosvr: hardware_device_open out: rx=0 tx=1 b=1
+
+[1717792] I/audio audiosvr: audio_device_open out
+
+[1717812] I/audio audiosvr: device 0 info reg=1 busy=1:
+
+[1717833] I/audio audiosvr: running: d=0 h=2002f3ec name=music type=4 rw=1 device_s=0 device_u=0 prio=10
+
+[1717874] I/audio audiosvr: device 0 info end
+
+[1717892] I/audio audiosvr: audio_client_start out
+
+[1717914] I/audio pet_sfx: audio_open ret=0x2002f3ec
+
+23:43:32
+RX
+[1718840] I/audio ISR: server vo
+23:43:32
+RX
+lume=5, mute=0 eq_mute=0
+
+[1718
+23:43:32
+RX
+864] I/audio ISR: not eq change 
+23:43:32
+RX
+volume=-52
+
+[1718882] I/drv.aud
+23:43:32
+RX
+codec ISR: dac set volume: prc=0
+23:43:32
+RX
+ codec=-52
+
+
+23:43:32
+RX
+[pet:WALK] x=759 y=562 result=1
+23:43:32
+RX
+
+23:43:32
+RX
+[1735676] I/audio pet_sfx: audio
+23:43:32
+RX
+_close type=4 n=music h=0x2002f3
+23:43:32
+RX
+ec
+
+[1735709] I/audio audiosvr:
+23:43:32
+RX
+ audio cmd=1
+
+[1735724] I/audio
+23:43:32
+RX
+ audiosvr: audio_client_stop 0x2
+23:43:32
+RX
+002f3ec music pm_debug=0
+
+[1735
+23:43:32
+RX
+752] I/audio audiosvr: audio_dev
+23:43:32
+RX
+ice_close in d=0 busy=1 reg=1 c=
+23:43:32
+RX
+2002f3ec
+
+[1735781] I/audio aud
+23:43:32
+RX
+iosvr: device 0 info reg=1 busy=
+23:43:32
+RX
+1:
+
+[1735802] I/audio audiosvr:
+23:43:32
+RX
+ running: d=0 h=2002f3ec name=mu
+23:43:32
+RX
+sic type=4 rw=1 device_s=0 devic
+23:43:32
+RX
+e_u=0 prio=10
+
+[1735840] I/audi
+23:43:32
+RX
+o audiosvr: device 0 info end
+
+23:43:32
+RX
+[1735858] I/audio audiosvr: devi
+23:43:32
+RX
+ce count tx=1 rx=0 busy=1
+
+[173
+23:43:32
+RX
+5880] I/audio audiosvr: hardware
+23:43:32
+RX
+_device_close in: d=0 r=0 t=1 b=
+23:43:32
+RX
+1 f=1
+
+[1735908] I/audio audios
+23:43:32
+RX
+vr: audio_device_speaker_close i
+23:43:32
+RX
+n t=1 r=0 c=0x2002f3ec f=1
+
+[17
+23:43:32
+RX
+35939] I/audio audiosvr: audio_d
+23:43:32
+RX
+evice_speaker_close ref(t=0 r=0)
+23:43:32
+RX
+ deinit(t=1 r=0)
+
+[1735970] I/a
+23:43:32
+RX
+udio audiosvr: close tx & pa
+
+s
+23:43:32
+RX
+ifli_aw8155_stop 
+23:43:32
+RX
+[1736334] I/drv.audcodec audiosv
+23:43:32
+RX
+r: codec dac mute set:1
+
+
+[173
+23:43:32
+RX
+6358] I/drv.audcodec audiosvr: b
+23:43:32
+RX
+f0_audio_stop 0x100
+
+
+[1736380
+23:43:32
+RX
+] I/drv.audcodec audiosvr: audco
+23:43:32
+RX
+dec close dac
+
+[1736402] I/drv.
+23:43:32
+RX
+audcodec audiosvr: bf0_audio_sto
+23:43:32
+RX
+p 0x100 done
+
+
+[1736426] I/drv
+23:43:32
+RX
+.audprc audiosvr: bf0_audio_stop
+23:43:32
+RX
+ 0x100
+
+
+[1736457] I/drv.audpr
+23:43:32
+RX
+c audiosvr: audprc close adc/dac
+23:43:32
+RX
+
+
+[1736478] I/drv.audprc audios
+23:43:32
+RX
+vr: bf0_audio_stop 0x100 done
+
+23:43:32
+RX
+
+[1736500] I/audio audiosvr: cl
+23:43:32
+RX
+ose device & pll, micbias=0
+
+PL
+23:43:32
+RX
+L disable
+[1736529] I/audio aud
+23:43:32
+RX
+iosvr: audio_device_speaker_clos
+23:43:32
+RX
+e out
+
+[1736552] I/audio audios
+23:43:32
+RX
+vr: hardware_device_close out: r
+23:43:32
+RX
+=0 t=0 b=0
+
+[1736577] I/audio a
+23:43:32
+RX
+udiosvr: running some suspend
+
+23:43:32
+RX
+[1736595] I/audio audiosvr: susp
+23:43:32
+RX
+end empty
+
+[1736611] I/audio au
+23:43:32
+RX
+diosvr: audio_device_close out
+
+23:43:32
+RX
+
+[1736630] I/audio audiosvr: dev
+23:43:32
+RX
+ice 0 info reg=1 busy=0:
+
+[1736
+23:43:32
+RX
+651] I/audio audiosvr: device 0 
+23:43:32
+RX
+info end
+
+[1736669] I/audio aud
+23:43:32
+RX
+iosvr: audio_client_stop out pm=
+23:43:32
+RX
+0
+
+[1736691] I/audio pet_sfx: a
+23:43:32
+RX
+udio_close done
+
+[1736707] I/au
+23:43:32
+RX
+dio pet_sfx: private volume[4]=1
+23:43:32
+RX
+0
+
+23:43:33
+RX
+[pet:WALK] x=1077 y=466 result=6
+23:43:33
+RX
+
+23:43:34
+RX
+[pet:WALK] x=1115 y=470 result=6
+23:43:34
+RX
+
+23:43:34
+RX
+[pet:WALK] x=1077 y=528 result=6
+23:43:34
+RX
+
+23:43:35
+RX
+[pet:WALK] x=1081 y=500 result=6
+23:43:35
+RX
+
+23:43:35
+RX
+[pet:WALK] x=1077 y=523 result=6
+23:43:35
+RX
+
+23:43:36
+RX
+[pet:SAVE] saved seq=2069 scene=
+23:43:36
+RX
+3 food=0 mood=8 sleeping=0
+23:43:49
+TX
+pet_ble_status
+23:43:49
+RX
+[pet:BLE:STATUS] query version=0
+23:43:49
+RX
+.12.4-blefix tick=69615 stage=co
+23:43:49
+RX
+nnected result=0
+[pet:BLE:STATU
+23:43:49
+RX
+S] callbacks=17 power=1 queued=4
+23:43:49
+RX
+ handled=4 loops=669
+[pet:BLE:S
+23:43:49
+RX
+TATUS] last_cb=0x004B last_handl
+23:43:49
+RX
+ed=0xF101 recv=-2 adv_events=1 a
+23:43:49
+RX
+dv_result=0 fault=0
+msh />msh /
+23:43:49
+RX
+>

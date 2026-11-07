@@ -1,0 +1,60 @@
+{
+  "recorded_on": "2026-11-07",
+  "evidence_path": "evidence/pet/ble_v0.12.4_connected_20261107_user_raw.txt",
+  "source_attachment": "C:\\Users\\30831\\.codex\\attachments\\a88e66eb-525b-489b-9a42-ff10ce67bee1\\已粘贴的文本.txt",
+  "bytes": 19180,
+  "sha256": "F5F87F9D5FFB0593FCF1969264B40DAFDCBC87DBC9EF394D9B8993F75535C3B5",
+  "raw_bytes_match": true,
+  "firmware": "0.12.4-blefix",
+  "device_name": "ShaheCat-800CD1",
+  "time_labels": {
+    "boot": "23:42:39",
+    "advertising": "23:42:42",
+    "automatic_15s_status": "23:42:55",
+    "connection": "23:43:24",
+    "save": "23:43:36",
+    "connected_status_query": "23:43:49"
+  },
+  "executed_at": null,
+  "date_note": "Only HH:MM:SS provided; SDK build date does not independently establish operation date.",
+  "confirmed": [
+    "actual boot of v0.12.4",
+    "SDK BLE ready and GATT registration",
+    "advertising reported success",
+    "user iPhone connection confirmed by SDK/app and later query",
+    "15s automatic diagnostics now observed",
+    "game command/audio open-close and save activity after connection, limited log coverage"
+  ],
+  "query": {
+    "stage": "connected",
+    "result": 0,
+    "callbacks": 17,
+    "power": 1,
+    "queued": 4,
+    "handled": 4,
+    "loops": 669,
+    "adv_events": 1,
+    "adv_result": 0,
+    "fault": 0
+  },
+  "tc214_status": "connection passed; info read, PING/PONG, reconnect and complete concurrent-use criteria pending",
+  "not_claimed": [
+    "phone Info read verified",
+    "phone PONG read verified",
+    "disconnect/reconnect verified",
+    "RTC synchronization",
+    "long-term stability or audible sound quality"
+  ],
+  "derived_joined_excerpt": [
+    "[pet] v0.12.4-blefix boot ok",
+    "name=ShaheCat-800CD1",
+    "stage=advertising result=0",
+    "stage=connected result=0",
+    "connected index=0; link only, read/write not verified",
+    "query version=0.12.4-blefix tick=69615 stage=connected result=0",
+    "callbacks=17 power=1 queued=4 handled=4 loops=669",
+    "adv_events=1 adv_result=0 fault=0",
+    "[pet:SAVE] saved seq=2069 scene=3 food=0 mood=8 sleeping=0"
+  ],
+  "excerpt_note": "Derived text rejoins logger frame fragments and removes RX/TX/time labels only for matching; original raw attachment is retained unchanged."
+}
