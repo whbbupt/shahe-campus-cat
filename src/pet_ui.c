@@ -15,7 +15,6 @@
 enum
 {
     TAG_STATUS = 100,
-    TAG_TRAVEL,
     TAG_CLOSE
 };
 static struct
@@ -24,11 +23,11 @@ static struct
     pet_ui_point_fn point;
     lv_obj_t *campus, *gates, *door, *location, *location_text, *goal;
     pet_world_t world;
-    int panel, scene;
+    int scene;
+    bool status_open;
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
-    lv_obj_t *layer, *dialog, *status, *travel, *food, *mood, *food_fill, *mood_fill, *state, *title,
-        *save_note;
-    lv_obj_t *corner[2], *bubble, *bubble_text;
+    lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
+    lv_obj_t *status_button, *bubble, *bubble_text;
 } ui;
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
@@ -45,7 +44,7 @@ void pet_ui_set_point_handler(pet_ui_point_fn handler)
 static void ground_click(lv_event_t *e)
 {
     (void)e;
-    if (ui.panel || !ui.point)
+    if (ui.status_open || !ui.point)
         return;
     lv_indev_t *indev = lv_indev_active();
     if (!indev)
@@ -91,20 +90,19 @@ static void click(lv_event_t *e)
     if (lv_obj_has_state(o, LV_STATE_DISABLED))
         return;
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
-    if (cmd == TAG_STATUS || cmd == TAG_TRAVEL)
+    if (cmd == TAG_STATUS)
     {
-        int p = cmd == TAG_STATUS ? 1 : 2;
-        ui.panel = ui.panel == p ? 0 : p;
+        ui.status_open = !ui.status_open;
         paint();
         return;
     }
     if (cmd == TAG_CLOSE)
     {
-        ui.panel = 0;
+        ui.status_open = false;
         paint();
         return;
     }
-    if (!ui.panel && ui.action)
+    if (!ui.status_open && ui.action)
         ui.action((pw_command_t)cmd);
 }
 static lv_obj_t *button(lv_obj_t *parent, int x, int y, int w, int h, int tag, uint32_t color, int radius)
@@ -179,9 +177,6 @@ static void build_campus(lv_obj_t *screen)
             box(ui.campus, x - 14, y + 7, 28, 3, 0xF6E8C9, 1);
         }
     }
-    text(ui.campus, "国脉西路", 80, 385, &pet_font_16, INK);
-    text(ui.campus, "鸿雁路", 410, 379, &pet_font_16, INK);
-    text(ui.campus, "国脉路", 622, 618, &pet_font_16, INK);
     ui.goal = box(ui.campus, 0, 0, 20, 20, BLUE, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.goal, LV_OPA_20, 0);
     lv_obj_set_style_border_width(ui.goal, 2, 0);
@@ -249,33 +244,28 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(ui.layer, LV_OPA_TRANSP, 0);
     lv_obj_t *scrim = button(ui.layer, 0, 0, 390, 450, TAG_CLOSE, 0x223A46, 0);
     lv_obj_set_style_bg_opa(scrim, LV_OPA_50, 0);
-    ui.dialog = box(ui.layer, 57, 95, 276, 260, 0xF9FCFD, 18);
-    ui.title = text(ui.dialog, "小猫状态", 18, 13, &pet_font_20, INK);
-    lv_obj_t *close = button(ui.dialog, 226, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
+    lv_obj_t *dialog = box(ui.layer, 57, 95, 276, 260, 0xF9FCFD, 18);
+    text(dialog, "小猫状态", 18, 13, &pet_font_20, INK);
+    lv_obj_t *close = button(dialog, 226, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
     lv_obj_t *x = text(close, "×", 0, 0, &pet_font_20, BLUE);
     lv_obj_center(x);
-    box(ui.dialog, 18, 48, 240, 1, 0xD4E0E5, 0);
-    ui.status = box(ui.dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
-    text(ui.status, "饱食", 0, 0, &pet_font_16, INK);
-    ui.food = text(ui.status, "70", 194, 0, &pet_font_20, INK);
+    box(dialog, 18, 48, 240, 1, 0xD4E0E5, 0);
+    lv_obj_t *status = box(dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
+    text(status, "饱食", 0, 0, &pet_font_16, INK);
+    ui.food = text(status, "70", 194, 0, &pet_font_20, INK);
     lv_obj_set_width(ui.food, 46);
     lv_obj_set_style_text_align(ui.food, LV_TEXT_ALIGN_RIGHT, 0);
-    box(ui.status, 0, 33, 240, 7, 0xE1E9ED, 3);
-    ui.food_fill = box(ui.status, 0, 33, 168, 7, 0xBF9769, 3);
-    text(ui.status, "心情", 0, 52, &pet_font_16, INK);
-    ui.mood = text(ui.status, "60", 194, 52, &pet_font_20, INK);
+    box(status, 0, 33, 240, 7, 0xE1E9ED, 3);
+    ui.food_fill = box(status, 0, 33, 168, 7, 0xBF9769, 3);
+    text(status, "心情", 0, 52, &pet_font_16, INK);
+    ui.mood = text(status, "60", 194, 52, &pet_font_20, INK);
     lv_obj_set_width(ui.mood, 46);
     lv_obj_set_style_text_align(ui.mood, LV_TEXT_ALIGN_RIGHT, 0);
-    box(ui.status, 0, 85, 240, 7, 0xE1E9ED, 3);
-    ui.mood_fill = box(ui.status, 0, 85, 144, 7, 0x88AA92, 3);
-    ui.state = text(ui.status, "闲逛中", 0, 108, &pet_font_16, BLUE);
-    text(ui.status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
-    ui.save_note = text(ui.status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
-    ui.travel = box(ui.dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
-    text(ui.travel, "鸿雁路西 · 雁北园", 8, 6, &pet_font_20, INK);
-    text(ui.travel, "鸿雁路东 · 教综楼", 8, 49, &pet_font_20, INK);
-    text(ui.travel, "国脉路南 · 学生餐厅", 8, 92, &pet_font_20, INK);
-    text(ui.travel, "点路面走，点楼门进入", 8, 145, &pet_font_16, BLUE);
+    box(status, 0, 85, 240, 7, 0xE1E9ED, 3);
+    ui.mood_fill = box(status, 0, 85, 144, 7, 0x88AA92, 3);
+    ui.state = text(status, "闲逛中", 0, 108, &pet_font_16, BLUE);
+    text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
+    ui.save_note = text(status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
     visible(ui.layer, false);
 }
 void pet_ui_create(pet_ui_action_fn callback)
@@ -323,13 +313,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
     build_panel(screen);
-    for (int i = 0; i < 2; i++)
-    {
-        ui.corner[i] = button(screen, 265 + i * 60, 13, 52, 52, i ? TAG_TRAVEL : TAG_STATUS, PAPER, 14);
-        lv_obj_set_style_bg_opa(ui.corner[i], LV_OPA_90, 0);
-        image(ui.corner[i], pw_icons[i], 14, 4);
-        text(ui.corner[i], i ? "路标" : "状态", 10, 29, &pet_font_16, BLUE);
-    }
+    ui.status_button = button(screen, 325, 13, 52, 52, TAG_STATUS, PAPER, 14);
+    lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
+    image(ui.status_button, pw_icons[0], 14, 4);
+    text(ui.status_button, "状态", 10, 29, &pet_font_16, BLUE);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -348,7 +335,6 @@ static void paint(void)
     visible(ui.campus, campus);
     visible(ui.background, !campus);
     visible(ui.door, !campus);
-    visible(ui.corner[1], campus);
     if (!campus)
         lv_label_set_text(ui.location_text, room_names[ui.scene]);
     float cx, cy;
@@ -395,12 +381,8 @@ static void paint(void)
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
     lv_label_set_text(ui.state, pw_state_text(&ui.world));
-    visible(ui.layer, ui.panel != 0);
-    visible(ui.status, ui.panel == 1);
-    visible(ui.travel, ui.panel == 2);
-    lv_label_set_text(ui.title, ui.panel == 2 ? "校园路标" : "小猫状态");
-    for (int i = 0; i < 2; i++)
-        lv_obj_set_style_bg_color(ui.corner[i], lv_color_hex(ui.panel == i + 1 ? 0xDCEAF3 : PAPER), 0);
+    visible(ui.layer, ui.status_open);
+    lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.status_open ? 0xDCEAF3 : PAPER), 0);
     const char *msg = pw_message_text(&ui.world);
     if (ui.world.now < 2300 && !*msg)
         msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";

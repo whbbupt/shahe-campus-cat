@@ -335,9 +335,17 @@ static void campus_round_trip(void)
     road(570, 390);
     check_campus_tiles();
     screenshot("shahe-hongyan-guomai.ppm");
-    press("路标");
-    screenshot("shahe-signs.ppm");
+    assert(label_with(lv_screen_active(), "鸿雁路一带"));
+    assert(!label_with(lv_screen_active(), "路标"));
+    assert(!label_with(lv_screen_active(), "校园路标"));
+    assert(!label_with(lv_screen_active(), "鸿雁路"));
+    assert(!label_with(lv_screen_active(), "国脉西路"));
+    assert(!label_with(lv_screen_active(), "国脉路"));
+    press("状态");
+    assert(label_with(lv_screen_active(), "小猫状态"));
+    screenshot("shahe-campus-status.ppm");
     press("×");
+    assert(!label_with(lv_screen_active(), "小猫状态"));
     road(715, 390);
     screenshot("shahe-teaching-gate.ppm");
     enter("教综楼", PW_CLASSROOM);
@@ -357,6 +365,8 @@ static void campus_round_trip(void)
     screenshot("shahe-teaching-entry.ppm");
     road(630, 390);
     road(570, 520);
+    assert(label_with(lv_screen_active(), "国脉路南段"));
+    screenshot("shahe-guomai-south.ppm");
     road(570, 650);
     road(570, 760);
     road(416, 760);
@@ -407,6 +417,6 @@ int main(void)
         reset();
         assert(timers() == expected_timers);
     }
-    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, signs, glyphs and recreation PASS");
+    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, simplified HUD, glyphs and recreation PASS");
     return 0;
 }

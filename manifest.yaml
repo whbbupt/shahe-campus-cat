@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.8.1绘本统一，软件与构建通过，TC-179实机待测"
+  milestone: "沙河校园小猫v0.8.2校园提示精简，软件与构建通过，TC-181实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -87,7 +87,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.8.1_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.8.2_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -615,7 +615,23 @@ test_results:
     status: not_executed
     pass: null
 
+  - test_id: TC-180
+    description: 精简校园提示和往返回归
+    expected: 按docs/03 v0.8.2用例
+    actual: 主机触摸与固件构建通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.8.2_final_20261107.txt
+
+  - test_id: TC-181
+    description: v0.8.2真实校园提示与路线
+    expected: 按docs/03 v0.8.2用例
+    actual: 未执行，等待用户回传板端证据
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.8.2校园提示精简已过主机和目标构建，真实板端 TC-181 待测。"
   - "v0.8.1绘本重绘已过软件和构建，屏幕显示和流畅度等TC-179实机待测。"
   - "v0.8.0餐厅北门是游戏取点，实际门位待核实；TC-176板端路线、显示、触摸、保存与复位待测。"
   - "2026-11-05 check_all开发日志项因10/28至11/05真实8天提交间隔FAIL；8个提交日均有日志且0内容问题，已说明已知事实但原检查器不豁免；不改规则/倒填提交。"
