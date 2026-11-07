@@ -32,9 +32,13 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
-    - decision: "48倍24小时校园日程、关机暂停、时段替代玩法"
+    - decision: "现实24小时作息，手机主动发送时间校准设备RTC"
+      alternatives_considered: "现实时间作息并手机校时；30分钟游戏一天并另显示现实钟；先不改时间只做蓝牙和音量"
+      rationale: "iPhone数据通道验证后用户明确选择现实作息；日历与业务运行时长分离，离线不追罚"
+      decided_by: "用户最新明确选择；ADR-0015，2026-11-08登记"
+    - decision: "历史ADR-0014：48倍校园日程，日历方向已被ADR-0015替代"
       alternatives_considered: "15/30/60分钟一日；关机暂停/离线继续；仅提醒/严格开放/保留替代活动"
-      rationale: "用户明确选择30分钟一日、开机续玩、按时段保留替代活动；保存布局尚待评审"
+      rationale: "用户明确选择30分钟一日、开机续玩、按时段保留替代活动；保存布局原待评审；最新现实时间决定见ADR-0015"
       decided_by: "用户三次明确选择；具体参数AI拟定，ADR-0014"
     - decision: "短音效加循环背景音乐"
       alternatives_considered: "仅互动短音效；短音效与循环背景音乐"
@@ -912,15 +916,107 @@ test_results:
     status: partial_user_log
     pass: null
 
+  - test_id: TC-220
+    description: 设备蓝牙状态软件
+    expected: 按docs/03的TC-220逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-221
+    description: 设备蓝牙状态实机
+    expected: 按docs/03的TC-221逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-222
+    description: 音量与保存软件
+    expected: 按docs/03的TC-222逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-223
+    description: 音量调节实机
+    expected: 按docs/03的TC-223逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-224
+    description: 日期校时协议软件
+    expected: 按docs/03的TC-224逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-225
+    description: 手机校时与保时实机
+    expected: 按docs/03的TC-225逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-226
+    description: 睡眠作息边界
+    expected: 按docs/03的TC-226逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-227
+    description: 新增三游戏规则
+    expected: 按docs/03的TC-227逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-228
+    description: 新增游戏生产界面
+    expected: 按docs/03的TC-228逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-229
+    description: 新增游戏实机
+    expected: 按docs/03的TC-229逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-230
+    description: 收藏提示与室内互动软件
+    expected: 按docs/03的TC-230逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-231
+    description: 室内养成实机
+    expected: 按docs/03的TC-231逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-232
+    description: 资源压缩与容量
+    expected: 按docs/03的TC-232逐项验证
+    actual: 实现前文档登记，尚未执行，不代表已有新固件
+    status: planned_not_executed
+    pass: null
+
 known_issues:
+  - "下一轮整体清单已登记：设备蓝牙显示、音量、现实钟/手机校时、昼夜/睡眠、小游戏和室内养成扩展、容量优化；当前固件v0.12.4尚不包含这些新内容。"
   - "v0.12.3的LCPU镜像遗漏已确认；获用户授权后v0.12.4集成正式加载器和5412字节镜像，TC-219软件通过；TC-214本版启动、广播和iPhone连接已有真实日志；READY有原始十六进制文字、PING/PONG已有用户实物成功确认；手机Info、重连及完整并发使用待结果，不等同RTC已校时。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.3仅启用SDK内部日志，TC-217软件通过、TC-218待新启动；0回调的底层原因尚未确认。全量保留原7告警加既有SDK潜在空指针2次。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.2真实查询显示wait-ready、0回调、循环活跃且队列无故障；新增TC-217/218单独开启SDK日志，底层原因尚不确定。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.2只增加启动阶段/计数及pet_ble_status查询，TC-215软件通过、TC-216待实机；原v0.12.1扫描失败根因未定位，不把诊断版等同修复。"
   - "历史记录（当前以v0.12.4连接证据为准）：TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "历史记录（当前以v0.12.4连接证据为准）：2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"
-  - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214已有v0.12.4 iPhone连接日志及PING/PONG用户确认，其余子项待测，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"
-  - "时间系统已确认三项方向并登记REQ-191至REQ-195与TC-203至TC-210，代码未实现；保存布局待评审，初始时刻/窗口/数值是AI初版参数。"
+  - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214已有v0.12.4 iPhone连接日志及PING/PONG用户确认，其余子项待测，不代表已有校时。时间方向已明确选择现实作息和手机校时，ADR-0015已替换活跃48倍方案，新时钟尚未实现。"
+  - "现实作息/手机校时方向已确认；REQ-191至REQ-195与TC-203至TC-210按ADR-0015修订，新增REQ-199至REQ-205及TC-220至TC-232仅登记未实现；容量优化和像素替换为授权范围，未假称已完成。"
   - "v0.12.0音质、持续送音和声画时序待TC-202；格式5保存声音模式、读1至4；全量阶段有SDK lv_obj_swap潜在空指针告警2次，SDK未改且应用未调用。"
   - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
   - "v0.10.0使用格式3，旧固件读取时写保护；实际屏幕、触摸和订单复位恢复待TC-190。"
