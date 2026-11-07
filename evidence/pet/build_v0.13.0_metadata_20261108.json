@@ -11,17 +11,17 @@
   "link_memory_report": {
     "ROM": {
       "total": 8388608,
-      "used": 4396626
+      "used": 4399170
     },
     "RAM": {
       "total": 523264,
-      "used": 169500
+      "used": 169644
     }
   },
-  "remaining_rom": 3991982,
-  "rom_reduction_vs_v0124": 3044242,
-  "main_bin_bytes": 4327516,
-  "main_bin_sha256": "E64E04591E3F9D8957CF651C6A83E6D4A5D75C766EA2699E7DBA3F25E0EE2E4C",
+  "remaining_rom": 3989438,
+  "rom_reduction_vs_v0124": 3041698,
+  "main_bin_bytes": 4329628,
+  "main_bin_sha256": "D1E158BE6F34581B44777DF5C4E02BE8BFA643FAFAD988F1767D87220999EA9D",
   "save_schema": 6,
   "save_record_bytes": 64,
   "save_compatibility": "Reads 1-5; v5 mute -> volume0, other old modes -> volume5. Actual schema5 source rejects committed6 with zero writes.",
@@ -30,12 +30,12 @@
     "result": "PASS",
     "symbols": {
       "g_lcpu_bin": [
-        306387596,
+        306389628,
         5412,
         "T"
       ],
       "lcpu_img_install": [
-        302579160,
+        302579440,
         24,
         "T"
       ]
@@ -44,6 +44,8 @@
     "errors": []
   },
   "warnings": [
+    "D:\\development\\sifli\\SiFli-SDK\\v2.5.1\\external\\lvgl_v9\\src\\core\\lv_obj_tree.c:274:12: warning: potential null pointer dereference [-Wnull-dereference]",
+    "D:\\development\\sifli\\SiFli-SDK\\v2.5.1\\external\\lvgl_v9\\src\\core\\lv_obj_tree.c:274:12: warning: potential null pointer dereference [-Wnull-dereference]",
     "D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
     "WARNING: img \"dfu\" not found",
     "closer.c:(.text._close_r+0xc): warning: _close is not implemented and will always fail",
@@ -52,7 +54,7 @@
     "writer.c:(.text._write_r+0x10): warning: _write is not implemented and will always fail",
     "D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: cannot find entry symbol entry; defaulting to 12000000"
   ],
-  "warning_note": "Seven baseline warning lines in this incremental build. Full configuration rebuild earlier emitted the existing SDK lv_obj_swap warning twice; not fixed or suppressed. LCPU was not relinked, its known RWX warning remains an existing condition.",
+  "warning_note": "Final full configuration rebuild: seven baseline warning lines plus two occurrences of known SDK lv_obj_swap potential-null warning. Not suppressed or fixed. LCPU not relinked; known LCPU RWX condition not claimed fixed.",
   "physical_tests": "New v0.13.0 scene decoding, on-device link UI and audible volume/save reboot not executed; require TC-221/223.",
   "implemented_scope": [
     "lossless scene compression",
@@ -179,8 +181,8 @@
     },
     {
       "path": "project/proj.conf",
-      "bytes": 1810,
-      "sha256": "FACEA1F63C32EF136FC3E6DC70BD4B48BDF6A0E43DC14CED64E8CD21AE6C9240"
+      "bytes": 1989,
+      "sha256": "2FBF0DDB8800EE42892C47419E7A21D506A6710E27B98FEDB90D06C74BB9AF18"
     },
     {
       "path": "project/rtconfig.py",
@@ -471,23 +473,28 @@
       "path": "assets/pet-shahe/LZ4-LICENSE.txt",
       "bytes": 1631,
       "sha256": "29CE3761DFF21AA56C180497C5D9531D5069372CEA443D1A12923D32C22BF89E"
+    },
+    {
+      "path": "tests/check_pet_graphics_heap.py",
+      "bytes": 1831,
+      "sha256": "1BE8830C91EFF4BFA3C333DE5F7BEC56DFBB6F4BA4E9384A24E619FEF1F7355D"
     }
   ],
   "artifacts": [
     {
       "path": "main.bin",
-      "bytes": 4327516,
-      "sha256": "E64E04591E3F9D8957CF651C6A83E6D4A5D75C766EA2699E7DBA3F25E0EE2E4C"
+      "bytes": 4329628,
+      "sha256": "D1E158BE6F34581B44777DF5C4E02BE8BFA643FAFAD988F1767D87220999EA9D"
     },
     {
       "path": "main.elf",
-      "bytes": 13532616,
-      "sha256": "E06FB5E31E60A04AC676B957F6368113F8AC56847FF80FE06F7BF3260CF4DE7C"
+      "bytes": 13550364,
+      "sha256": "368075AFBA5A4980F7D69485366C720F85A842616D63D41E31171550AE404036"
     },
     {
       "path": "main.hex",
-      "bytes": 12172333,
-      "sha256": "96AD68BFACE9213F39E4E09D6BF00642AC0CD1D15F10A81A1C18FF0522EDDF3E"
+      "bytes": 12178273,
+      "sha256": "45D7E607C4E0DCD0620E8C9FADB9C3E6E7684139EDF8165B029A221C9FC2672C"
     },
     {
       "path": "bootloader/bootloader.bin",
@@ -502,12 +509,12 @@
     {
       "path": "ftab/ftab.bin",
       "bytes": 11288,
-      "sha256": "C6C00F98F761B7B96E164975505109B6D9ABCBEE0BDE34C4583257C55261E337"
+      "sha256": "C55CDB1581DBF8FA6DA062D9A4C02445FAED156E1B61A820DF12C4D5FCB79E09"
     },
     {
       "path": "ftab/ftab.hex",
       "bytes": 31818,
-      "sha256": "71929267B52647C1C31C6B77305D7728DFBF6D7D6A6EAD03B10CEB7B2D2DA3F5"
+      "sha256": "2B92DDC2EA1909F95191D236115FA189D2246BA05E11B0DE675E6A2694507AA1"
     },
     {
       "path": "ImgBurnList.ini",
@@ -581,11 +588,27 @@
     },
     {
       "path": "main.map",
-      "bytes": 7660577,
-      "sha256": "563051595A1F05DA5497EE5CF05D4A59ACE953AAB6F96EF6461D08536FB48796"
+      "bytes": 7663107,
+      "sha256": "BE9D8D4C7B96F4A34FE5E95C50C676ADD681F1AD5977819E06C9C42787DB2417"
     }
   ],
   "final_host_log": "evidence/pet/host_v0.13.0_attempt6_20261108.txt",
-  "final_build_log": "evidence/pet/build_v0.13.0_attempt2_20261108.txt",
-  "audio_reproduction": "Old zero-volume variant failed on unwanted client reopening; final production driver 12 cases including no stale cue on restore PASS."
+  "final_build_log": "evidence/pet/build_v0.13.0_psram_attempt1_20261108.txt",
+  "audio_reproduction": "Old zero-volume variant failed on unwanted client reopening; final production driver 12 cases including no stale cue on restore PASS.",
+  "graphics_heap_check": {
+    "result": "PASS",
+    "heap_address": "0x60000000",
+    "reserved_bytes": 2097152,
+    "errors": []
+  },
+  "psram_static_reservation": {
+    "total_bytes": 8388608,
+    "nonret_start": "0x60000000",
+    "nonret_end": "0x60255B18",
+    "nonret_reserved_bytes": 2448152,
+    "lvgl_heap_start": "0x60000000",
+    "lvgl_heap_bytes": 2097152,
+    "note": "Private graphics heap is part of PSRAM reservation, not additional HCPU SRAM. Runtime use and FPS require board evidence."
+  },
+  "host_allocator_note": "Native render tests use CLIB; separate final-ELF check proves SDK private-PSRAM allocator and buffer placement. Neither proves physical initialization or FPS."
 }

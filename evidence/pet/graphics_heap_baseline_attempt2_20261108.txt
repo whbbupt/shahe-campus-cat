@@ -1,0 +1,10 @@
+{
+  "result": "FAIL",
+  "heap_address": null,
+  "reserved_bytes": null,
+  "errors": [
+    "No dedicated PSRAM graphics heap in final ELF",
+    "lv_mem_init does not call rt_memheap_init",
+    "lv_malloc_core does not call rt_memheap_alloc"
+  ]
+}

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "D:\project\sifli\course_starter\tests\check_pet_graphics_heap.py", line 31, in <module>
+    disassembly = subprocess.check_output([
+        str(args.toolchain / 'arm-none-eabi-objdump.exe'), '-d',
+        '--disassemble=' + function, str(args.elf)], text=True)
+  File "D:\development\python\Lib\subprocess.py", line 472, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               **kwargs).stdout
+               ^^^^^^^^^
+  File "D:\development\python\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\development\python\Lib\subprocess.py", line 1206, in communicate
+    stdout = self.stdout.read()
+  File "<frozen codecs>", line 325, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb4 in position 25: invalid start byte
