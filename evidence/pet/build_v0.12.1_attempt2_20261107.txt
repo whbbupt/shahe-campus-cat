@@ -1,0 +1,146 @@
+在工程目录 project/ 中执行：scons --board=sf32lb52-lchspi-ulp -j8
+scons: Reading SConscript files ...
+Board: sf32lb52-lchspi-ulp_hcpu
+-----
+Adding ftab subproject for chip: SF32LB52X (ptab v1/v2)
+========
+Multi-Project Info
+--------
+full_name       main.bootloader
+parent          main
+bsp_root        D:\development\sifli\SiFli-SDK\v2.5.1\example\boot_loader\project\butterflmicro\ram_v2
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/bootloader
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\example/boot_loader/project/butterflmicro/ram_v2\link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+embedded:       False
+--------
+full_name       main
+parent          
+bsp_root        D:\project\sifli\course_starter\project
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\drivers/cmsis/sf32lb52x/Templates/gcc/hcpu/link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+--------
+full_name       main.ftab
+parent          main
+bsp_root        D:\development\sifli\SiFli-SDK\v2.5.1\example\flash_table\sf32lb52x_common_v2
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/ftab
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\drivers/cmsis/sf32lb52x/Templates/gcc/hcpu/link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+embedded:       False
+========
+scons: done reading SConscript files.
+scons: Building targets ...
+scons: building associated VariantDir targets: build_sf32lb52-lchspi-ulp_hcpu
+Generating build_sf32lb52-lchspi-ulp_hcpu\bootloader\link_copy.lds ...
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\common\bsp_common.o
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\compile_commands.json
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\bootloader\compile_commands.json
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\common\bsp_psram.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\common\flash.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_init.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_lcd_tp.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_pinmux.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_power.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\charger\charge.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\charger\aw32001\aw32001.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\display\co5300\co5300.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\pa\AW8155\sifli_aw8155.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\rgb\drv_rgbled.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\customer\peripherals\touch_panel\ft6146\ft6146.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\cmsis\sf32lb52x\bt_rf_cw_config.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\cmsis\sf32lb52x\bt_power_config.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\cmsis\sf32lb52x\bf0_lcpu_init.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\cmsis\sf32lb52x\bt_rf_test.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\hal\bf0_hal_hcd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\hal\bf0_hal_i2c.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\hal\bf0_hal_pcd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\hal\bf0_hal_pmu.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\drivers\hal\bf0_sys_cfg.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\port\fal\src\fal.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\port\fal\src\fal_flash.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\port\fal\src\fal_flash_sifli_port.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\port\fal\src\fal_partition.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\port\fal\src\fal_rtt.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\src\fdb.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\src\fdb_file.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\src\fdb_kvdb.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\src\fdb_tsdb.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\FlashDB\src\fdb_utils.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\lv_init.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lv_point_t.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lv_timer_t.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lv_wegit.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lvgl.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lvgl_indev_t.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lvgl_lv_event.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lvgl_lv_obj.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\pikascript\pika_lvgl_lv_style_t.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\env_support\rt-thread\lv_rt_thread_port.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_group.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_obj_id_builtin.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_obj_pos.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_obj_style.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_obj_tree.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\core\lv_refr.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\display\lv_display.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_3d.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_arc.o
+D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core\lv_obj_tree.c: In function 'lv_obj_swap':
+D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core\lv_obj_tree.c:274:12: warning: potential null pointer dereference [-Wnull-dereference]
+  274 |     parent2->spec_attr->children[index2] = obj1;
+      |     ~~~~~~~^~~~~~~~~~~
+D:\development\sifli\SiFli-SDK\v2.5.1\external\lvgl_v9\src\core\lv_obj_tree.c:274:12: warning: potential null pointer dereference [-Wnull-dereference]
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_buf.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_image.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_label.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_line.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_mask.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_rect.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_triangle.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_draw_vector.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\draw\lv_image_decoder.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_binfont_loader.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_dejavu_16_persian_hebrew.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_fmt_txt.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_10.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_12.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_14.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_14_aligned.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_16.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_18.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_20.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_22.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_24.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_26.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_28.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_28_compressed.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_30.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_32.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_34.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_36.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_38.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_40.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_42.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_44.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_46.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_48.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_montserrat_8.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_source_han_sans_sc_14_cjk.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_source_han_sans_sc_16_cjk.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_unscii_16.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\font\lv_font_unscii_8.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\indev\lv_indev.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\layouts\lv_layout.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_anim.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_area.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_event.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_fs.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_log.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_math.o
+CC build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_profiler_builtin.o
+scons: *** [build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_style.o] D:\project\sifli\course_starter\project\build_sf32lb52-lchspi-ulp_hcpu\sifli_sdk\external\lvgl_v9\src\misc\lv_style.o: 另一个程序正在使用此文件，进程无法访问。
+scons: building terminated because of errors.
+
+✗ 编译失败。完整日志：build/last_build.log。把错误原文交给 agent 前，先自己读一遍报错的第一处。

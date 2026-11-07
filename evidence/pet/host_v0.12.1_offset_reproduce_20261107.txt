@@ -1,0 +1,13 @@
+[host:audio-driver] original worker: continuous music/mute, PCM copy under partial writes, latest-only cues, idle close, backpressure/error cleanup PASS (10 cases)
+
+
+[host:audio-driver] thread creation failure remains unavailable across toggles PASS
+
+
+[host:ble-probe] shared selftest, PING, length/null/binary rejection and output guards PASS; no physical BLE verdict
+
+
+
+Assertion failed: write_value(0,&request)!=0, file D:\project\sifli\course_starter\tests\pet_ble_rt_test.c, line 53
+
+

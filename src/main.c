@@ -4,6 +4,7 @@
 #include "rtthread.h"
 #include "littlevgl2rtt.h"
 #include "pet_app.h"
+#include "pet_ble.h"
 
 #include "pet_version.h"
 #define APP_VERSION PET_FIRMWARE_VERSION
@@ -25,6 +26,9 @@ int main(void)
     result = pet_app_start();
     if (result != RT_EOK)
         return result;
+    result = pet_ble_start();
+    if (result != RT_EOK)
+        rt_kprintf("[pet:BLE] worker start failed=%d; pet continues\n", result);
     while (1)
     {
         pet_app_poll();

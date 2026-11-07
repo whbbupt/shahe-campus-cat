@@ -45,7 +45,7 @@ def run(command, **kwargs):
         raise SystemExit(r.returncode)
     return r.stdout.decode('utf-8', errors='replace')
 
-def build(sources, name, includes=(), defines=()):
+def build(sources, name, includes=(), defines=(), dependencies=()):
     include_paths = [root/'src', *includes]
     base = (['/nologo', '/std:c11', '/utf-8', '/O1', '/D_CRT_SECURE_NO_WARNINGS'] if msvc
             else ['-std=c11', '-O1', '-Wall', '-Wextra'])
@@ -55,6 +55,7 @@ def build(sources, name, includes=(), defines=()):
     headers = [p for include in include_paths for p in include.glob('*.h')]
     headers += list((root/'src').glob('*.inc'))
     headers += list((root/'tests/include').glob('*.h'))
+    headers += list(dependencies)
     if a.sdk:
         headers += list((a.sdk/'external/lvgl_v9').rglob('*.h'))
     newest = max((x.stat().st_mtime for x in headers), default=0)
@@ -78,6 +79,8 @@ def build(sources, name, includes=(), defines=()):
 
 build([root/'src/pet_audio_rt.c', root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_rt_test.c'], 'pet-audio-driver-test', [root/'tests/audio_include'])
 print(run([out/('pet-audio-driver-test.exe' if os.name == 'nt' else 'pet-audio-driver-test'), 'thread-failure'], cwd=out))
+build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_probe_test.c'], 'pet-ble-probe-test')
+build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_rt_test.c'], 'pet-ble-driver-test', [root/'tests/ble_include'], dependencies=[root/'src/pet_ble.c'])
 build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_test.c'], 'pet-audio-test')
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')
