@@ -170,7 +170,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -259,6 +259,18 @@ static bool sound_restore(void)
     pw_advance(&w, 10000);
     CHECK(ps_poll(&s, &w) == PS_OK);
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.sound_mode == 1);
+    for (unsigned level=0; level<=10; level++) {
+        w.volume=(uint8_t)level;
+        CHECK(ps_save(&s, &w) == PS_OK);
+        CHECK(ps_open(&s, io(), &w) == PS_OK && w.volume == level && ps_visible_saved(&s, &w));
+    }
+    CHECK(pw_request(&w, PW_VOLUME_DOWN) == PW_OK && !ps_visible_saved(&s, &w));
+    CHECK(ps_poll(&s, &w) == PS_WAIT);
+    pw_advance(&w, 10000);
+    CHECK(ps_poll(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.volume == 9);
+    w.volume=11;
+    CHECK(ps_save(&s, &w) == PS_INVALID);
     return true;
 }
 static bool journal_restore(void)

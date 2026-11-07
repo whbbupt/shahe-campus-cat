@@ -21,7 +21,7 @@ typedef struct { uint16_t id,length; union { uint32_t align; uint8_t bytes[64]; 
 static rt_mq_t events;
 static volatile bool queue_fault;
 static bool started, service_ready, fault_latched;
-static uint8_t active_connection=0xff;
+static volatile uint8_t active_connection=0xff;
 /* Callbacks own this byte; worker reads it only to disconnect after a queue fault. */
 static volatile uint8_t callback_connection=0xff;
 static uint8_t probe_value[5]={'R','E','A','D','Y'};
@@ -38,6 +38,7 @@ typedef struct {
     uint32_t stage, callbacks, power_events, queued, handled, loops;
     uint32_t last_callback, last_handled, adv_events, adv_result;
     int result, last_receive;
+    char name[24];
 } diagnostic_t;
 static diagnostic_t diagnostic;
 static rt_tick_t diagnostic_start_tick;
@@ -62,6 +63,20 @@ static diagnostic_t snapshot(void)
     diagnostic_t copy=diagnostic;
     rt_hw_interrupt_enable(level);
     return copy;
+}
+void pet_ble_get_link(pet_link_t *link)
+{
+    if (!link) return;
+    rt_base_t level=rt_hw_interrupt_disable();
+    unsigned stage=diagnostic.stage;
+    link->state=queue_fault || stage==DIAG_ERROR ? PET_LINK_ERROR
+        : active_connection!=0xff ? PET_LINK_CONNECTED
+        : stage==DIAG_ADVERTISING || stage==DIAG_WAIT_ADV ? PET_LINK_WAITING
+        : PET_LINK_STARTING;
+    memcpy(link->name,diagnostic.name,sizeof(link->name));
+    rt_hw_interrupt_enable(level);
+    link->name[sizeof(link->name)-1]=0;
+    if (!link->name[0]) memcpy(link->name,"ShaheCat",9);
 }
 static void print_status(const char *reason)
 {
@@ -189,6 +204,9 @@ static bool register_service(void)
     bd_addr_t address;
     if (!ble_get_public_address(&address))
         rt_snprintf(name,sizeof(name),"ShaheCat-%02X%02X%02X",address.addr[2],address.addr[1],address.addr[0]);
+    rt_base_t level=rt_hw_interrupt_disable();
+    memcpy(diagnostic.name,name,sizeof(name));
+    rt_hw_interrupt_enable(level);
     unsigned length=strlen(name);
     ble_gap_dev_name_t *device_name=rt_malloc(sizeof(*device_name)+length);
     sibles_adv_type_name_t *scan_name=rt_malloc(sizeof(*scan_name)+length);

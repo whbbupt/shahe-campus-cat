@@ -71,6 +71,8 @@ static void drain(void) { event_t e;while(rt_mq_recv(events,&e,sizeof(e),0)==0)h
 static void connect_peer(uint8_t index) { connection_manager_connect_ind_t c={index};stack_event(CONNECTION_MANAGER_CONNCTED_IND,(uint8_t *)&c,sizeof(c),0);drain(); }
 int main(int argc,char **argv)
 {
+ pet_link_t link;
+ pet_ble_get_link(&link);assert(link.state==PET_LINK_STARTING&&!strcmp(link.name,"ShaheCat"));
  if(argc>1) {
   worker_mode=(unsigned)atoi(argv[1]);assert(worker_mode>=1&&worker_mode<=4);
   assert(pet_ble_start()==0);
@@ -97,7 +99,10 @@ int main(int argc,char **argv)
  thread_start_fail=true;assert(pet_ble_start()!=0&&!events&&!started);thread_start_fail=false;
  assert(pet_ble_start()==0&&pet_ble_start()==0&&queued==0);
  stack_event(BLE_POWER_ON_IND,NULL,0,0);drain();assert(service_ready&&advertising_calls==1);
+ sibles_adv_evt_startted_t adv={0};advertising_event(SIBLES_ADV_EVT_ADV_STARTED,NULL,&adv);drain();
+ pet_ble_get_link(&link);assert(link.state==PET_LINK_WAITING&&strstr(link.name,"ShaheCat-")==link.name);
  connect_peer(0);assert(active_connection==0&&callback_connection==0);
+ pet_ble_get_link(&link);assert(link.state==PET_LINK_CONNECTED);
  uint16_t n;assert(read_value(0,ATTR_INFO,&n)&&n>20);
  assert(read_value(0,ATTR_PROBE,&n)&&n==5&&!memcmp(probe_value,"READY",5));
  sibles_set_cbk_t request={ATTR_PROBE,4,0,(uint8_t *)"PING"};
@@ -110,10 +115,12 @@ int main(int argc,char **argv)
  connect_peer(1);assert(disconnect_calls==1&&active_connection==0&&callback_connection==0);
  ble_gap_disconnected_ind_t d={0,19};stack_event(BLE_GAP_DISCONNECTED_IND,(uint8_t *)&d,sizeof(d),0);drain();
  assert(active_connection==0xff&&callback_connection==0xff&&probe_length==5);
+ pet_ble_get_link(&link);assert(link.state==PET_LINK_WAITING);
  assert(write_value(0xff,&request)!=0);connect_peer(2);assert(active_connection==2);
  assert(write_value(2,&request)==0);drain();
  queued=16;assert(write_value(2,&request)!=0&&queue_fault);queued=0;
  stop_faulted_radio(NULL);assert(fault_latched&&stop_calls==1&&disconnect_calls==2);
+ pet_ble_get_link(&link);assert(link.state==PET_LINK_ERROR);
  event_t late={0};late.id=EVENT_ADV_ON;stop_faulted_radio(&late);assert(stop_calls==2);
  late.id=CONNECTION_MANAGER_CONNCTED_IND;late.data.bytes[0]=3;stop_faulted_radio(&late);assert(disconnect_calls==3);
  assert(read_value(2,ATTR_PROBE,&n)==NULL&&write_value(2,&request)!=0);queue_fault=false;

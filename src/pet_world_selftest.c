@@ -635,13 +635,31 @@ bool pw_campus_selftest(void (*report)(const char *, bool))
     }
     return all;
 }
+static bool volume_controls(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(w.volume == 5);
+    for (unsigned i=0; i<20; i++) CHECK(pw_request(&w, PW_VOLUME_DOWN) == PW_OK);
+    CHECK(w.volume == 0 && w.food == 70 && w.mood == 60);
+    for (unsigned i=0; i<20; i++) CHECK(pw_request(&w, PW_VOLUME_UP) == PW_OK);
+    CHECK(w.volume == 10 && w.food == 70 && w.mood == 60);
+    CHECK(pw_request(&w, PW_MUSIC_TOGGLE) == PW_OK && w.sound_mode == 1);
+    CHECK(pw_request(&w, PW_MUSIC_TOGGLE) == PW_OK && w.sound_mode == 2);
+    w.phase = PW_SLEEP;
+    CHECK(pw_request(&w, PW_VOLUME_DOWN) == PW_OK && w.phase == PW_SLEEP && w.volume == 9);
+    w.sound_mode = 0; w.volume = 0;
+    CHECK(pw_request(&w, PW_VOLUME_UP) == PW_OK && w.volume == 1 && w.sound_mode == 1);
+    return true;
+}
 bool pw_selftest(void (*report)(const char *, bool))
 {
     static const struct
     {
         const char *name;
         bool (*run)(void);
-    } cases[] = {{"initial-scene", initial},
+    } cases[] = {{"volume-bounds-and-music-toggle", volume_controls},
+                 {"initial-scene", initial},
                  {"arrive-once", deferred},
                  {"retarget-no-snap", retarget},
                  {"arrival-eligibility", arrival_recheck},

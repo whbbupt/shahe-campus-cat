@@ -1,0 +1,2 @@
+Source: git 52d8e26:src/pet_save.c (SCHEMA 5)
+Actual schema-5 source rejects committed schema-6 records; zero writes PASS

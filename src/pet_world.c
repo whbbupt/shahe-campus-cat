@@ -198,6 +198,7 @@ void pw_init(pet_world_t *w)
     w->phase = PW_IDLE;
     w->journal_page = 1;
     w->sound_mode = 2;
+    w->volume = 5;
     w->food = 70;
     w->mood = 60;
     w->node = 3;
@@ -577,6 +578,18 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_VOLUME_DOWN || cmd == PW_VOLUME_UP)
+    {
+        if (cmd == PW_VOLUME_UP && w->volume < 10) w->volume++;
+        if (cmd == PW_VOLUME_DOWN && w->volume > 0) w->volume--;
+        if (w->volume && !w->sound_mode) w->sound_mode = 1;
+        return PW_OK;
+    }
+    if (cmd == PW_MUSIC_TOGGLE)
+    {
+        w->sound_mode = w->sound_mode == 2 ? 1 : 2;
+        return PW_OK;
+    }
     if (cmd == PW_SOUND_NEXT)
     {
         w->sound_mode = w->sound_mode ? w->sound_mode - 1 : 2;

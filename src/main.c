@@ -5,6 +5,7 @@
 #include "littlevgl2rtt.h"
 #include "pet_app.h"
 #include "pet_ble.h"
+#include "pet_ui.h"
 
 #include "pet_version.h"
 #define APP_VERSION PET_FIRMWARE_VERSION
@@ -33,6 +34,9 @@ int main(void)
     {
         pet_app_poll();
         pet_ble_poll();
+        pet_link_t link;
+        pet_ble_get_link(&link);
+        pet_ui_set_link(&link);
         uint32_t delay_ms = lv_timer_handler();
         if (delay_ms < 2) delay_ms = 2;
         if (delay_ms > 20) delay_ms = 20;

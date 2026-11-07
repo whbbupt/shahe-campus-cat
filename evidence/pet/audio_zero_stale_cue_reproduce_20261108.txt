@@ -1,0 +1,3 @@
+Reproduction variant: before zero-volume cue cancellation fix; production source unchanged.
+Exit=3221226505
+Assertion failed: !live && opens==1, file D:\project\sifli\course_starter\tests\pet_audio_rt_test.c, line 73

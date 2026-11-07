@@ -9,9 +9,10 @@
 static pet_world_t world;
 static void (*entry)(void *);
 static jmp_buf done;
-static unsigned scenario, writes, opens, closes, ticks, locks, volume=7, failures;
+static unsigned scenario, writes, opens, closes, ticks, locks, volume=7, failures, volume_seen;
 static bool live;
 static bool no_thread;
+static unsigned resumed_tick;
 static pa_mixer_t expected;
 static int16_t expected_block[160];
 static unsigned expected_at;
@@ -32,7 +33,8 @@ int rt_thread_delete(rt_thread_t t) { (void)t;return 0; }
 uint8_t audio_server_get_private_volume(int t) { (void)t; assert(!locks); return (uint8_t)volume; }
 int audio_server_set_private_volume(int t,uint8_t v)
 {
-    (void)t;assert(!locks); if (scenario==5 && v==5) return -1; volume=v;return 0;
+    (void)t;assert(!locks); if (scenario==5 && v==5) return -1; volume=v;
+    volume_seen |= 1U<<v; return 0;
 }
 audio_client_t audio_open2(int t,int rw,audio_parameter_t *p,void *cb,void *arg,int device)
 {
@@ -51,7 +53,7 @@ int audio_write(audio_client_t c,uint8_t *data,uint32_t n)
     if(scenario==6) return 1;
     if(scenario==7) return (int)n+2;
     unsigned accepted=scenario==2 && n>80 ? 80 : n;
-    if (scenario==0 || scenario==2 || scenario==8 || scenario==9) {
+    if (scenario==0 || scenario==2 || scenario==8 || scenario==9 || scenario==10) {
         if (!expected_at) pa_mix(&expected, world.sound_mode, false, expected_block, 160);
         assert(n==320-expected_at && !memcmp(data,(uint8_t *)expected_block+expected_at,n));
         expected_at=(expected_at+accepted)%320;
@@ -62,6 +64,22 @@ int audio_write(audio_client_t c,uint8_t *data,uint32_t n)
 void rt_thread_mdelay(int ms)
 {
     assert(!locks);ticks+=(unsigned)ms;
+    if (scenario==11) {
+        if (!resumed_tick && writes>=3) {
+            world.volume=0;pet_audio_sync(&world);
+            if(!live) { world.volume=5;pet_audio_sync(&world);resumed_tick=ticks; }
+        }
+        if(resumed_tick && ticks>=resumed_tick+100) {
+            assert(!live && opens==1);longjmp(done,1);
+        }
+    }
+    if (scenario==10) {
+        if(writes>=30)world.volume=0;
+        else if(writes>=20)world.volume=2;
+        else if(writes>=10)world.volume=8;
+        pet_audio_sync(&world);
+        if(!live && !world.volume)longjmp(done,1);
+    }
     if ((scenario==0 || scenario==2) && writes>40 && world.sound_mode)
     { world.sound_mode=0;pet_audio_sync(&world); }
     if(!live && ((scenario==0 || scenario==2) ? !world.sound_mode
@@ -71,11 +89,11 @@ void rt_thread_mdelay(int ms)
 }
 static void run(unsigned which)
 {
-    scenario=which;writes=opens=closes=ticks=failures=0;volume=7;
+    scenario=which;writes=opens=closes=ticks=failures=volume_seen=resumed_tick=0;volume=7;world.volume=5;
     memset(&expected,0,sizeof(expected));expected_at=0;
     world.sound_mode=0;pet_audio_sync(&world);
-    world.sound_mode=which>=8 ? 1 : 2;pet_audio_sync(&world);
-    if(which>=8) {
+    world.sound_mode=which==8 || which==9 || which==11 ? 1 : 2;pet_audio_sync(&world);
+    if(which==8 || which==9 || which==11) {
         world.settlements[PW_TOUCH]++;pet_audio_sync(&world);
         pa_trigger(&expected,PA_TOUCH);
         if(which==9) {
@@ -87,6 +105,9 @@ static void run(unsigned which)
     assert(!live && opens==closes && volume==7 && !locks);
     if(which==1) assert(writes>1 && ticks>=300 && !pet_audio_available());
     if(which==0 || which==2) assert(writes>40 && pet_audio_available());
+    else if(which==11) assert(writes==3 && opens==1 && world.volume==5 && pet_audio_available());
+    else if(which==10) assert(writes>=30 && opens==1 && world.volume==0 &&
+        (volume_seen&(1U<<8)) && (volume_seen&(1U<<2)) && pet_audio_available());
     else if(which>=8) assert(writes>30 && opens==1 && world.sound_mode==1 && pet_audio_available());
     else assert(!pet_audio_available());
 }
@@ -104,7 +125,7 @@ int main(int argc, char **argv)
         return 0;
     }
     assert(entry && pet_audio_available() && !live);
-    for(unsigned i=0;i<10;i++) run(i);
-    puts("[host:audio-driver] original worker: continuous music/mute, PCM copy under partial writes, latest-only cues, idle close, backpressure/error cleanup PASS (10 cases)");
+    for(unsigned i=0;i<12;i++) run(i);
+    puts("[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume and failures PASS (12 cases)");
     return 0;
 }

@@ -9,7 +9,7 @@
 #define BLOCK_SAMPLES 160U
 static struct rt_mutex lock;
 static bool initialized, available, duck, worker_ready;
-static unsigned mode, generation;
+static unsigned mode, volume, generation;
 static pa_cue_t pending;
 static pa_observer_t observer;
 bool pet_audio_available(void)
@@ -31,16 +31,22 @@ void pet_audio_sync(const pet_world_t *w)
         available = worker_ready;
         cue = PA_NONE;
     }
+    if (volume != w->volume)
+    {
+        volume = w->volume;
+        available = worker_ready;
+        if (!volume) { pending = PA_NONE; generation++; cue = PA_NONE; }
+    }
     if (observer.phase != PW_MINIGAME && duck) { generation++; pending = PA_NONE; }
     duck = w->phase == PW_MINIGAME;
-    if (mode && available && cue != PA_NONE) pending = cue;
+    if (mode && volume && available && cue != PA_NONE) pending = cue;
     rt_mutex_release(&lock);
 }
-typedef struct { unsigned mode, token; bool duck, available; pa_cue_t cue; } settings_t;
+typedef struct { unsigned mode, token; bool duck, available; pa_cue_t cue; unsigned volume; } settings_t;
 static settings_t settings(bool consume)
 {
     rt_mutex_take(&lock, RT_WAITING_FOREVER);
-    settings_t value = {mode, generation, duck, available, pending};
+    settings_t value = {mode, generation, duck, available, pending, volume};
     if (consume) pending = PA_NONE;
     rt_mutex_release(&lock);
     return value;
@@ -58,6 +64,7 @@ static void worker(void *arg)
     pa_mixer_t mixer = {0};
     audio_client_t client = NULL;
     uint8_t old_volume = 0;
+    unsigned client_volume = 0;
     bool volume_set = false;
     unsigned token = 0, tail = 4000;
     int16_t block[BLOCK_SAMPLES], writable[BLOCK_SAMPLES];
@@ -76,7 +83,7 @@ static void worker(void *arg)
             if (error) { failed(); rt_thread_mdelay(10); continue; }
         }
         if (s.cue) pa_trigger(&mixer, s.cue);
-        bool idle = !s.mode || !s.available || (s.mode == 1 && !mixer.cue && tail >= 4000);
+        bool idle = !s.mode || !s.volume || !s.available || (s.mode == 1 && !mixer.cue && tail >= 4000);
         if (idle)
         {
             if (client) { if (audio_close(client) != 0) error = true; client = NULL; }
@@ -92,12 +99,18 @@ static void worker(void *arg)
         {
             old_volume = audio_server_get_private_volume(AUDIO_TYPE_LOCAL_MUSIC);
             volume_set = true;
-            error = audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, 5) != 0;
+            error = audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, (uint8_t)s.volume) != 0;
+            client_volume = s.volume;
             audio_parameter_t p = {0};
             p.write_samplerate = PA_SAMPLE_RATE; p.write_channnel_num = 1;
             p.write_bits_per_sample = 16; p.write_cache_size = 1024;
             if (!error) client = audio_open2(AUDIO_TYPE_LOCAL_MUSIC, AUDIO_TX, &p, NULL, NULL, AUDIO_DEVICE_SPEAKER);
             if (!client) error = true;
+        }
+        else if (client_volume != s.volume)
+        {
+            error = audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, (uint8_t)s.volume) != 0;
+            client_volume = s.volume;
         }
         bool had_cue = mixer.cue != PA_NONE;
         pa_mix(&mixer, s.mode, s.duck, block, BLOCK_SAMPLES);
@@ -107,7 +120,7 @@ static void worker(void *arg)
         while (!error && offset < BLOCK_SAMPLES)
         {
             settings_t current = settings(false);
-            if (current.token != token || !current.mode || !current.available) break;
+            if (current.token != token || !current.mode || !current.volume || !current.available) break;
             unsigned count = BLOCK_SAMPLES - offset;
             memcpy(writable, block + offset, count * sizeof(int16_t));
             int n = audio_write(client, (uint8_t *)writable, count * sizeof(int16_t));
@@ -137,7 +150,7 @@ void pet_audio_start(const pet_world_t *w)
         rt_kprintf("[pet:AUDIO] lock unavailable\n");
         return;
     }
-    initialized = available = true; mode = w->sound_mode; pending = PA_NONE;
+    initialized = available = true; mode = w->sound_mode; volume = w->volume; pending = PA_NONE;
     duck = false; generation = 0;
     rt_thread_t thread = rt_thread_create("pet_sfx", worker, NULL, 4096, 18, 10);
     worker_ready = thread != NULL;

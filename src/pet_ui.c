@@ -32,13 +32,14 @@ static struct
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
-    lv_obj_t *audio_label, *audio_note;
+    lv_obj_t *audio_label, *audio_note, *volume_text, *link_badge, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
     lv_obj_t *journal_button, *journal_dialog, *journal_page, *wish[3], *wish_mark[3],
              *journal_count, *claim, *claim_hint, *badge[3];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
 } ui;
 static bool audio_available = true;
+static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat"};
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
 void pet_ui_set_save_status(unsigned status)
@@ -50,6 +51,13 @@ static void paint(void);
 void pet_ui_set_audio_available(bool available)
 {
     audio_available = available;
+}
+void pet_ui_set_link(const pet_link_t *link)
+{
+    if (!link) return;
+    link_status = *link;
+    link_status.name[sizeof(link_status.name)-1] = 0;
+    if ((unsigned)link_status.state > PET_LINK_ERROR) link_status.state = PET_LINK_ERROR;
 }
 void pet_ui_set_point_handler(pet_ui_point_fn handler)
 {
@@ -126,9 +134,10 @@ static void click(lv_event_t *e)
         if (ui.action) ui.action(PW_JOURNAL_CLAIM);
         return;
     }
-    if (cmd == PW_SOUND_NEXT && ui.panel == PANEL_STATUS)
+    if ((cmd == PW_SOUND_NEXT || cmd == PW_MUSIC_TOGGLE ||
+         cmd == PW_VOLUME_DOWN || cmd == PW_VOLUME_UP) && ui.panel == PANEL_STATUS)
     {
-        if (ui.action) ui.action(PW_SOUND_NEXT);
+        if (ui.action) ui.action((pw_command_t)cmd);
         return;
     }
     if (cmd == TAG_STATUS)
@@ -328,33 +337,42 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(ui.layer, LV_OPA_TRANSP, 0);
     lv_obj_t *scrim = button(ui.layer, 0, 0, 390, 450, TAG_CLOSE, 0x223A46, 0);
     lv_obj_set_style_bg_opa(scrim, LV_OPA_50, 0);
-    lv_obj_t *dialog = box(ui.layer, 57, 50, 276, 350, 0xF9FCFD, 18);
+    lv_obj_t *dialog = box(ui.layer, 43, 15, 304, 420, 0xF9FCFD, 18);
     ui.status_dialog = dialog;
     text(dialog, "小猫状态", 18, 13, &pet_font_20, INK);
-    lv_obj_t *close = button(dialog, 226, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
+    lv_obj_t *close = button(dialog, 254, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
     lv_obj_t *x = text(close, "×", 0, 0, &pet_font_20, BLUE);
     lv_obj_center(x);
     box(dialog, 18, 48, 240, 1, 0xD4E0E5, 0);
-    lv_obj_t *status = box(dialog, 18, 57, 240, 194, 0xF9FCFD, 0);
+    lv_obj_t *status = box(dialog, 32, 52, 240, 150, 0xF9FCFD, 0);
     text(status, "饱食", 0, 0, &pet_font_16, INK);
     ui.food = text(status, "70", 194, 0, &pet_font_20, INK);
     lv_obj_set_width(ui.food, 46);
     lv_obj_set_style_text_align(ui.food, LV_TEXT_ALIGN_RIGHT, 0);
-    box(status, 0, 33, 240, 7, 0xE1E9ED, 3);
-    ui.food_fill = box(status, 0, 33, 168, 7, 0xBF9769, 3);
-    text(status, "心情", 0, 52, &pet_font_16, INK);
-    ui.mood = text(status, "60", 194, 52, &pet_font_20, INK);
+    box(status, 0, 28, 240, 7, 0xE1E9ED, 3);
+    ui.food_fill = box(status, 0, 28, 168, 7, 0xBF9769, 3);
+    text(status, "心情", 0, 40, &pet_font_16, INK);
+    ui.mood = text(status, "60", 194, 40, &pet_font_20, INK);
     lv_obj_set_width(ui.mood, 46);
     lv_obj_set_style_text_align(ui.mood, LV_TEXT_ALIGN_RIGHT, 0);
-    box(status, 0, 85, 240, 7, 0xE1E9ED, 3);
-    ui.mood_fill = box(status, 0, 85, 144, 7, 0x88AA92, 3);
-    ui.state = text(status, "闲逛中", 0, 108, &pet_font_16, BLUE);
-    text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
-    ui.save_note = text(status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
-    lv_obj_t *sound = button(dialog, 18, 255, 240, 44, PW_SOUND_NEXT, 0xDCE6CB, 10);
+    box(status, 0, 68, 240, 7, 0xE1E9ED, 3);
+    ui.mood_fill = box(status, 0, 68, 144, 7, 0x88AA92, 3);
+    ui.state = text(status, "闲逛中", 0, 80, &pet_font_16, BLUE);
+    text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 104, &pet_font_16, INK);
+    ui.save_note = text(status, save_notes[save_state], 0, 128, &pet_font_16, 0x62736B);
+    ui.link_detail = text(dialog, "", 18, 211, &pet_font_16, BLUE);
+    ui.link_name = text(dialog, "", 18, 233, &pet_font_16, 0x62736B);
+    lv_obj_t *less = button(dialog, 18, 267, 48, 48, PW_VOLUME_DOWN, 0xDCEAF3, 10);
+    lv_obj_t *less_text = text(less, "−", 0, 0, &pet_font_20, INK);
+    lv_obj_center(less_text);
+    ui.volume_text = text(dialog, "", 78, 281, &pet_font_16, INK);
+    lv_obj_t *more = button(dialog, 238, 267, 48, 48, PW_VOLUME_UP, 0xDCEAF3, 10);
+    lv_obj_t *more_text = text(more, "+", 0, 0, &pet_font_20, INK);
+    lv_obj_center(more_text);
+    lv_obj_t *sound = button(dialog, 18, 327, 268, 44, PW_MUSIC_TOGGLE, 0xDCE6CB, 10);
     ui.audio_label = text(sound, "", 0, 0, &pet_font_16, INK);
     lv_obj_center(ui.audio_label);
-    ui.audio_note = text(dialog, "", 18, 307, &pet_font_16, BLUE);
+    ui.audio_note = text(dialog, "", 18, 383, &pet_font_16, BLUE);
     ui.order_dialog = box(ui.layer, 57, 113, 276, 224, PAPER, 18);
     text(ui.order_dialog, "宿舍外卖", 18, 13, &pet_font_20, INK);
     lv_obj_t *order_close = button(ui.order_dialog, 226, 2, 44, 44, TAG_CLOSE, PAPER, 12);
@@ -470,6 +488,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     text(ui.location, "沙河校园小猫", 12, 2, &pet_font_16, BLUE);
     ui.location_text = text(ui.location, room_names[0], 12, 22, &pet_font_20, INK);
+    lv_obj_t *link = box(screen, 13, 76, 145, 28, PAPER, 10);
+    lv_obj_set_style_bg_opa(link, LV_OPA_90, 0);
+    ui.link_badge = text(link, "", 9, 4, &pet_font_16, BLUE);
     ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
     ui.bubble = box(screen, 67, 398, 256, 36, PAPER, 12);
     lv_obj_set_style_bg_opa(ui.bubble, LV_OPA_90, 0);
@@ -648,12 +669,21 @@ static void paint(void)
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
     lv_label_set_text(ui.state, pw_state_text(&ui.world));
-    static const char *modes[] = {"声音：静音", "声音：仅音效", "声音：音乐＋音效"};
-    lv_label_set_text(ui.audio_label, modes[ui.world.sound_mode <= 2 ? ui.world.sound_mode : 0]);
+    static const char *links[] = {"蓝牙启动中", "蓝牙等待连接", "蓝牙已连接", "蓝牙异常"};
+    lv_label_set_text(ui.link_badge, links[link_status.state]);
+    lv_label_set_text(ui.link_detail, links[link_status.state]);
+    lv_label_set_text(ui.link_name, link_status.name);
+    uint32_t link_color = link_status.state == PET_LINK_CONNECTED ? 0x537958
+        : link_status.state == PET_LINK_ERROR ? 0xA84D43 : BLUE;
+    lv_obj_set_style_text_color(ui.link_badge, lv_color_hex(link_color), 0);
+    lv_obj_set_style_text_color(ui.link_detail, lv_color_hex(link_color), 0);
+    lv_label_set_text_fmt(ui.volume_text, "音量 %u / 10", ui.world.volume);
+    lv_label_set_text(ui.audio_label, ui.world.sound_mode == 2 ? "背景音乐：开" : "背景音乐：关");
     lv_obj_center(ui.audio_label);
-    lv_label_set_text(ui.audio_note, audio_available ? "点按切换 · 自动记住" : "声音暂不可用，切换重试");
+    lv_label_set_text(ui.audio_note, audio_available ? "调至零档无声 · 自动记住" : "声音暂不可用，切换重试");
     bool memory = ui.world.phase == PW_MINIGAME;
     visible(ui.layer, memory || ui.panel != PANEL_NONE);
+    if (memory || ui.panel != PANEL_NONE) lv_obj_move_foreground(ui.layer);
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
     visible(ui.order_dialog, !memory && ui.panel == PANEL_ORDER);
     visible(ui.journal_dialog, !memory && ui.panel == PANEL_JOURNAL);

@@ -33,6 +33,7 @@ static uint32_t crc(const uint8_t *p, unsigned n)
 static void put(uint8_t *p, uint32_t v) { for(unsigned i=0;i<4;i++) p[i]=(uint8_t)(v>>(i*8)); }
 int main(void)
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
     assert(ps_selftest(report));
     ps_io_t io={NULL,read_io,write_io,erase_io}; pet_save_t s; pet_world_t w;
     memset(flash,255,sizeof(flash)); pw_init(&w); assert(ps_open(&s,io,&w)==PS_EMPTY);
@@ -71,7 +72,7 @@ int main(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
     uint8_t *campus = flash + PS_SECTOR_SIZE;
     campus[4] = 2;
     campus[15] &= 1;
@@ -84,7 +85,7 @@ int main(void)
     assert(fwrite(flash, sizeof(flash), 1, fixture) == 1);
     fclose(fixture);
     w.food = 69;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
     assert(ps_open(&s, io, &w) == PS_OK && w.journal_page == 1);
     uint8_t *latest = flash + PS_RECORD_SIZE;
     latest[4] = 3;
@@ -103,7 +104,7 @@ int main(void)
     assert(w.cooldown[PW_EAT] == 1200 && w.cooldown[PW_TOUCH] == 2300 && w.cooldown[PW_WORKOUT] == 14000);
     assert(w.cooldown[PW_STUDY] == 7000 && w.cooldown[PW_CODE] == 9000 && w.cooldown[PW_TAKEOUT] == 50000);
     w.food = 68;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
     assert(ps_open(&s, io, &w) == PS_OK && w.cooldown[PW_STUDY] == 7000 && w.cooldown[PW_TAKEOUT] == 50000);
     /* Compact v4 retains journal and cooldowns and defaults to music. */
     memset(flash, 255, sizeof(flash));
@@ -115,10 +116,21 @@ int main(void)
     assert(ps_open(&s, io, &w) == PS_OK && w.sound_mode == 2 && w.journal_page == 7);
     assert(w.journal_stamps == 6 && w.journal_progress == 3 && w.cooldown[PW_TAKEOUT] == 50000);
     w.sound_mode = 0;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
-    fixture = fopen("campus-v5-nor.bin", "wb");
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
+    fixture = fopen("campus-v6-nor.bin", "wb");
     assert(fixture && fwrite(flash, sizeof(flash), 1, fixture) == 1);
     fclose(fixture);
-    puts("[host:save] schema-v1-v2-v3-v4-to-v5-preserves-order-and-journal PASS");
+    /* Legacy v5 keeps mute via zero volume; other modes default to five. */
+    uint8_t old[64]; memcpy(old, s.saved, 64);
+    for (unsigned mode=0; mode<3; mode++) {
+        memset(flash, 255, sizeof(flash));
+        memcpy(flash, old, 64); flash[4]=5; flash[15]=(uint8_t)(mode<<1);
+        put(flash+56, crc(flash, 56));
+        assert(ps_open(&s, io, &w)==PS_OK && w.sound_mode==mode && w.volume==(mode?5:0));
+        assert(ps_save(&s, &w)==PS_OK && s.saved[4]==6);
+        assert(ps_open(&s, io, &w)==PS_OK && w.volume==(mode?5:0));
+    }
+    puts("[host:save] legacy v5 sound migration and v6 volume PASS");
+    puts("[host:save] schema-v1-v2-v3-v4-to-v6-preserves-order-and-journal PASS");
     puts("[host:save] all PASS (RAM NOR simulation; not physical flash)"); return 0;
 }
