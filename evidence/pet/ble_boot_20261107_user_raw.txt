@@ -1,0 +1,510 @@
+
+RX
+[pet:SAVE] saved seq=2014 scene=
+20:02:08
+RX
+3 food=0 mood=5 sleeping=0
+20:03:08
+RX
+[pet:SAVE] saved seq=2015 scene=
+20:03:08
+RX
+3 food=0 mood=5 sleeping=0
+20:03:18
+RX
+[pet:SAVE] saved seq=2016 scene=
+20:03:18
+RX
+3 food=0 mood=4 sleeping=0
+20:04:18
+RX
+[pet:SAVE] saved seq=2017 scene=
+20:04:18
+RX
+3 food=0 mood=4 sleeping=0
+20:04:27
+TX
+reboot
+
+20:04:27
+RX
+SFBL
+20:04:29
+RX
+Serial:c2,Chip:4,Package:3,Rev:3
+20:04:29
+RX
+  Reason:00000000
+
+
+ \ | /
+- 
+20:04:29
+RX
+SiFli Corporation
+ / | \     bu
+20:04:29
+RX
+ild on Nov  7 2026, 2.5.1 build 
+20:04:29
+RX
+421126d9
+ 2020 - 2022 Copyright
+20:04:29
+RX
+ by SiFli team
+aw32001_init ok,
+20:04:29
+RX
+  time consum: 0.00 ms.
+mount /
+20:04:29
+RX
+dev sucess
+[I/drv.rtc] PSCLR=0x
+20:04:29
+RX
+80000100 DivAI=128 DivAF=0 B=256
+20:04:29
+RX
+
+[I/drv.rtc] RTC use LXT RTC_CR
+20:04:29
+RX
+=00000001
+
+[I/drv.rtc] Init RT
+20:04:29
+RX
+C, wake = 1
+
+[I/drv.audprc] in
+20:04:29
+RX
+it 00 ADC_PATH_CFG0 0x606
+
+[I/
+20:04:29
+RX
+drv.audprc] HAL_AUDPRC_Init res 
+20:04:29
+RX
+0
+
+[I/drv.audcodec] HAL_AUDCOD
+20:04:29
+RX
+EC_Init res 0
+
+[I/drv.rgb] rgb
+20:04:29
+RX
+led register success, supporting
+20:04:29
+RX
+ 1 LEDs
+[I/TOUCH] Regist t
+20:04:29
+RX
+ouch screen driver, probe=120276
+20:04:29
+RX
+05 
+[I/FAL] Flash A
+20:04:29
+RX
+bstraction Layer (V0.5.99) initi
+20:04:29
+RX
+alize success.
+[I/F
+20:04:29
+RX
+AL] The FAL MTD NOR device (dfu)
+20:04:29
+RX
+ created successfully
+20:04:29
+RX
+22m[I/FAL] The FAL MTD NOR devic
+20:04:29
+RX
+e (ble) created successfully
+20:04:29
+RX
+
+LV_MEM_RT: using rt_malloc pat
+20:04:29
+RX
+h (psram private heap build cond
+20:04:29
+RX
+ition not met)
+[I/DBG] drv_gpu opened.
+20:04:29
+RX
+call par CFG1(3313)
+
+fc 9, xtal
+20:04:29
+RX
+ 2000, pll 2151
+
+call par CFG1(
+20:04:29
+RX
+3313)
+
+fc 7, xtal 2000, pll 172
+20:04:29
+RX
+3
+
+
+[pet] v0.12.1-bletest boot
+20:04:29
+RX
+ ok
+[I/DBG] [NONE] -> [OPENING]
+[I/DBG] open
+[I/DBG] HW open
+20:04:29
+RX
+
+[I/DBG] Try registered LCD driv
+20:04:29
+RX
+er...
+msh />
+20:04:29
+RX
+
+CO5300_ReadID 0x331100 
+[I/co
+20:04:29
+RX
+5300] LCD module use CO5300 IC 
+20:04:29
+RX
+
+
+20:04:29
+RX
+
+CO5300_ReadID 0x331100 
+[I/co
+20:04:29
+RX
+5300] LCD module use CO5300 IC 
+
+[I/DBG] Found lcd co5300 id:3
+20:04:29
+RX
+31100h
+[I/DBG] HW open done.
+[I/DBG] [OPENING] -> [INITIALIZED
+20:04:29
+RX
+]
+[I/DBG] open done.
+20:04:29
+RX
+[I/DBG] drv_lcd_fb_init
+[I/DBG]
+20:04:29
+RX
+ drv_lcd_fb_init done.
+[User]	(0.283, +283)	 lv_touchscreen_create: touchscreen touch opening l
+20:04:29
+RX
+v_touch.c:153
+[I/TOUCH] Op
+20:04:29
+RX
+en
+[I/TOUCH] Find touc
+20:04:29
+RX
+h screen driver...
+[I/
+20:04:29
+RX
+TOUCH] Probe 12027605
+20:04:29
+RX
+[I/TOUCH] touch screen found dri
+20:04:29
+RX
+ver  2001e698, ft6146
+[I/TOUCH] Opened.
+[User]	(0
+20:04:29
+RX
+.286, +3)	 lv_touchscreen_create
+20:04:29
+RX
+: touchscreen touch open success
+20:04:29
+RX
+ lv_touch.c:172
+[pet:WORLD] ini
+20:04:29
+RX
+tial-scene PASS
+20:04:29
+RX
+[pet:WORLD] arrive-once PASS
+[p
+20:04:29
+RX
+et:WORLD] retarget-no-snap PASS
+20:04:29
+RX
+
+20:04:29
+RX
+[pet:WORLD] arrival-eligibility 
+20:04:29
+RX
+PASS
+20:04:29
+RX
+[pet:WORLD] busy-no-queue PASS
+20:04:29
+RX
+[pet:WORLD] cooldown-from-finish
+20:04:29
+RX
+ PASS
+[pet:WORLD] capped-meal P
+20:04:29
+RX
+ASS
+20:04:29
+RX
+[pet:WORLD] full-mood-study PASS
+20:04:29
+RX
+
+[pet:WORLD] sleep-wake-support
+20:04:29
+RX
+ PASS
+[pet:WORLD] touch-cancels
+20:04:29
+RX
+-intent PASS
+20:04:29
+RX
+[pet:WORLD] elapsed-and-long-gap
+20:04:29
+RX
+ PASS
+20:04:29
+RX
+[pet:WORLD] jump-and-seat PASS
+20:04:29
+RX
+[pet:WORLD] eight-directions PAS
+20:04:29
+RX
+S
+20:04:29
+RX
+[pet:WORLD] indoor-floor-detour-
+20:04:29
+RX
+and-retarget PASS
+20:04:29
+RX
+[pet:WORLD] classroom-and-cantee
+20:04:29
+RX
+n-detours PASS
+[pet:WORLD] rese
+20:04:29
+RX
+t-invalid PASS
+20:04:29
+RX
+[pet:WORLD] journal-wishes-stamp
+20:04:29
+RX
+-and-page PASS
+20:04:29
+RX
+[pet:WORLD] memory-rounds-wrong-
+20:04:29
+RX
+cancel-and-once PASS
+20:04:29
+RX
+[pet:WORLD] rebalanced-actions-a
+20:04:29
+RX
+nd-sleep-clamp PASS
+[pet:WORLD]
+20:04:29
+RX
+ gym-access-workout-and-return P
+20:04:29
+RX
+ASS
+20:04:29
+RX
+[pet:WORLD] takeout-delivery-gua
+20:04:29
+RX
+rds-and-once PASS
+20:04:29
+RX
+[pet:WORLD] four-room-decor-and-
+20:04:29
+RX
+expanded-floor PASS
+20:04:29
+RX
+[E/drv.ft6146] ft6146 id_H=64
+[
+20:04:29
+RX
+E/drv.ft6146] ft6146 id_L=56
+20:04:29
+RX
+[pet:WORLD] campus-point-retarge
+20:04:29
+RX
+t-road PASS
+20:04:29
+RX
+[pet:WORLD] campus-three-buildin
+20:04:29
+RX
+g-doors PASS
+[pet:WORLD] campus
+20:04:29
+RX
+-guards-no-wander PASS
+20:04:29
+RX
+[pet:WORLD] campus-clock-camera 
+20:04:29
+RX
+PASS
+20:04:30
+RX
+[pet:WORLD] campus-all-road-endp
+20:04:30
+RX
+oints PASS
+[pet:SAVE-TEST] form
+20:04:30
+RX
+at-restore-cooldowns PASS
+[pet:
+20:04:30
+RX
+SAVE-TEST] sleep-elapsed-wake PA
+20:04:30
+RX
+SS
+20:04:30
+RX
+[pet:SAVE-TEST] all-65-write-cut
+20:04:30
+RX
+-points PASS
+[pet:SAVE-TEST] cr
+20:04:30
+RX
+c-fallback PASS
+20:04:30
+RX
+[pet:SAVE-TEST] rotation-partial
+20:04:30
+RX
+-erase PASS
+[pet:SAVE-TEST] sho
+20:04:30
+RX
+rt-io-no-success PASS
+[pet:SAVE
+20:04:30
+RX
+-TEST] no-unfinished-action-replay PASS
+[pet:SAVE-TEST] autosave-throttl
+20:04:30
+RX
+e-checkpoint-retry PASS
+[pet:SAVE-TEST] visible-state-save-cons
+20:04:30
+RX
+istency PASS
+[pet:SAVE-TEST] ca
+20:04:30
+RX
+mpus-safe-restore PASS
+20:04:30
+RX
+[pet:SAVE-TEST] takeout-resume-a
+20:04:30
+RX
+nd-atomic-pickup PASS
+20:04:30
+RX
+[pet:SAVE-TEST] takeout-autosave
+20:04:30
+RX
+-phase-key PASS
+20:04:30
+RX
+[pet:SAVE-TEST] journal-atomic-s
+20:04:30
+RX
+tamp-and-game-restore PASS
+20:04:30
+RX
+[pet:SAVE-TEST] sound-mode-autos
+20:04:30
+RX
+ave-and-reboot PASS
+20:04:30
+RX
+[pet:AUDIO-TEST] pcm-loop-modes-
+20:04:30
+RX
+duck-and-four-notes PASS
+[pet:A
+20:04:30
+RX
+UDIO-TEST] world-events-once-no-
+20:04:30
+RX
+replay PASS
+[pet:WORLD] all PAS
+20:04:30
+RX
+S
+[pet:SAVE-TEST] all PASS (RAM
+20:04:30
+RX
+ only)
+20:04:30
+RX
+[pet:AUDIO] worker ready, mode=1
+20:04:30
+RX
+, 16000Hz mono PCM
+20:04:30
+RX
+[pet:SAVE] load=0 seq=2017 scene
+20:04:30
+RX
+=3 food=0 mood=4 sleeping=0
+[pe
+20:04:30
+RX
+t:BLE-TEST] protocol PASS (RAM o
+20:04:30
+RX
+nly, no radio verdict)

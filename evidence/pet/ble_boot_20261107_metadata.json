@@ -1,0 +1,20 @@
+{
+  "source_attachment": "C:\\Users\\30831\\.codex\\attachments\\729f0ff8-a383-49f5-a63f-5d7b3d04b31f\\已粘贴的文本.txt",
+  "bytes": 6425,
+  "sha256": "9CACDF00CFF3008A951EA70C44FB759AF1AA2519EB2A5A4829FB489D99BECF2A",
+  "time_labels": "TX reboot 20:04:27; boot 20:04:29; final RX 20:04:30; exact operation date not independently provided",
+  "confirmed": [
+    "v0.12.1-bletest boot ok",
+    "WORLD/SAVE/AUDIO selftest PASS lines observed",
+    "pet SAVE load=0 seq=2017 scene=3 food=0 mood=4 sleeping=0",
+    "BLE protocol PASS is RAM-only",
+    "user subsequently confirmed UI remains operable"
+  ],
+  "not_observed": [
+    "BLE ready",
+    "pet BLE advertising result",
+    "device name broadcast",
+    "phone connection"
+  ],
+  "next_step": "Read current serial continuation and list_thread, no further reboot required; source and firmware unchanged"
+}

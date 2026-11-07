@@ -877,11 +877,12 @@ test_results:
   - test_id: TC-214
     description: iPhone与小猫BLE连接探针
     expected: 按docs/03的TC-214扫描连接、读信息、PING/PONG及断开重连
-    actual: 用户报告v0.12.1界面，LightBlue未发现ShaheCat；启动/广播日志和扫描截图待补，根因未知
-    status: investigating_user_report
+    actual: 真实日志确认v0.12.1-bletest启动、RAM协议自检PASS，用户确认UI可操作；附件仅至启动后约1秒，无广播或连接结果，根因未知
+    status: investigating_boot_log
     pass: null
 
 known_issues:
+  - "TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"
   - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214待iPhone真实连接，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"
   - "时间系统已确认三项方向并登记REQ-191至REQ-195与TC-203至TC-210，代码未实现；保存布局待评审，初始时刻/窗口/数值是AI初版参数。"
