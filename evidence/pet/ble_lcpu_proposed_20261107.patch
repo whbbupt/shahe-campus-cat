@@ -1,0 +1,12 @@
+--- a/project/SConstruct
++++ b/project/SConstruct
+@@ -16,6 +16,9 @@
+ # Add bootloader project
+ AddBootLoader(SIFLI_SDK,rtconfig.CHIP)
+ 
++# Add the BLE controller image, matching the SDK peripheral example.
++AddLCPU(SIFLI_SDK, rtconfig.CHIP, "../src/lcpu_img.c")
++
+ # Set default compile options
+ SifliEnv()
+ 

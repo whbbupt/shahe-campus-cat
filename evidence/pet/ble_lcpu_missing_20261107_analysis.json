@@ -1,0 +1,35 @@
+{
+  "recorded_on": "2026-11-07",
+  "raw_attachment": "C:\\Users\\30831\\.codex\\attachments\\9e92401b-8c22-468e-9141-8ffe89efb656\\已粘贴的文本.txt",
+  "evidence": "evidence\\pet\\ble_sdklog_20261107_user_raw.txt",
+  "bytes": 7322,
+  "sha256": "E7E0877C841E4512E4923C576CAC0B072242B12E42926E02324260867D2836C1",
+  "source_hash_matches": true,
+  "user_time_range": "TX reboot 21:01:47; RX boot 21:01:49; final RX 21:01:50",
+  "user_confirmed_no_later_output": true,
+  "physical_result": "TC-218 partial boot log received; TC-214 advertising/connection still unverified",
+  "hardware": "Chip:4 Package:3 Rev:3",
+  "sdk_revision_constants": {
+    "HAL_CHIP_REV_ID_A3": "0x03",
+    "HAL_CHIP_REV_ID_A4": "0x07"
+  },
+  "current_elf_symbols": [
+    "1202a262 00000002 W lcpu_img_install"
+  ],
+  "peripheral_lab_elf_symbols": [
+    "121843f8 000014f4 T g_lcpu_bin",
+    "12098170 00000018 T lcpu_img_install"
+  ],
+  "finding": "Current lcpu_img_install is weak empty 2-byte implementation, no g_lcpu_bin. SDK Rev<7 path requires installer. Official peripheral example and local peripheral_lab use AddLCPU. Missing integration is confirmed; whether sole physical fault requires board retest.",
+  "normal_log_meaning": {
+    "NVDS Update Addr res 6": "rt_flash_config_read return byte count=6, not NVDS_STATUS 6",
+    "read sleep time 3500": "LXT controller wakeup parameter, not pet sleep clock"
+  },
+  "reference_hashes": {
+    "drivers\\cmsis\\sf32lb52x\\bf0_lcpu_init.c": "BC23C8760E17C0A3B5AA606A1F0E3270CE560FACBBDA26E331ACD409CB251D00",
+    "drivers\\Include\\bf0_hal.h": "00A241BEEB89CB212525506BAEA09A86EB8B8BDE92961A39AA2BC7AD1DF0597D",
+    "tools\\build\\building.py": "2BB1A1987FB02B879FC68DA8AF8FBE9CD8C2FE62850F373C8F0CC0F0D5C061FF",
+    "example\\ble\\peripheral\\project\\SConstruct": "132D43A4C7A8B162EA189AFCF09BFDA55214E0E244257129CC4DCA0E2788C89E"
+  },
+  "pending_patch": "AddLCPU(SIFLI_SDK, rtconfig.CHIP, \"../src/lcpu_img.c\") after AddBootLoader before SifliEnv; project AGENTS section F requires explicit student authorization before applying."
+}
