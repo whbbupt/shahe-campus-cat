@@ -1,0 +1,18 @@
+{
+  "version": "0.12.1-bletest",
+  "requirements_commit": "79ac76d",
+  "implementation_commit": "4328c97",
+  "output_directory": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-ble-probe-20261107",
+  "zip": "沙河校园小猫-v0.12.1-iPhone蓝牙连接测试版.zip",
+  "zip_bytes": 13585030,
+  "zip_sha256": "D4150ABDA15CF78F0EE0501B9EBD7A7F2E334B80950591401A5E6F3BA931F061",
+  "payloads": 22,
+  "crc_and_payload_sha256": "PASS",
+  "build_inputs": 77,
+  "build_artifacts": 15,
+  "rom_used": 7415548,
+  "rom_total": 8388608,
+  "rom_remaining": 973060,
+  "physical": "TC-214 not executed",
+  "course": "commit/trace PASS; existing 8-day gap FAIL; manifest WARN44"
+}
