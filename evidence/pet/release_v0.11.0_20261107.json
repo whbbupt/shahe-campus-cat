@@ -1,0 +1,15 @@
+{
+  "version": "0.11.0",
+  "implementation_commit": "7808400",
+  "requirements_commit": "e9543a2",
+  "output_directory": "C:/Users/30831/Desktop/大三上/周六软件产品综合开发/outputs/pet-shahe-journal-v011-20261107",
+  "zip": "沙河校园小猫-v0.11.0-手账与小游戏固件.zip",
+  "zip_bytes": 10884326,
+  "zip_sha256": "F5841AD55B19A882E90920F68ABFD73425A9608CE3E9B5F5EEEA0642AAF83D8F",
+  "zip_payloads": 24,
+  "crc_and_payload_sha256": "PASS",
+  "build_inputs": 52,
+  "build_artifacts": 15,
+  "physical": "TC-196 not executed",
+  "course": "commit and trace PASS; devlog historical eight-day gap FAIL; manifest WARN34"
+}
