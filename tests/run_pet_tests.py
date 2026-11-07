@@ -52,7 +52,9 @@ def build(sources, name, includes=(), defines=()):
     flags = base + [(('/I' if msvc else '-I') + str(x)) for x in include_paths]
     flags += [(('/D' if msvc else '-D') + x) for x in defines]
     # Cache key includes all production/header/config content relevant to these tests.
-    headers = list((root/'src').glob('*.h')) + list((root/'tests/include').glob('*.h'))
+    headers = list((root/'src').glob('*.h'))
+    headers += list((root/'src').glob('*.inc'))
+    headers += list((root/'tests/include').glob('*.h'))
     if a.sdk:
         headers += list((a.sdk/'external/lvgl_v9').rglob('*.h'))
     newest = max((x.stat().st_mtime for x in headers), default=0)

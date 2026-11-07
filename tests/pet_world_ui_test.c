@@ -308,6 +308,23 @@ static void enter(const char *name, pw_scene_t scene)
     pw_camera(&world, &x, &y);
     assert(x == 0 && y == 0);
 }
+static void check_campus_tiles(void)
+{
+    float cx, cy;
+    pw_camera(&world, &cx, &cy);
+    lv_obj_update_layout(lv_screen_active());
+    for (int y = 0; y < 4; y++)
+        for (int x = 0; x < 4; x++)
+        {
+            lv_obj_t *tile = image_with(lv_screen_active(), shahe_ground[y * 4 + x]);
+            assert(tile && !lv_obj_has_flag(tile, LV_OBJ_FLAG_CLICKABLE));
+            lv_area_t bounds;
+            lv_obj_get_coords(tile, &bounds);
+            assert(bounds.x1 == x * 280 - (int)lroundf(cx));
+            assert(bounds.y1 == y * 260 - (int)lroundf(cy));
+            assert(bounds.x2 - bounds.x1 + 1 == 280 && bounds.y2 - bounds.y1 + 1 == 260);
+        }
+}
 static void campus_round_trip(void)
 {
     leave(PW_DORM);
@@ -316,6 +333,7 @@ static void campus_round_trip(void)
     road(255, 390);
     road(410, 390);
     road(570, 390);
+    check_campus_tiles();
     screenshot("shahe-hongyan-guomai.ppm");
     press("路标");
     screenshot("shahe-signs.ppm");
@@ -324,18 +342,19 @@ static void campus_round_trip(void)
     screenshot("shahe-teaching-gate.ppm");
     enter("教综楼", PW_CLASSROOM);
     screenshot("shahe-classroom.ppm");
-    tap(189, 408);
+    tap(189, 411);
     idle(PW_CLASSROOM);
-    settled_at(189, 408);
-    tap(99, 255);
+    settled_at(189, 411);
+    tap(88, 256);
     assert(world.settlements[PW_STUDY] == 0);
     until_action(PW_STUDY);
     step(550);
     screenshot("shahe-classroom-study.ppm");
-    tap(99, 255);
+    tap(88, 256);
     assert(result == PW_BUSY && world.settlements[PW_STUDY] == 1);
     step(pw_duration(PW_STUDY));
     leave(PW_CLASSROOM);
+    screenshot("shahe-teaching-entry.ppm");
     road(630, 390);
     road(570, 520);
     road(570, 650);
@@ -347,15 +366,16 @@ static void campus_round_trip(void)
     tap(261, 396);
     idle(PW_CANTEEN);
     settled_at(261, 396);
-    tap(103, 267);
+    tap(87, 252);
     assert(world.settlements[PW_EAT] == 0);
     until_action(PW_EAT);
     step(550);
     screenshot("shahe-canteen-meal.ppm");
-    tap(103, 267);
+    tap(87, 252);
     assert(result == PW_BUSY && world.settlements[PW_EAT] == 1);
     step(pw_duration(PW_EAT));
     leave(PW_CANTEEN);
+    screenshot("shahe-canteen-entry.ppm");
     road(540, 760);
     road(570, 638);
     road(570, 485);

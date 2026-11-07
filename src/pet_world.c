@@ -5,13 +5,23 @@
 #include <string.h>
 
 static const pw_point_t nodes[4][32] = {
-    {{347, 235}, [3] = {189, 367}, [6] = {169, 297}, [7] = {118, 305}},
-    {{347, 235}, [3] = {188, 358}, [6] = {151, 296}},
-    {{347, 235}, [3] = {189, 330}, [6] = {155, 311}},
-    {{570, 390}, {155, 390}, {155, 280}, {790, 390}, {570, 640},
-     {570, 760}, {395, 760}, [13] = {225, 280}, [14] = {790, 450}, [15] = {395, 810}}};
+    {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}},
+    {{343, 242}, [3] = {188, 358}, [6] = {148, 298}},
+    {{346, 239}, [3] = {184, 302}, [6] = {152, 300}},
+    {
+#define SHAHE_NODE(id, x, y) [id] = {x, y},
+#define SHAHE_ROAD(a, b)
+#include "pet_shahe_roads.inc"
+#undef SHAHE_NODE
+#undef SHAHE_ROAD
+    }};
 static const uint8_t campus_edges[][2] = {
-    {0, 1}, {1, 2}, {2, 13}, {0, 3}, {3, 14}, {0, 4}, {4, 5}, {5, 6}, {6, 15}};
+#define SHAHE_NODE(id, x, y)
+#define SHAHE_ROAD(a, b) {a, b},
+#include "pet_shahe_roads.inc"
+#undef SHAHE_NODE
+#undef SHAHE_ROAD
+};
 enum { ROOM_CORNERS = 8, ROOM_START = 20, ROOM_GOAL = 21, ROAD_GOAL = 16 };
 
 typedef struct
@@ -21,16 +31,17 @@ typedef struct
 
 /* These are foot-space obstacles, expanded slightly beyond the painted bases. */
 static const floor_block_t blocks[3][3] = {
-    {{33, 221, 174, 288}, {207, 283, 264, 333}},
-    {{54, 248, 132, 292}, {204, 248, 281, 293}, {54, 329, 132, 371}},
-    {{54, 251, 139, 309}, {218, 251, 300, 309}, {104, 351, 181, 394}}
+    {{23, 243, 178, 301}, {213, 276, 260, 324}},
+    {{42, 244, 134, 399}, {200, 244, 291, 319}},
+    {{34, 242, 142, 326}, {214, 242, 319, 326}, {89, 326, 202, 419}}
 };
-static const unsigned block_count[] = {2, 3, 3};
+static const unsigned block_count[] = {2, 2, 3};
+static const unsigned floor_top[] = {246, 241, 236};
 
 bool pw_room_ground(pw_scene_t scene, float x, float y)
 {
     if ((unsigned)scene >= PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
-        x < 22 || x > 368 || y < 222 || y > 423)
+        x < 22 || x > 368 || y < floor_top[scene] || y > 423)
         return false;
     for (unsigned i = 0; i < block_count[scene]; i++)
     {
@@ -66,7 +77,7 @@ static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
 static const uint32_t durations[7] = {0, 4000, 1500, 600, 8000, 10000, 500};
 static const uint32_t cooldowns[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
 static const int food_delta[7] = {0, 15, 0, 0, -5, -3, 0}, mood_delta[7] = {0, 0, 10, 0, 5, 4, 0};
-static const pw_point_t supports[3][2] = {{{100, 147}, {117, 271}}, {{116, 279}, {0, 0}}, {{122, 289}, {0, 0}}};
+static const pw_point_t supports[3][2] = {{{94, 154}, {104, 263}}, {{88, 294}, {0, 0}}, {{89, 298}, {0, 0}}};
 enum
 {
     MSG_NONE,
@@ -246,7 +257,7 @@ void pw_road(unsigned index, pw_point_t *a, pw_point_t *b)
 void pw_camera(const pet_world_t *w, float *x, float *y)
 {
     *x = w->scene == PW_CAMPUS ? fmaxf(0, fminf(PW_CAMPUS_WIDTH - 390, w->x - 195)) : 0;
-    *y = w->scene == PW_CAMPUS ? fmaxf(0, fminf(PW_CAMPUS_HEIGHT - 450, w->y - 255)) : 0;
+    *y = w->scene == PW_CAMPUS ? fmaxf(0, fminf(PW_CAMPUS_HEIGHT - 450, w->y - 230)) : 0;
 }
 static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, unsigned *len, float *cost)
 {

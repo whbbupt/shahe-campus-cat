@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.8.0首批路线软件与构建通过，TC-176实机待测"
+  milestone: "沙河校园小猫v0.8.1绘本统一，软件与构建通过，TC-179实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -87,7 +87,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.8.0_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.8.1_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -591,7 +591,32 @@ test_results:
     status: not_executed
     pass: null
 
+
+  - test_id: TC-177
+    description: 绘本室内外生产LVGL画面
+    expected: 按docs/03 v0.8.1用例
+    actual: 主机画面已查看，三室和校园入口符合当前画风
+    status: passed_host_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.8.1_final_20261107.txt
+
+  - test_id: TC-178
+    description: 重绘坐标、触摸、路线、存档和固件容量回归
+    expected: 按docs/03 v0.8.1用例
+    actual: 主机及目标构建通过，详见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.8.1_metadata_20261107.json
+
+  - test_id: TC-179
+    description: v0.8.1真实手表画面与完整路线
+    expected: 按docs/03 v0.8.1用例
+    actual: 未执行，等待用户回传板端证据
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.8.1绘本重绘已过软件和构建，屏幕显示和流畅度等TC-179实机待测。"
   - "v0.8.0餐厅北门是游戏取点，实际门位待核实；TC-176板端路线、显示、触摸、保存与复位待测。"
   - "2026-11-05 check_all开发日志项因10/28至11/05真实8天提交间隔FAIL；8个提交日均有日志且0内容问题，已说明已知事实但原检查器不豁免；不改规则/倒填提交。"
   - "v0.7.1教学楼/路口局部插画样板软件与构建通过，周边室外仍旧矢量；TC-165未实测，动态内存/帧率未知；存档和路网不变。"
@@ -620,6 +645,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "宿舍重绘审美和首批各场景画风统一"
+    student_confirmation: "用户看过宿舍对照后明确同意，要求各场景统一"
+    evidence_path: evidence/pet/shahe_art_20261107_user.txt
   - decision_point: "校园素材路线、画风和局部样板范围"
     student_confirmation: "选择第三种分层图片、左侧插画，并回复那也可以认可先做教学楼前与路口样板；不代表最终实机通过"
     evidence_path: "evidence/pet/campus_art_choice_20261105_user.txt"

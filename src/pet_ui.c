@@ -145,65 +145,38 @@ static void build_campus(lv_obj_t *screen)
     ui.campus = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, 0xB9CEA2, 0);
     lv_obj_add_flag(ui.campus, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.campus, ground_click, LV_EVENT_CLICKED, NULL);
-    box(ui.campus, 12, 108, 96, 239, 0xA9C093, 22);
-    box(ui.campus, 316, 150, 212, 195, 0xACC596, 28);
-    box(ui.campus, 620, 116, 283, 224, 0xAFC994, 36);
-    box(ui.campus, 207, 438, 311, 275, 0xACC596, 38);
-    box(ui.campus, 620, 656, 348, 273, 0xAFC994, 36);
-    box(ui.campus, 334, 657, 207, 57, 0x99B9B6, 29);
-    box(ui.campus, 347, 666, 185, 39, 0xABC9C1, 20);
-    box(ui.campus, 378, 679, 58, 2, 0xC6DCD1, 1);
-    box(ui.campus, 461, 691, 38, 2, 0xC6DCD1, 1);
-    for (int pass = 0; pass < 2; pass++)
-    {
-        int r = pass ? PW_ROAD_RADIUS : PW_ROAD_RADIUS + 4;
-        for (unsigned i = 0; i < pw_road_count(); i++)
-        {
-            pw_point_t a, b;
-            pw_road(i, &a, &b);
-            int x = (int)fminf(a.x, b.x), y = (int)fminf(a.y, b.y);
-            box(ui.campus, x - r, y - r, (int)fabsf(a.x - b.x) + 2 * r,
-                (int)fabsf(a.y - b.y) + 2 * r, pass ? 0xE8D8B4 : 0xA9AD89, r);
-        }
-    }
-    for (int x = 218; x <= 743; x += 75)
-    {
-        box(ui.campus, x, 363, 1, 54, 0xD5C8A5, 0);
-        box(ui.campus, x + 15, 388, 19, 3, 0xF4E7CD, 1);
-    }
-    for (int y = 453; y <= 732; y += 70)
-    {
-        box(ui.campus, 544, y, 52, 1, 0xD5C8A5, 0);
-        box(ui.campus, 569, y + 14, 3, 20, 0xF4E7CD, 1);
-    }
-    static const int16_t meadows[][2] = {
-        {80,153}, {365,190}, {420,211}, {648,208}, {721,175}, {794,239},
-        {935,314}, {355,563}, {467,540}, {641,602}, {724,719}, {823,832}};
-    for (unsigned i = 0; i < sizeof(meadows) / sizeof(meadows[0]); i++)
-    {
-        int x = meadows[i][0], y = meadows[i][1];
-        box(ui.campus, x, y, 20, 5, 0x9FB88B, 3);
-        box(ui.campus, x + 6, y - 2, 7, 4, 0xD8D5A0, 3);
-    }
+    for (unsigned y = 0; y < 4; y++)
+        for (unsigned x = 0; x < 4; x++)
+            image(ui.campus, shahe_ground[y * 4 + x], x * 280, y * 260);
     static const int16_t trees[][2] = {
         {32,190}, {49,293}, {243,215}, {303,262}, {448,257}, {598,262},
         {690,256}, {853,274}, {197,424}, {310,466}, {420,434}, {615,453},
         {651,545}, {929,489}, {932,575}, {626,690}, {677,794}, {477,817},
         {249,765}, {287,860}, {522,879}};
     for (unsigned i = 0; i < sizeof(trees) / sizeof(trees[0]); i++)
-        image(ui.campus, &shahe_tree, trees[i][0], trees[i][1]);
+    {
+        int x = trees[i][0], y = trees[i][1];
+        int h = shahe_tree.header.h;
+        image(ui.campus, &shahe_tree_shadow, x + 18, y + h - 12);
+        image(ui.campus, &shahe_tree, x, y);
+    }
     for (unsigned room = 0; room < 3; room++)
     {
         pw_point_t door = pw_node(PW_CAMPUS, 13 + room);
+        const lv_image_dsc_t *art = campus_building[room];
         int x = (int)door.x, y = (int)door.y;
-        image(ui.campus, campus_building[room], x - 96, room == PW_DORM ? y - 154 : y + 20);
+        int art_x = x - art->header.w * 43 / 100;
+        int art_y = room == PW_DORM ? y - art->header.h : y + 18;
+        lv_obj_t *shadow = box(ui.campus, art_x + 16, art_y + art->header.h - 14,
+                               art->header.w - 7, 26, 0x526746, 13);
+        lv_obj_set_style_bg_opa(shadow, LV_OPA_20, 0);
+        image(ui.campus, art, art_x, art_y);
         if (room != PW_DORM)
         {
-            /* North-facing entry canopy on the road side of the building. */
-            box(ui.campus, x - 23, y + 1, 46, 34, 0xA3B2A5, 5);
-            box(ui.campus, x - 16, y + 4, 32, 14, 0x5A7C85, 4);
-            box(ui.campus, x - 16, y + 19, 32, 4, 0xC1D4CE, 2);
-            box(ui.campus, x - 20, y + 25, 40, 4, 0xBAC9BD, 2);
+            /* The route reaches the north-side entry; the illustration shows the main facade. */
+            box(ui.campus, x - 21, y + 4, 42, 23, 0xB6A485, 6);
+            box(ui.campus, x - 18, y + 3, 36, 15, 0xE8D3AB, 4);
+            box(ui.campus, x - 14, y + 7, 28, 3, 0xF6E8C9, 1);
         }
     }
     text(ui.campus, "国脉西路", 80, 385, &pet_font_16, INK);
@@ -238,9 +211,9 @@ typedef struct
 } furniture_hotspot_t;
 
 static const furniture_hotspot_t furniture[3][2] = {
-    {{31, 101, 147, 63, 107, 110, PW_REST, 2}, {38, 174, 105, 64, 85, 214, PW_CODE, 3}},
-    {{49, 230, 91, 58, 102, 239, PW_STUDY, 4}},
-    {{50, 239, 94, 60, 101, 247, PW_EAT, 5}}
+    {{24, 110, 134, 61, 110, 122, PW_REST, 2}, {31, 175, 115, 80, 109, 208, PW_CODE, 3}},
+    {{44, 235, 90, 75, 111, 245, PW_STUDY, 4}},
+    {{36, 231, 105, 83, 117, 243, PW_EAT, 5}}
 };
 
 static const lv_image_dsc_t *const room_art[] = {&shahe_room_0, &shahe_room_1, &shahe_room_2};
@@ -333,7 +306,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.foreground = lv_image_create(screen);
     lv_obj_remove_flag(ui.foreground, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ui.foreground, &shahe_front_0);
-    ui.door = button(screen, 314, 94, 65, 143, PW_EXIT, PAPER, 5);
+    ui.door = button(screen, 310, 100, 69, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
     gate_badge(ui.door, "出门", 1, 65, 63);

@@ -126,7 +126,7 @@ static bool sleep_wake(void)
     CHECK(w.phase == PW_SLEEP);
     pw_visual_t v;
     pw_visual(&w, &v);
-    CHECK(v.frame == 18 && fabsf(v.x - 100) < .01f && fabsf(v.y - 147) < .01f);
+    CHECK(v.frame == 18 && fabsf(v.x - 94) < .01f && fabsf(v.y - 154) < .01f);
     CHECK(pw_request(&w, PW_GO_CANTEEN) == PW_ASLEEP);
     pw_advance(&w, 60000);
     CHECK(w.mood == 61);
@@ -177,7 +177,7 @@ static bool jump_support(void)
     CHECK(v.airborne && v.frame < 16 && v.lift > 16);
     pw_advance(&w, 300);
     pw_visual(&w, &v);
-    CHECK(v.frame >= 16 && v.frame <= 17 && v.occlusion && fabsf(v.y - 271) < .01f);
+    CHECK(v.frame >= 16 && v.frame <= 17 && v.occlusion && fabsf(v.y - 263) < .01f);
     pw_advance(&w, (uint32_t)(w.action_end - w.now - 250));
     pw_visual(&w, &v);
     CHECK(v.airborne && v.frame < 16);
@@ -234,7 +234,7 @@ static bool other_room_detours(void)
         pet_world_t w;
         pw_init(&w);
         w.scene = scene;
-        w.x = 42;
+        w.x = 28;
         w.y = 274;
         CHECK(pw_walk_to(&w, 173, 274) == PW_OK);
         for (int i = 0; i < 400 && w.phase == PW_WALK; i++)
@@ -383,7 +383,7 @@ static bool campus_clock_camera(void)
     a.x = 570;
     a.y = 390;
     pw_camera(&a, &x, &y);
-    CHECK(x == 375 && y == 135);
+    CHECK(x == 375 && y == 160);
     a.x += 1;
     pw_camera(&a, &x, &y);
     CHECK(x == 376);
