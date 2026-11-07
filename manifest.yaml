@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.12.2 BLE诊断，TC-215软件通过，TC-216实机待测，原TC-214连接失败待定位"
+  milestone: "沙河校园小猫v0.12.3 BLE底层日志，TC-217软件通过，TC-218实机待测，连接失败待定位"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -891,11 +891,12 @@ test_results:
   - test_id: TC-218
     description: SDK内部启动日志实机
     expected: 按TC-218采集SDK日志和状态，不宣称无线修复
-    actual: 实现前登记，尚未执行
+    actual: SDK日志配置及软件构建通过，尚未取得v0.12.3真实启动日志
     status: planned_not_executed
     pass: null
 
 known_issues:
+  - "v0.12.3仅启用SDK内部日志，TC-217软件通过、TC-218待新启动；0回调的底层原因尚未确认。全量保留原7告警加既有SDK潜在空指针2次。"
   - "v0.12.2真实查询显示wait-ready、0回调、循环活跃且队列无故障；新增TC-217/218单独开启SDK日志，底层原因尚不确定。"
   - "v0.12.2只增加启动阶段/计数及pet_ble_status查询，TC-215软件通过、TC-216待实机；原v0.12.1扫描失败根因未定位，不把诊断版等同修复。"
   - "TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
