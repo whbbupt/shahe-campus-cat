@@ -4,8 +4,8 @@
 #include <math.h>
 #include <string.h>
 
-static const pw_point_t nodes[4][PW_PATH_CAPACITY] = {
-    {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}},
+static const pw_point_t nodes[PW_GYM + 1][PW_PATH_CAPACITY] = {
+    {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}, [1] = {304, 302}},
     {{343, 242}, [3] = {188, 358}, [6] = {148, 298}},
     {{346, 239}, [3] = {184, 302}, [6] = {152, 300}},
     {
@@ -14,7 +14,8 @@ static const pw_point_t nodes[4][PW_PATH_CAPACITY] = {
 #include "pet_shahe_roads.inc"
 #undef SHAHE_NODE
 #undef SHAHE_ROAD
-    }};
+    },
+    [PW_GYM] = {{345, 246}, [3] = {232, 359}, [6] = {187, 329}}};
 static const uint8_t campus_edges[][2] = {
 #define SHAHE_NODE(id, x, y)
 #define SHAHE_ROAD(a, b) {a, b},
@@ -22,7 +23,7 @@ static const uint8_t campus_edges[][2] = {
 #undef SHAHE_NODE
 #undef SHAHE_ROAD
 };
-enum { ROOM_CORNERS = 8, ROOM_START = 20, ROOM_GOAL = 21, ROAD_GOAL = PW_PATH_CAPACITY - 1 };
+enum { ROOM_CORNERS = 8, ROOM_START = 24, ROOM_GOAL = 25, ROAD_GOAL = PW_PATH_CAPACITY - 1 };
 
 typedef struct
 {
@@ -30,18 +31,19 @@ typedef struct
 } floor_block_t;
 
 /* These are foot-space obstacles, expanded slightly beyond the painted bases. */
-static const floor_block_t blocks[3][3] = {
-    {{23, 243, 178, 301}, {213, 276, 260, 324}},
-    {{42, 244, 134, 399}, {200, 244, 291, 319}},
-    {{34, 242, 142, 326}, {214, 242, 319, 326}, {89, 326, 202, 419}}
+static const floor_block_t blocks[PW_GYM + 1][4] = {
+    {{23, 243, 178, 301}, {213, 276, 260, 324}, {22, 390, 59, 409}},
+    {{42, 244, 134, 399}, {200, 244, 291, 319}, {314, 359, 371, 385}},
+    {{34, 242, 142, 326}, {214, 242, 319, 326}, {89, 326, 202, 419}, {319, 350, 376, 374}},
+    [PW_GYM] = {{34, 241, 168, 322}, {289, 348, 356, 372}}
 };
-static const unsigned block_count[] = {2, 2, 3};
-static const unsigned floor_top[] = {246, 241, 236};
+static const unsigned block_count[] = {3, 3, 4, [PW_GYM] = 2};
+static const unsigned floor_top[] = {246, 241, 236, [PW_GYM] = 242};
 
 bool pw_room_ground(pw_scene_t scene, float x, float y)
 {
-    if ((unsigned)scene >= PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
-        x < 22 || x > 368 || y < floor_top[scene] || y > 423)
+    if ((unsigned)scene > PW_GYM || scene == PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
+        x < 12 || x > 378 || y < floor_top[scene] || y > 440)
         return false;
     for (unsigned i = 0; i < block_count[scene]; i++)
     {
@@ -74,9 +76,11 @@ static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
     }
     return true;
 }
-static const uint32_t durations[7] = {0, 4000, 1500, 600, 8000, 10000, 500};
-static const uint32_t cooldowns[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
-static const int food_delta[7] = {0, 20, 0, 0, -7, -4, 0}, mood_delta[7] = {0, 0, 8, 0, 7, 5, 0};
+static const uint32_t durations[PW_ACTION_COUNT] = {0, 4000, 1500, 600, 8000, 10000, 500, 8000, 3200};
+static const uint32_t cooldowns[PW_ACTION_COUNT] = {
+    0, 2000, 3000, 0, 8000, 10000, 0, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS};
+static const int food_delta[PW_ACTION_COUNT] = {0, 20, 0, 0, -7, -4, 0, -6, 12};
+static const int mood_delta[PW_ACTION_COUNT] = {0, 0, 8, 0, 7, 5, 0, 12, 0};
 static const pw_point_t supports[3][2] = {{{94, 154}, {104, 263}}, {{88, 294}, {0, 0}}, {{89, 298}, {0, 0}}};
 enum
 {
@@ -95,19 +99,29 @@ enum
     MSG_COOLDOWN,
     MSG_FULL,
     MSG_LOW,
-    MSG_INVALID
+    MSG_INVALID,
+    MSG_WORKOUT,
+    MSG_ORDERED,
+    MSG_DELIVERED,
+    MSG_TAKEOUT,
+    MSG_ORDER_ACTIVE,
+    MSG_NO_ORDER
 };
 static float distance(float ax, float ay, float bx, float by)
 {
     return hypotf(ax - bx, ay - by);
 }
+unsigned pw_campus_door(pw_scene_t scene)
+{
+    return scene == PW_GYM ? 52U : (unsigned)scene < PW_CAMPUS ? 13U + (unsigned)scene : 0U;
+}
 pw_point_t pw_node(pw_scene_t s, unsigned n)
 {
-    return (unsigned)s <= PW_CAMPUS && n < PW_PATH_CAPACITY ? nodes[s][n] : (pw_point_t){0, 0};
+    return (unsigned)s <= PW_GYM && n < PW_PATH_CAPACITY ? nodes[s][n] : (pw_point_t){0, 0};
 }
 uint32_t pw_duration(pw_command_t a)
 {
-    return a >= PW_EAT && a <= PW_WAKE ? durations[a] : 0;
+    return a >= PW_EAT && a < PW_ACTION_COUNT ? durations[a] : 0;
 }
 bool pw_busy(const pet_world_t *w)
 {
@@ -122,6 +136,22 @@ static uint8_t clamp_value(int x)
 {
     return (uint8_t)(x < 0 ? 0 : (x > 100 ? 100 : x));
 }
+static void feedback(pet_world_t *w, int food, int mood, uint64_t at)
+{
+    w->gain = food;
+    w->mood_gain = mood;
+    w->gain_until = food || mood ? at + 2400 : 0;
+}
+
+static void settle(pet_world_t *w, pw_command_t a)
+{
+    int old_food = w->food, old_mood = w->mood;
+    w->food = clamp_value(old_food + food_delta[a]);
+    w->mood = clamp_value(old_mood + mood_delta[a]);
+    w->settlements[a]++;
+    feedback(w, w->food - old_food, w->mood - old_mood, w->now);
+}
+
 static uint8_t heading(float dx, float dy)
 {
     static const uint8_t map[8] = {6, 7, 0, 1, 2, 3, 4, 5};
@@ -152,6 +182,16 @@ void pw_init(pet_world_t *w)
 }
 static void clock_step(pet_world_t *w, uint64_t dt)
 {
+    if (w->order == PW_ORDER_DELIVERING && w->now + dt >= w->order_due)
+    {
+        w->order = PW_ORDER_READY;
+        w->order_due = 0;
+        if (w->scene == PW_DORM && w->phase == PW_IDLE)
+        {
+            w->message = MSG_DELIVERED;
+            w->message_until = w->now + dt + 2400;
+        }
+    }
     w->food_elapsed += dt;
     uint64_t n = w->food_elapsed / 300000U;
     w->food_elapsed %= 300000U;
@@ -162,7 +202,10 @@ static void clock_step(pet_world_t *w, uint64_t dt)
         n = w->rest_elapsed / 60000U;
         w->rest_elapsed %= 60000U;
         n *= 3; /* Three mood points per minute asleep. */
+        int old_mood = w->mood;
         w->mood = n >= 100U - w->mood ? 100 : (uint8_t)(w->mood + n);
+        if (w->mood != old_mood)
+            feedback(w, 0, w->mood - old_mood, w->now + dt);
     }
     else
     {
@@ -174,37 +217,44 @@ static void clock_step(pet_world_t *w, uint64_t dt)
 }
 static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
 {
-    if (a < PW_EAT || a > PW_REST + 2)
+    if (a < PW_EAT || a > PW_ORDER || a == PW_WAKE)
         return PW_INVALID;
     if (w->phase == PW_SLEEP)
         return PW_ASLEEP;
     if (pw_busy(w))
         return PW_BUSY;
-    if (w->scene == PW_CAMPUS && a != PW_TOUCH)
+    if ((w->scene == PW_CAMPUS && a != PW_TOUCH) ||
+        (a == PW_EAT && w->scene != PW_CANTEEN) ||
+        (a == PW_STUDY && w->scene != PW_CLASSROOM) ||
+        (a == PW_WORKOUT && w->scene != PW_GYM) ||
+        ((a == PW_CODE || a == PW_REST || a == PW_ORDER || a == PW_TAKEOUT) && w->scene != PW_DORM))
         return PW_WRONG_ROOM;
-    if (a == PW_EAT && w->scene != PW_CANTEEN)
-        return PW_WRONG_ROOM;
-    if (a == PW_STUDY && w->scene != PW_CLASSROOM)
-        return PW_WRONG_ROOM;
-    if ((a == PW_CODE || a == PW_REST) && w->scene != PW_DORM)
-        return PW_WRONG_ROOM;
-    if (w->cooldown[a] > w->now)
+    if (a == PW_ORDER && w->order != PW_ORDER_NONE)
+        return PW_ORDER_ACTIVE;
+    if (a == PW_TAKEOUT && w->order != PW_ORDER_READY)
+        return PW_NO_ORDER;
+    if (w->cooldown[a == PW_ORDER ? PW_TAKEOUT : a] > w->now)
         return PW_COOLDOWN;
-    if ((a == PW_EAT && w->food == 100) || (a == PW_TOUCH && w->mood == 100))
+    if (((a == PW_EAT || a == PW_TAKEOUT) && w->food == 100) ||
+        (a == PW_TOUCH && w->mood == 100))
         return PW_FULL;
-    if ((a == PW_STUDY && w->food < 10) || (a == PW_CODE && w->food < 8))
+    if (((a == PW_STUDY || a == PW_WORKOUT) && w->food < 10) ||
+        (a == PW_CODE && w->food < 8))
         return PW_LOW_FOOD;
     return PW_OK;
 }
 static pw_result_t reject(pet_world_t *w, pw_result_t r)
 {
-    static const int msgs[] = {MSG_NONE, MSG_BUSY, MSG_ASLEEP,  MSG_COOLDOWN,
-                               MSG_FULL, MSG_LOW,  MSG_INVALID, MSG_INVALID};
+    static const int msgs[] = {MSG_NONE, MSG_BUSY, MSG_ASLEEP, MSG_COOLDOWN, MSG_FULL, MSG_LOW,
+                               MSG_INVALID, MSG_INVALID, MSG_ORDER_ACTIVE, MSG_NO_ORDER};
+    w->gain_until = 0;
     say(w, msgs[r]);
     return r;
 }
 static void begin(pet_world_t *w, pw_command_t a)
 {
+    static const int messages[PW_ACTION_COUNT] = {
+        MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT};
     w->phase = PW_ACTION;
     w->action = a;
     w->target = PW_NONE;
@@ -212,18 +262,10 @@ static void begin(pet_world_t *w, pw_command_t a)
     w->route_len = w->route_at = 0;
     w->action_start = w->now;
     w->action_end = w->now + durations[a];
-    uint8_t old = w->food;
-    w->food = clamp_value(w->food + food_delta[a]);
-    w->mood = clamp_value(w->mood + mood_delta[a]);
-    if (a != PW_REST && a != PW_WAKE)
-        w->settlements[a]++;
-    w->gain = w->food - old;
-    say(w, a == PW_EAT     ? MSG_EAT
-           : a == PW_TOUCH ? MSG_TOUCH
-           : a == PW_STUDY ? MSG_STUDY
-           : a == PW_CODE  ? MSG_CODE
-           : a == PW_REST  ? MSG_REST
-                           : MSG_WAKE);
+    w->gain_until = 0;
+    if (a != PW_REST && a != PW_WAKE && a != PW_WORKOUT && a != PW_TAKEOUT)
+        settle(w, a);
+    say(w, messages[a]);
 }
 static pw_point_t point(const pet_world_t *w, int n)
 {
@@ -503,15 +545,16 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
-    if (cmd == PW_EXIT || (cmd >= PW_ENTER_DORM && cmd <= PW_ENTER_CANTEEN))
+    if (cmd == PW_EXIT || (cmd >= PW_ENTER_DORM && cmd <= PW_ENTER_GYM))
     {
         if (pw_busy(w))
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if ((cmd == PW_EXIT) == (w->scene == PW_CAMPUS))
             return PW_WRONG_ROOM;
-        int next = cmd == PW_EXIT ? PW_CAMPUS : cmd - PW_ENTER_DORM;
-        int goal = cmd == PW_EXIT ? 0 : 13 + next;
-        w->entry_node = cmd == PW_EXIT ? (int8_t)(13 + w->scene) : 0;
+        pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
+                          : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
+        int goal = cmd == PW_EXIT ? 0 : (int)pw_campus_door(next);
+        w->entry_node = cmd == PW_EXIT ? (int8_t)pw_campus_door(w->scene) : 0;
         w->destination = (int8_t)next;
         w->target = PW_NONE;
         if (!move(w, goal, 2))
@@ -550,6 +593,14 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
     pw_result_t r = eligible(w, cmd);
     if (r != PW_OK)
         return reject(w, r);
+    if (cmd == PW_ORDER)
+    {
+        w->order = PW_ORDER_DELIVERING;
+        w->order_due = w->now + PW_DELIVERY_MS;
+        w->gain_until = 0;
+        say(w, MSG_ORDERED);
+        return PW_OK;
+    }
     if (w->phase == PW_WALK && w->purpose == 1 && w->target == cmd)
         return PW_OK;
     w->destination = -1;
@@ -560,7 +611,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         return PW_OK;
     }
     w->target = cmd;
-    if (!move(w, cmd == PW_CODE ? 7 : 6, 1))
+    if (!move(w, cmd == PW_CODE ? 7 : (cmd == PW_TAKEOUT ? 1 : 6), 1))
         return reject(w, PW_INVALID);
     say(w, MSG_WALK);
     return PW_OK;
@@ -583,6 +634,10 @@ static void finish(pet_world_t *w)
         say(w, MSG_WAKE);
         return;
     }
+    if (a == PW_WORKOUT || a == PW_TAKEOUT)
+        settle(w, a);
+    if (a == PW_TAKEOUT)
+        w->order = PW_ORDER_NONE;
     w->cooldown[a] = w->now + cooldowns[a];
     idle(w);
     say(w, MSG_DONE);
@@ -675,6 +730,22 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     v->scale = fmaxf(.91f, fminf(1.05f, .92f + (w->y - 240) / 1000));
     if (w->scene == PW_CAMPUS)
         v->scale = .78f;
+    if (w->phase == PW_ACTION && w->action == PW_WORKOUT)
+    {
+        float enter = (float)(w->now - w->action_start) / 500.0f;
+        float leave = (float)(w->action_end - w->now) / 500.0f;
+        float amount = fminf(1, fminf(enter, leave));
+        v->x += (107 - w->x) * amount;
+        v->y += (285 - w->y) * amount;
+        v->facing = 4;
+        v->frame = (uint8_t)(v->facing * 2 + w->now / 115 % 2);
+        return;
+    }
+    if (w->phase == PW_ACTION && w->action == PW_TAKEOUT)
+    {
+        v->frame = (uint8_t)(16 + w->now / 210 % 2);
+        return;
+    }
     bool furniture = w->phase == PW_SLEEP || (w->phase == PW_ACTION && w->action != PW_TOUCH);
     bool settled = false;
     if (furniture)
@@ -746,7 +817,7 @@ const char *pw_state_text(const pet_world_t *w)
         return w->purpose == 2 ? "前往门口" : (w->purpose == 1 ? "走向家具" : "散步中");
     if (w->phase == PW_ACTION)
     {
-        static const char *names[] = {"闲逛中", "吃饭中", "摸摸", "准备睡觉", "上课中", "敲代码", "起床中"};
+        static const char *names[] = {"闲逛中", "吃饭中", "摸摸", "准备睡觉", "上课中", "敲代码", "起床中", "锻炼中", "外卖用餐中"};
         return names[w->action];
     }
     return "闲逛中";
@@ -770,6 +841,12 @@ const char *pw_message_text(const pet_world_t *w)
                                   "稍等一下再来",
                                   "已经很满足啦",
                                   "肚子饿了，先去食堂",
-                                  "请点对应的家具"};
+                                  "请点对应的家具",
+                                  "跑步机锻炼中",
+                                  "下单成功，外卖配送中",
+                                  "外卖到了，点门旁纸袋",
+                                  "取到外卖啦",
+                                  "已有一份外卖",
+                                  "还没有可取的外卖"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }

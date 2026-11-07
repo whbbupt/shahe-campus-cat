@@ -16,7 +16,8 @@ typedef enum
     PW_DORM,
     PW_CLASSROOM,
     PW_CANTEEN,
-    PW_CAMPUS
+    PW_CAMPUS,
+    PW_GYM
 } pw_scene_t;
 typedef enum
 {
@@ -27,13 +28,18 @@ typedef enum
     PW_STUDY,
     PW_CODE,
     PW_WAKE,
+    PW_WORKOUT,
+    PW_TAKEOUT,
+    PW_ACTION_COUNT,
+    PW_ORDER = PW_ACTION_COUNT,
     PW_GO_DORM = 20,
     PW_GO_CLASSROOM,
     PW_GO_CANTEEN,
     PW_EXIT,
     PW_ENTER_DORM = 30,
     PW_ENTER_CLASSROOM,
-    PW_ENTER_CANTEEN
+    PW_ENTER_CANTEEN,
+    PW_ENTER_GYM
 } pw_command_t;
 typedef enum
 {
@@ -52,8 +58,18 @@ typedef enum
     PW_FULL,
     PW_LOW_FOOD,
     PW_INVALID,
-    PW_WRONG_ROOM
+    PW_WRONG_ROOM,
+    PW_ORDER_ACTIVE,
+    PW_NO_ORDER
 } pw_result_t;
+typedef enum
+{
+    PW_ORDER_NONE,
+    PW_ORDER_DELIVERING,
+    PW_ORDER_READY
+} pw_order_t;
+enum { PW_DELIVERY_MS = 30000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000 };
+
 typedef struct
 {
     float x, y;
@@ -70,9 +86,11 @@ typedef struct
     bool swapped;
     float x, y;
     uint64_t now, action_start, action_end, transition_start;
-    uint64_t cooldown[7], food_elapsed, mood_elapsed, rest_elapsed, message_until;
-    uint32_t settlements[7];
-    int message, gain;
+    uint64_t cooldown[PW_ACTION_COUNT], food_elapsed, mood_elapsed, rest_elapsed, message_until;
+    uint64_t order_due, gain_until;
+    uint32_t settlements[PW_ACTION_COUNT];
+    pw_order_t order;
+    int message, gain, mood_gain;
 } pet_world_t;
 typedef struct
 {
@@ -93,6 +111,7 @@ void pw_camera(const pet_world_t *w, float *x, float *y);
 unsigned pw_road_count(void);
 void pw_road(unsigned index, pw_point_t *a, pw_point_t *b);
 bool pw_campus_selftest(void (*report)(const char *, bool));
+unsigned pw_campus_door(pw_scene_t scene);
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
 uint32_t pw_duration(pw_command_t action);
 bool pw_selftest(void (*report)(const char *, bool));

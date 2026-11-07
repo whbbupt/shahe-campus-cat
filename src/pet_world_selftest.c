@@ -436,6 +436,81 @@ static bool rebalanced_actions(void)
     return true;
 }
 
+static bool gym_cycle(void)
+{
+    pet_world_t w;
+    campus_spawn(&w);
+    CHECK(pw_request(&w, PW_ENTER_GYM) == PW_OK);
+    pw_advance(&w, 8000);
+    CHECK(w.scene == PW_GYM && w.phase == PW_IDLE);
+    w.food = 9;
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_LOW_FOOD);
+    w.food = 70;
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_OK && arrive(&w));
+    CHECK(w.food == 70 && w.mood == 60 && w.settlements[PW_WORKOUT] == 0);
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_BUSY);
+    pw_advance(&w, (uint32_t)(w.action_end - w.now));
+    CHECK(w.food == 64 && w.mood == 72 && w.gain == -6 && w.mood_gain == 12);
+    CHECK(w.settlements[PW_WORKOUT] == 1 && w.phase == PW_IDLE);
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_COOLDOWN);
+    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
+    pw_advance(&w, 9000);
+    pw_point_t entrance = pw_node(PW_CAMPUS, pw_campus_door(PW_GYM));
+    CHECK(w.scene == PW_CAMPUS && w.x == entrance.x && w.y == entrance.y);
+    return true;
+}
+
+static bool takeout_cycle(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_NO_ORDER);
+    CHECK(pw_request(&w, PW_ORDER) == PW_OK);
+    CHECK(pw_request(&w, PW_ORDER) == PW_ORDER_ACTIVE);
+    travel(&w, PW_CLASSROOM);
+    pw_advance(&w, (uint32_t)(w.order_due - w.now - 1));
+    CHECK(w.order == PW_ORDER_DELIVERING);
+    pw_advance(&w, 1);
+    CHECK(w.order == PW_ORDER_READY && w.scene == PW_CLASSROOM);
+    travel(&w, PW_DORM);
+    w.food = 100;
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_FULL && w.order == PW_ORDER_READY);
+    w.food = 95;
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK && arrive(&w));
+    CHECK(w.food == 95 && w.order == PW_ORDER_READY && w.settlements[PW_TAKEOUT] == 0);
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_BUSY);
+    pw_advance(&w, (uint32_t)(w.action_end - w.now));
+    CHECK(w.food == 100 && w.gain == 5 && w.order == PW_ORDER_NONE);
+    CHECK(w.settlements[PW_TAKEOUT] == 1 && pw_request(&w, PW_ORDER) == PW_COOLDOWN);
+    pw_advance(&w, PW_TAKEOUT_COOLDOWN_MS);
+    CHECK(pw_request(&w, PW_ORDER) == PW_OK);
+    return true;
+}
+
+static bool expanded_room_bounds(void)
+{
+    static const pw_scene_t rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
+    static const pw_point_t blocked[] = {{40,400},{340,372},{340,360},{320,360}};
+    for (unsigned i = 0; i < sizeof(rooms) / sizeof(rooms[0]); i++)
+    {
+        pet_world_t w;
+        pw_init(&w);
+        w.scene = rooms[i];
+        pw_point_t start = pw_node(w.scene, 3);
+        w.x = start.x;
+        w.y = start.y;
+        CHECK(pw_walk_to(&w, blocked[i].x, blocked[i].y) == PW_INVALID);
+        CHECK(pw_walk_to(&w, 370, 435) == PW_OK);
+        for (unsigned n = 0; n < 200 && w.phase == PW_WALK; n++)
+        {
+            pw_advance(&w, 30);
+            CHECK(pw_room_ground(w.scene, w.x, w.y));
+        }
+        CHECK(w.phase == PW_IDLE && w.x == 370 && w.y == 435);
+    }
+    return true;
+}
+
 bool pw_campus_selftest(void (*report)(const char *, bool))
 {
     static const struct
@@ -479,7 +554,10 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"indoor-floor-detour-and-retarget", indoor_floor},
                  {"classroom-and-canteen-detours", other_room_detours},
                  {"reset-invalid", reset_invalid},
-                 {"rebalanced-actions-and-sleep-clamp", rebalanced_actions}};
+                 {"rebalanced-actions-and-sleep-clamp", rebalanced_actions},
+                 {"gym-access-workout-and-return", gym_cycle},
+                 {"takeout-delivery-guards-and-once", takeout_cycle},
+                 {"four-room-decor-and-expanded-floor", expanded_room_bounds}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

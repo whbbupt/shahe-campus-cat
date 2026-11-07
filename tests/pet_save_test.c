@@ -69,13 +69,22 @@ int main(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 2);
-    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_CAMPUS && w.x == pw_node(PW_CAMPUS, 0).x && w.y == pw_node(PW_CAMPUS, 0).y &&
-           w.phase == PW_IDLE);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 3);
+    uint8_t *campus = flash + PS_SECTOR_SIZE;
+    campus[4] = 2;
+    put(campus + 56, crc(campus, 56));
+    assert(ps_open(&s, io, &w) == PS_OK && w.scene == PW_CAMPUS && w.x == pw_node(PW_CAMPUS, 0).x &&
+           w.y == pw_node(PW_CAMPUS, 0).y && w.phase == PW_IDLE && w.order == PW_ORDER_NONE);
     FILE *fixture = fopen("campus-v2-nor.bin", "wb");
     assert(fixture);
     assert(fwrite(flash, sizeof(flash), 1, fixture) == 1);
     fclose(fixture);
-    puts("[host:save] schema-v1-upgrade-and-campus-v2-safe-restore PASS");
+    w.food = 69;
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 3);
+    fixture = fopen("campus-v3-nor.bin", "wb");
+    assert(fixture);
+    assert(fwrite(flash, sizeof(flash), 1, fixture) == 1);
+    fclose(fixture);
+    puts("[host:save] schema-v1-v2-to-v3-and-campus-safe-restore PASS");
     puts("[host:save] all PASS (RAM NOR simulation; not physical flash)"); return 0;
 }

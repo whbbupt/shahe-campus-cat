@@ -2,17 +2,17 @@
   "source": "SourceHanSansSC-Normal.otf",
   "source_sha256": "1ee89e1669362dee13851129c0a8a791a87521eb4148e5efbf5d26596738e25b",
   "license": "SIL OFL 1.1; derived bitmap name Pet UI CJK",
-  "characters": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~·×♥一上下不东中也书了今代作保先具再写准出切到前动北区南厅去口叫可吃后向听启呼啦喵噜园国图场堂备复天失子存学安完室家宿对小已带床应开当往待很心态恢情成换摸教散敲晚景暂束来校档楼步段沙河沿活满点状猫生用的真睡码稍等经结综肚脉自舍西要觉认试请课败走起足路过运逛醒重门闲雁食餐饭饱饿馆鸿，",
+  "characters": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~·×♥一上下不东中也书了今代份作便保健先具再写准出切到前功动北区单卖南厅去取口叫可吃后向听启呼啦喵噜园国图场堂备复外天失子存学安完室家宿对小已带床应开当往待很心态恢情成房换摸教散敲旁晚景暂暖有机束来校档楼步段沙没河沿活满点炼状猫生用的真睡码确秒稍等约纸经结综肚脉自舍袋西要觉认试请课败走起足跑路身达过运还送逛配醒重锻门闲雁食餐饭饱饿馆鸿，",
   "fonts": [
     {
       "size": 16,
-      "glyphs": 237,
-      "bitmap_bytes": 22557
+      "glyphs": 264,
+      "bitmap_bytes": 26093
     },
     {
       "size": 20,
-      "glyphs": 237,
-      "bitmap_bytes": 34888
+      "glyphs": 264,
+      "bitmap_bytes": 40268
     }
   ]
 }

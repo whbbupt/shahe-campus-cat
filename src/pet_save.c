@@ -3,6 +3,8 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
+#define SCHEMA 3U
+enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
     return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
@@ -29,17 +31,39 @@ static bool committed(const uint8_t *r)
 {
     return get32(r) == MAGIC && get32(r + 60) == COMMIT && get32(r + 56) == crc(r, 56);
 }
+static bool known_header(const uint8_t *r)
+{
+    return r[4] >= 1 && r[4] <= SCHEMA && !r[5] && r[6] == PS_RECORD_SIZE && !r[7];
+}
+static uint32_t order_code(const uint8_t *r)
+{
+    return r[4] == SCHEMA ? get32(r + ORDER_OFFSET) : 0;
+}
+static pw_order_t order_state(const uint8_t *r)
+{
+    uint32_t code = order_code(r);
+    return code == 0 ? PW_ORDER_NONE : code == 1 ? PW_ORDER_READY : PW_ORDER_DELIVERING;
+}
+static void visible_key(const uint8_t *r, uint8_t key[5])
+{
+    memcpy(key, r + 12, 4);
+    key[4] = (uint8_t)order_state(r);
+}
 static bool valid(const uint8_t *r)
 {
-    if (!committed(r) || (r[4] != 1 && r[4] != 2) || r[5] || r[6] != 64 || r[7] || r[12] > 100 ||
-        r[13] > 100 || r[14] > (r[4] == 1 ? PW_CANTEEN : PW_CAMPUS) || r[15] > 1 ||
+    if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || r[15] > 1 ||
+        r[14] > (r[4] == 1 ? PW_CANTEEN : r[4] == 2 ? PW_CAMPUS : PW_GYM) ||
         (r[15] && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
         return false;
-    static const uint32_t limits[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
-    for (unsigned i = 0; i < 7; i++)
-        if (get32(r + 28 + 4 * i) > limits[i]) return false;
-    return true;
+    if (get32(r + 32) > 2000 || get32(r + 36) > 3000 ||
+        get32(r + 44) > 8000 || get32(r + 48) > 10000)
+        return false;
+    if (r[4] != SCHEMA)
+        return !get32(r + ORDER_OFFSET) && !get32(r + WORKOUT_OFFSET) && !get32(r + TAKEOUT_OFFSET);
+    return order_code(r) <= PW_DELIVERY_MS + 1 &&
+           get32(r + WORKOUT_OFFSET) <= PW_WORKOUT_COOLDOWN_MS &&
+           get32(r + TAKEOUT_OFFSET) <= PW_TAKEOUT_COOLDOWN_MS;
 }
 static bool snapshot_ready(const pet_world_t *w)
 {
@@ -50,7 +74,12 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
 {
     return s->enabled && s->has_saved && snapshot_ready(w) &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
-           s->saved[14] == (uint8_t)w->scene && s->saved[15] == (w->phase == PW_SLEEP);
+           s->saved[14] == (uint8_t)w->scene && s->saved[15] == (w->phase == PW_SLEEP) &&
+           order_state(s->saved) == w->order;
+}
+static uint32_t remaining(const pet_world_t *w, pw_command_t action)
+{
+    return w->cooldown[action] > w->now ? (uint32_t)(w->cooldown[action] - w->now) : 0;
 }
 static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
@@ -58,15 +87,29 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     if (!snapshot_ready(w)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC);
-    r[4] = 2;
+    r[4] = SCHEMA;
     r[6] = 64;
     put32(r + 8, seq);
     r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = w->phase == PW_SLEEP;
     put32(r + 16, (uint32_t)w->food_elapsed);
     put32(r + 20, (uint32_t)w->mood_elapsed);
     put32(r + 24, (uint32_t)w->rest_elapsed);
-    for (unsigned i = 0; i < 7; i++)
-        put32(r + 28 + 4 * i, w->cooldown[i] > w->now ? (uint32_t)(w->cooldown[i] - w->now) : 0);
+    put32(r + 32, remaining(w, PW_EAT));
+    put32(r + 36, remaining(w, PW_TOUCH));
+    put32(r + 44, remaining(w, PW_STUDY));
+    put32(r + 48, remaining(w, PW_CODE));
+    uint32_t order = 0;
+    if (w->order == PW_ORDER_READY)
+        order = 1;
+    else if (w->order == PW_ORDER_DELIVERING)
+    {
+        if (w->order_due <= w->now || w->order_due - w->now > PW_DELIVERY_MS)
+            return false;
+        order = 1U + (uint32_t)(w->order_due - w->now);
+    }
+    put32(r + ORDER_OFFSET, order);
+    put32(r + WORKOUT_OFFSET, remaining(w, PW_WORKOUT));
+    put32(r + TAKEOUT_OFFSET, remaining(w, PW_TAKEOUT));
     put32(r + 56, crc(r, 56)); put32(r + 60, COMMIT);
     return valid(r);
 }
@@ -79,7 +122,18 @@ static void restore(const uint8_t *r, pet_world_t *w)
     pw_point_t p = pw_node(w->scene, (unsigned)w->node);
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
-    for (unsigned i = 0; i < 7; i++) w->cooldown[i] = get32(r + 28 + 4 * i);
+    w->cooldown[PW_EAT] = get32(r + 32);
+    w->cooldown[PW_TOUCH] = get32(r + 36);
+    w->cooldown[PW_STUDY] = get32(r + 44);
+    w->cooldown[PW_CODE] = get32(r + 48);
+    w->order = order_state(r);
+    if (w->order == PW_ORDER_DELIVERING)
+        w->order_due = order_code(r) - 1;
+    if (r[4] == SCHEMA)
+    {
+        w->cooldown[PW_WORKOUT] = get32(r + WORKOUT_OFFSET);
+        w->cooldown[PW_TAKEOUT] = get32(r + TAKEOUT_OFFSET);
+    }
 }
 ps_result_t ps_open(pet_save_t *s, ps_io_t io, pet_world_t *w)
 {
@@ -89,7 +143,7 @@ ps_result_t ps_open(pet_save_t *s, ps_io_t io, pet_world_t *w)
     for (uint32_t offset = 0; offset < PS_AREA_SIZE; offset += 64)
     {
         if (!io.read(io.context, offset, r, 64)) return PS_IO_ERROR;
-        if (committed(r) && ((r[4] != 1 && r[4] != 2) || r[5] || r[6] != 64 || r[7]))
+        if (committed(r) && !known_header(r))
             future = true;
         if (valid(r) && (!s->has_saved || newer(get32(r + 8), s->sequence)))
         {
@@ -149,12 +203,15 @@ ps_result_t ps_poll(pet_save_t *s, const pet_world_t *w)
     uint8_t r[64];
     if (!s->enabled) return PS_IO_ERROR;
     if (!capture(w, r, 0)) { s->pending = false; return PS_WAIT; }
-    bool changed = !s->has_saved || memcmp(r + 12, s->saved + 12, 4) != 0;
+    uint8_t key[5], saved[5];
+    visible_key(r, key);
+    visible_key(s->saved, saved);
+    bool changed = !s->has_saved || memcmp(key, saved, sizeof(key)) != 0;
     if (changed)
     {
-        if (!s->pending || memcmp(s->pending_key, r + 12, 4))
+        if (!s->pending || memcmp(s->pending_key, key, sizeof(key)))
         {
-            s->pending = true; s->dirty_since = w->now; memcpy(s->pending_key, r + 12, 4);
+            s->pending = true; s->dirty_since = w->now; memcpy(s->pending_key, key, sizeof(key));
         }
     }
     else s->pending = false;

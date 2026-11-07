@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.9.0全图与双数值重平衡，软件与构建通过，TC-185实机待测"
+  milestone: "沙河校园小猫v0.10.0健身、外卖和四房布置，软件与构建通过，TC-190实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -88,11 +88,16 @@ design:
       rationale: "保留现有兼容结构，活动体现不同的消耗和恢复"
       decided_by: "用户明确选择保留两项，详见 ADR-0010"
 
+    - decision: "外卖与饱食原子保存，健身房与新冷却沿用现有双区"
+      alternatives_considered: "只在会话保存；复用双区日志扩展版本"
+      rationale: "保存后可复位续取，避免订单与饱食拆开恢复"
+      decided_by: "用户同意功能计划，AI据已确认方向设计，见 ADR-0011"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.9.0_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.10.0_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -667,7 +672,56 @@ test_results:
     status: not_executed
     pass: null
 
+
+  - test_id: TC-186
+    description: 健身房到达结算与原门返回
+    expected: 按docs/03 v0.10.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.10.0_final_20261107.txt
+
+  - test_id: TC-187
+    description: 宿舍订单配送与领取
+    expected: 按docs/03 v0.10.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.10.0_final_20261107.txt
+
+  - test_id: TC-188
+    description: 外卖和旧档兼容及断电原子恢复
+    expected: 按docs/03 v0.10.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.10.0_final_20261107.txt
+
+  - test_id: TC-189
+    description: 活动反馈主机及固件构建
+    expected: 按docs/03 v0.10.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.10.0_metadata_20261107.json
+
+  - test_id: TC-190
+    description: 校园生活真机路线及复位
+    expected: 按docs/03 v0.10.0用例
+    actual: 未执行，等待板端证据
+    status: not_executed
+    pass: null
+
+  - test_id: TC-191
+    description: 四间房家具与扩大地面
+    expected: 按docs/03 v0.10.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.10.0_final_20261107.txt
+
 known_issues:
+  - "v0.10.0使用格式3，旧固件读取时写保护；实际屏幕、触摸和订单复位恢复待TC-190。"
   - "v0.9.0室外全图为校图压缩的主要通道，TC-185 实机待测。"
   - "v0.8.2校园提示精简已过主机和目标构建，真实板端 TC-181 待测。"
   - "v0.8.1绘本重绘已过软件和构建，屏幕显示和流畅度等TC-179实机待测。"

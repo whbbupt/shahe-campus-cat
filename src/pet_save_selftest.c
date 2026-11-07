@@ -170,7 +170,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 2);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 3);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -181,6 +181,67 @@ static bool campus_restore(void)
     CHECK(ps_visible_saved(&s, &w));
     return true;
 }
+static bool takeout_resume(void)
+{
+    blank();
+    pet_save_t s;
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(ps_open(&s, io(), &w) == PS_EMPTY);
+    CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(pw_request(&w, PW_ORDER) == PW_OK && !ps_visible_saved(&s, &w));
+    pw_advance(&w, 8000);
+    CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_DELIVERING && w.order_due == 22000);
+    pw_advance(&w, 21999);
+    CHECK(w.order == PW_ORDER_DELIVERING);
+    pw_advance(&w, 1);
+    CHECK(w.order == PW_ORDER_READY && !ps_visible_saved(&s, &w));
+    CHECK(ps_save(&s, &w) == PS_OK && ps_visible_saved(&s, &w));
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_READY);
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK);
+    CHECK(ps_save(&s, &w) == PS_WAIT);
+    pw_advance(&w, 10000);
+    CHECK(w.order == PW_ORDER_NONE && w.food == 82);
+    ram.budget = 63;
+    CHECK(ps_save(&s, &w) == PS_IO_ERROR);
+    ram.budget = -1;
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_READY && w.food == 70);
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK);
+    pw_advance(&w, 10000);
+    CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_NONE && w.food == 82);
+    CHECK(w.cooldown[PW_TAKEOUT] > w.now && pw_request(&w, PW_TAKEOUT) == PW_NO_ORDER);
+    w.scene = PW_GYM;
+    w.cooldown[PW_WORKOUT] = 14000;
+    CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_GYM && w.cooldown[PW_WORKOUT] == 14000);
+    CHECK(w.x == pw_node(PW_GYM, 3).x && w.y == pw_node(PW_GYM, 3).y);
+    return true;
+}
+
+static bool takeout_autosave(void)
+{
+    blank();
+    pet_save_t s;
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    CHECK(pw_request(&w, PW_ORDER) == PW_OK);
+    for (unsigned i = 0; i < 3; i++)
+    {
+        CHECK(ps_poll(&s, &w) == PS_WAIT);
+        pw_advance(&w, 1000);
+    }
+    CHECK(ps_poll(&s, &w) == PS_OK && ps_visible_saved(&s, &w));
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order_due == 27000);
+    pw_advance(&w, 27000);
+    CHECK(ps_poll(&s, &w) == PS_WAIT);
+    pw_advance(&w, 3000);
+    CHECK(ps_poll(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_READY);
+    return true;
+}
 bool ps_selftest(void (*report)(const char *, bool))
 {
     static const struct { const char *name; bool (*run)(void);
@@ -189,7 +250,9 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"all-65-write-cut-points", partial_writes},        {"crc-fallback", bad_record},
         {"rotation-partial-erase", rotate_and_erase},       {"short-io-no-success", io_failures},
         {"no-unfinished-action-replay", no_busy_replay},    {"autosave-throttle-checkpoint-retry", scheduler},
-        {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore}};
+        {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore},
+        {"takeout-resume-and-atomic-pickup", takeout_resume},
+        {"takeout-autosave-phase-key", takeout_autosave}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

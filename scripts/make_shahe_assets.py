@@ -11,7 +11,7 @@ ART = ROOT / "assets/pet-shahe"
 ROOM_SIZE = (390, 450)
 CAMPUS_SIZE = (1400, 1300)
 TILE_SIZE = (280, 260)
-ROOM_NAMES = ("dorm", "classroom", "canteen")
+ROOM_NAMES = ("dorm", "classroom", "canteen", "gym")
 
 
 def route():
@@ -190,7 +190,8 @@ def main():
         room = Image.open(ART / (room_name + ".png")).convert("RGB")
         room = ImageOps.fit(room, ROOM_SIZE, method=Image.Resampling.LANCZOS)
         emit(f"shahe_room_{i}", room)
-        foreground(f"shahe_front_{i}", room, masks[i])
+        if i < len(masks):
+            foreground(f"shahe_front_{i}", room, masks[i])
         if i == 0:
             foreground("shahe_seat_0", room, ((80,232),(119,230),(121,244),(82,248)))
     buildings = ("shahe_building_0", "shahe_building_1", "shahe_building_2", "shahe_tree")
@@ -199,6 +200,8 @@ def main():
     landmarks = ("shahe_library", "shahe_center", "shahe_lecture", "shahe_gate")
     for name, sprite in zip(landmarks, sprites("landmark-atlas.png", ((241,171),(101,79),(119,103),(114,77)))):
         emit(name, sprite, True)
+    for i, sprite in enumerate(sprites("room-decor-atlas.png", ((48,67),(57,46),(56,47),(65,48)))):
+        emit(f"shahe_decor_{i}", sprite, True)
     shadow = Image.new("RGBA", (66, 24))
     shadow.putdata([
         (55, 73, 44, round(82 * max(0, 1 - ((x-32)/32)**2 - ((y-12)/11)**2)**2))

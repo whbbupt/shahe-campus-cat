@@ -227,11 +227,23 @@ static void settled_at(int x, int y)
 {
     assert(world.phase == PW_IDLE && fabsf(world.x - x) < .1f && fabsf(world.y - y) < .1f);
 }
+static void check_new_floor(int block_x, int block_y)
+{
+    pw_scene_t scene = world.scene;
+    float x = world.x, y = world.y;
+    tap(block_x, block_y);
+    assert(result == PW_INVALID && world.x == x && world.y == y);
+    tap(372, 433);
+    assert(result == PW_OK && world.phase == PW_WALK);
+    idle(scene);
+    settled_at(372, 433);
+}
 static void dorm(void)
 {
     assert(world.scene == PW_DORM);
     assert(!label_with(lv_screen_active(), "路标"));
     screenshot("shahe-dorm.ppm");
+    check_new_floor(40, 400);
     press("状态");
     assert(label_with(lv_screen_active(), "小猫状态"));
     pet_ui_set_save_status(PET_SAVE_SAVED);
@@ -289,7 +301,7 @@ static void road(int x, int y)
 static void gate(pw_scene_t scene)
 {
     assert(world.phase == PW_IDLE && world.scene == PW_CAMPUS);
-    pw_point_t door = pw_node(PW_CAMPUS, 13 + scene);
+    pw_point_t door = pw_node(PW_CAMPUS, pw_campus_door(scene));
     settled_at((int)door.x, (int)door.y);
 }
 static void leave(pw_scene_t scene)
@@ -350,6 +362,7 @@ static void campus_round_trip(void)
     screenshot("shahe-teaching-gate.ppm");
     enter("教综楼", PW_CLASSROOM);
     screenshot("shahe-classroom.ppm");
+    check_new_floor(340, 372);
     tap(189, 411);
     idle(PW_CLASSROOM);
     settled_at(189, 411);
@@ -357,6 +370,7 @@ static void campus_round_trip(void)
     assert(world.settlements[PW_STUDY] == 0);
     until_action(PW_STUDY);
     step(550);
+    assert(label_with(lv_screen_active(), "饱食 -7 · 心情 +7"));
     screenshot("shahe-classroom-study.ppm");
     tap(88, 256);
     assert(result == PW_BUSY && world.settlements[PW_STUDY] == 1);
@@ -373,6 +387,7 @@ static void campus_round_trip(void)
     screenshot("shahe-canteen-gate.ppm");
     enter("学生餐厅", PW_CANTEEN);
     screenshot("shahe-canteen.ppm");
+    check_new_floor(340, 360);
     tap(261, 396);
     idle(PW_CANTEEN);
     settled_at(261, 396);
@@ -380,6 +395,7 @@ static void campus_round_trip(void)
     assert(world.settlements[PW_EAT] == 0);
     until_action(PW_EAT);
     step(550);
+    assert(label_with(lv_screen_active(), "饱食 +20"));
     screenshot("shahe-canteen-meal.ppm");
     tap(87, 252);
     assert(result == PW_BUSY && world.settlements[PW_EAT] == 1);
@@ -389,6 +405,20 @@ static void campus_round_trip(void)
     road(770, 1060);
     road(800, 938);
     road(800, 785);
+    road(800, 690);
+    enter("健身房", PW_GYM);
+    screenshot("shahe-gym.ppm");
+    check_new_floor(320, 360);
+    tap(119, 256);
+    until_action(PW_WORKOUT);
+    assert(world.settlements[PW_WORKOUT] == 0);
+    step(700);
+    screenshot("shahe-gym-workout.ppm");
+    step((uint32_t)(world.action_end - world.now));
+    assert(world.settlements[PW_WORKOUT] == 1);
+    assert(label_with(lv_screen_active(), "饱食 -6 · 心情 +12"));
+    screenshot("shahe-gym-gains.ppm");
+    leave(PW_GYM);
     road(695, 690);
     road(545, 690);
     road(390, 690);
@@ -396,6 +426,36 @@ static void campus_round_trip(void)
     enter("雁北园", PW_DORM);
     assert(world.settlements[PW_EAT] == 1 && world.settlements[PW_STUDY] == 1);
     screenshot("shahe-return-home.ppm");
+}
+static void dorm_takeout(void)
+{
+    assert(world.scene == PW_DORM && world.order == PW_ORDER_NONE);
+    press("外卖");
+    assert(label_with(lv_screen_active(), "宿舍外卖"));
+    screenshot("shahe-takeout-menu.ppm");
+    press("确认下单");
+    assert(world.order == PW_ORDER_DELIVERING);
+    pet_ui_set_save_status(PET_SAVE_PENDING);
+    assert(!label_with(lv_screen_active(), "取餐"));
+    press("外卖");
+    assert(!label_with(lv_screen_active(), "确认下单"));
+    screenshot("shahe-takeout-delivering.ppm");
+    press("×");
+    step((uint32_t)(world.order_due - world.now));
+    assert(world.order == PW_ORDER_READY && label_with(lv_screen_active(), "取餐"));
+    screenshot("shahe-takeout-arrived.ppm");
+    int food = world.food;
+    press("取餐");
+    until_action(PW_TAKEOUT);
+    assert(world.food == food && world.order == PW_ORDER_READY);
+    step((uint32_t)(world.action_end - world.now));
+    assert(world.food == food + 12 && world.order == PW_ORDER_NONE && world.settlements[PW_TAKEOUT] == 1);
+    assert(label_with(lv_screen_active(), "饱食 +12"));
+    screenshot("shahe-takeout-gains.ppm");
+    tap(100, 126);
+    until_action(PW_REST);
+    step(700);
+    assert(world.phase == PW_SLEEP);
 }
 static void campus_extended_route(void)
 {
@@ -458,6 +518,7 @@ int main(void)
     dorm();
     puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
     campus_round_trip();
+    dorm_takeout();
     campus_extended_route();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
@@ -465,6 +526,6 @@ int main(void)
         reset();
         assert(timers() == expected_timers);
     }
-    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, expanded regions, simplified HUD, glyphs and recreation PASS");
+    puts("[host:shahe-ui] native life route, gym, takeout, gains, campus, glyphs and recreation PASS");
     return 0;
 }

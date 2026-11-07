@@ -15,8 +15,10 @@
 enum
 {
     TAG_STATUS = 100,
-    TAG_CLOSE
+    TAG_CLOSE,
+    TAG_PHONE
 };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER };
 static struct
 {
     pet_ui_action_fn action;
@@ -24,10 +26,11 @@ static struct
     lv_obj_t *campus, *gates, *door, *location, *location_text, *goal;
     pet_world_t world;
     int scene;
-    bool status_open;
+    unsigned panel;
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
-    lv_obj_t *status_button, *bubble, *bubble_text;
+    lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
+    lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
 } ui;
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
@@ -44,7 +47,7 @@ void pet_ui_set_point_handler(pet_ui_point_fn handler)
 static void ground_click(lv_event_t *e)
 {
     (void)e;
-    if (ui.status_open || !ui.point)
+    if (ui.panel || !ui.point)
         return;
     lv_indev_t *indev = lv_indev_active();
     if (!indev)
@@ -92,17 +95,32 @@ static void click(lv_event_t *e)
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
     if (cmd == TAG_STATUS)
     {
-        ui.status_open = !ui.status_open;
+        ui.panel = ui.panel == PANEL_STATUS ? PANEL_NONE : PANEL_STATUS;
         paint();
         return;
     }
     if (cmd == TAG_CLOSE)
     {
-        ui.status_open = false;
+        ui.panel = PANEL_NONE;
         paint();
         return;
     }
-    if (!ui.status_open && ui.action)
+    if (cmd == TAG_PHONE)
+    {
+        ui.panel = PANEL_ORDER;
+        paint();
+        return;
+    }
+    if (cmd == PW_ORDER && ui.panel == PANEL_ORDER)
+    {
+        if (ui.action && ui.action(PW_ORDER) == PW_OK)
+        {
+            ui.panel = PANEL_NONE;
+            paint();
+        }
+        return;
+    }
+    if (!ui.panel && ui.action)
         ui.action((pw_command_t)cmd);
 }
 static lv_obj_t *button(lv_obj_t *parent, int x, int y, int w, int h, int tag, uint32_t color, int radius)
@@ -129,7 +147,8 @@ static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
 }
 static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
-static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
+static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅", "健身房"};
+static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
 
 static void gate_badge(lv_obj_t *parent, const char *name, int x, int y, int width)
 {
@@ -201,9 +220,9 @@ static void build_gates(lv_obj_t *screen)
 {
     ui.gates = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.gates, LV_OPA_TRANSP, 0);
-    for (unsigned room = 0; room < 3; room++)
+    for (unsigned room = 0; room < sizeof(campus_rooms) / sizeof(campus_rooms[0]); room++)
     {
-        pw_point_t door = pw_node(PW_CAMPUS, 13 + room);
+        pw_point_t door = pw_node(PW_CAMPUS, pw_campus_door(campus_rooms[room]));
         int y = (int)door.y - (room == PW_DORM ? 66 : 44);
         lv_obj_t *gate = button(ui.gates, (int)door.x - 48, y, 96, 70,
                                 PW_ENTER_DORM + room, PAPER, 5);
@@ -219,14 +238,20 @@ typedef struct
     unsigned icon;
 } furniture_hotspot_t;
 
-static const furniture_hotspot_t furniture[3][2] = {
-    {{24, 110, 134, 61, 110, 122, PW_REST, 2}, {31, 175, 115, 80, 109, 208, PW_CODE, 3}},
+static const furniture_hotspot_t furniture[PW_GYM + 1][2] = {
+    {{24, 110, 134, 61, 110, 122, PW_REST, 2}, {31, 175, 87, 80, 92, 208, PW_CODE, 3}},
     {{44, 235, 90, 75, 111, 245, PW_STUDY, 4}},
-    {{36, 231, 105, 83, 117, 243, PW_EAT, 5}}
+    {{36, 231, 105, 83, 117, 243, PW_EAT, 5}},
+    [PW_GYM] = {{38, 166, 126, 152, 132, 180, PW_WORKOUT, 6}}
 };
 
-static const lv_image_dsc_t *const room_art[] = {&shahe_room_0, &shahe_room_1, &shahe_room_2};
-static const char *const room_names[] = {"雁北园 · 宿舍", "教综楼 · 教室", "学生餐厅 · 食堂"};
+static const lv_image_dsc_t *const room_art[] = {
+    &shahe_room_0, &shahe_room_1, &shahe_room_2, [PW_GYM] = &shahe_room_3};
+static const char *const room_names[] = {
+    "雁北园 · 宿舍", "教综楼 · 教室", "学生餐厅 · 食堂", [PW_GYM] = "活动中心 · 健身房"};
+static const lv_image_dsc_t *const room_decor[] = {
+    &shahe_decor_0, &shahe_decor_1, &shahe_decor_2, [PW_GYM] = &shahe_decor_3};
+static const int decor_anchor[][2] = {{16,407}, {314,383}, {319,371}, [PW_GYM] = {289,369}};
 
 static void build_hotspots(void)
 {
@@ -247,7 +272,14 @@ static void build_hotspots(void)
         lv_obj_set_style_bg_opa(o, LV_OPA_TRANSP, 0);
         lv_obj_set_style_bg_opa(o, LV_OPA_20, LV_STATE_PRESSED);
         lv_obj_t *disc = box(o, f->badge_x - f->x - 11, f->badge_y - f->y - 11, 23, 23, PAPER, 12);
-        image(disc, pw_icons[f->icon], 0, 0);
+        if (f->command == PW_WORKOUT)
+        {
+            box(disc, 4, 15, 15, 3, BLUE, 1);
+            box(disc, 14, 6, 2, 10, BLUE, 1);
+            box(disc, 13, 5, 6, 3, BLUE, 1);
+        }
+        else
+            image(disc, pw_icons[f->icon], 0, 0);
         /* Furniture takes precedence over the cat, with the modal above both. */
         lv_obj_move_to_index(o, lv_obj_get_index(ui.door));
     }
@@ -259,6 +291,7 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_t *scrim = button(ui.layer, 0, 0, 390, 450, TAG_CLOSE, 0x223A46, 0);
     lv_obj_set_style_bg_opa(scrim, LV_OPA_50, 0);
     lv_obj_t *dialog = box(ui.layer, 57, 95, 276, 260, 0xF9FCFD, 18);
+    ui.status_dialog = dialog;
     text(dialog, "小猫状态", 18, 13, &pet_font_20, INK);
     lv_obj_t *close = button(dialog, 226, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
     lv_obj_t *x = text(close, "×", 0, 0, &pet_font_20, BLUE);
@@ -280,8 +313,41 @@ static void build_panel(lv_obj_t *screen)
     ui.state = text(status, "闲逛中", 0, 108, &pet_font_16, BLUE);
     text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
     ui.save_note = text(status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
+    ui.order_dialog = box(ui.layer, 57, 113, 276, 224, PAPER, 18);
+    text(ui.order_dialog, "宿舍外卖", 18, 13, &pet_font_20, INK);
+    lv_obj_t *order_close = button(ui.order_dialog, 226, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *order_x = text(order_close, "×", 0, 0, &pet_font_20, BLUE);
+    lv_obj_center(order_x);
+    box(ui.order_dialog, 18, 51, 240, 1, 0xD8CFB8, 0);
+    text(ui.order_dialog, "暖饭便当", 18, 62, &pet_font_20, INK);
+    text(ui.order_dialog, "送到宿舍门旁 · 饱食 +12", 18, 93, &pet_font_16, BLUE);
+    ui.order_note = text(ui.order_dialog, "", 18, 125, &pet_font_16, INK);
+    ui.order_save = text(ui.order_dialog, "", 18, 163, &pet_font_16, BLUE);
+    ui.order_button = button(ui.order_dialog, 18, 163, 240, 44, PW_ORDER, 0xDCE6CB, 10);
+    lv_obj_t *order = text(ui.order_button, "确认下单", 0, 0, &pet_font_16, INK);
+    lv_obj_center(order);
     visible(ui.layer, false);
 }
+static void build_dorm_items(lv_obj_t *screen)
+{
+    ui.phone = button(screen, 118, 191, 44, 61, TAG_PHONE, PAPER, 7);
+    lv_obj_set_style_bg_opa(ui.phone, LV_OPA_TRANSP, 0);
+    box(ui.phone, 13, 9, 17, 25, 0x34596A, 4);
+    box(ui.phone, 15, 11, 13, 19, 0xA4C1C0, 3);
+    box(ui.phone, 19, 31, 5, 1, PAPER, 1);
+    lv_obj_t *phone_tag = box(ui.phone, 2, 34, 40, 25, PAPER, 6);
+    text(phone_tag, "外卖", 4, 0, &pet_font_16, INK);
+
+    ui.bag = button(screen, 278, 248, 52, 51, PW_TAKEOUT, PAPER, 7);
+    lv_obj_set_style_bg_opa(ui.bag, LV_OPA_TRANSP, 0);
+    box(ui.bag, 19, 1, 14, 13, 0xA77952, 5);
+    box(ui.bag, 22, 4, 8, 8, PAPER, 3);
+    box(ui.bag, 10, 9, 32, 25, 0xC58D5D, 4);
+    box(ui.bag, 13, 10, 24, 20, 0xE7B980, 3);
+    lv_obj_t *bag_tag = box(ui.bag, 5, 26, 42, 24, PAPER, 6);
+    text(bag_tag, "取餐", 5, 0, &pet_font_16, INK);
+}
+
 void pet_ui_create(pet_ui_action_fn callback)
 {
     /* No UI-owned model or animation timer: recreation cannot duplicate settlement. */
@@ -297,6 +363,8 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_add_event_cb(ui.background, ground_click, LV_EVENT_CLICKED, NULL);
     lv_obj_set_pos(ui.background, 0, 0);
     lv_image_set_src(ui.background, room_art[0]);
+    ui.decor = lv_image_create(screen);
+    lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
     ui.shadow = box(screen, 0, 0, 32, 8, 0x60523D, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.shadow, LV_OPA_20, 0);
@@ -310,6 +378,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.foreground = lv_image_create(screen);
     lv_obj_remove_flag(ui.foreground, LV_OBJ_FLAG_CLICKABLE);
     lv_image_set_src(ui.foreground, &shahe_front_0);
+    build_dorm_items(screen);
     ui.door = button(screen, 310, 100, 69, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
@@ -357,18 +426,49 @@ static const char *campus_area(float x, float y)
     return y > 775 ? "国脉路南段" : "鸿雁路一带";
 }
 
+static void paint_order(void)
+{
+    const pet_world_t *w = &ui.world;
+    bool can_order = w->scene == PW_DORM && w->order == PW_ORDER_NONE && w->cooldown[PW_TAKEOUT] <= w->now && !pw_busy(w);
+    if (w->order == PW_ORDER_DELIVERING)
+        lv_label_set_text_fmt(ui.order_note, "配送中 · 约 %u 秒", (unsigned)((w->order_due - w->now + 999) / 1000));
+    else if (w->order == PW_ORDER_READY)
+        lv_label_set_text(ui.order_note, "已送到 · 点门旁纸袋");
+    else if (w->cooldown[PW_TAKEOUT] > w->now)
+        lv_label_set_text_fmt(ui.order_note, "约 %u 秒后可再下单",
+                              (unsigned)((w->cooldown[PW_TAKEOUT] - w->now + 999) / 1000));
+    else if (pw_busy(w))
+        lv_label_set_text(ui.order_note, w->phase == PW_SLEEP ? "先点床叫醒小猫" : "等当前动作结束");
+    else
+        lv_label_set_text(ui.order_note, "约 30 秒送达");
+    lv_label_set_text(ui.order_save, w->order == PW_ORDER_NONE ? "" : save_notes[save_state]);
+    visible(ui.order_save, !can_order);
+    visible(ui.order_button, can_order);
+}
+
 static void paint(void)
 {
     if (ui.scene != ui.world.scene)
     {
         ui.scene = ui.world.scene;
+        if (ui.scene != PW_DORM && ui.panel == PANEL_ORDER)
+            ui.panel = PANEL_NONE;
         build_hotspots();
         if (ui.scene != PW_CAMPUS)
+        {
             lv_image_set_src(ui.background, room_art[ui.scene]);
+            const lv_image_dsc_t *art = room_decor[ui.scene];
+            lv_image_set_src(ui.decor, art);
+            lv_obj_set_pos(ui.decor, decor_anchor[ui.scene][0], decor_anchor[ui.scene][1] - art->header.h);
+        }
     }
     bool campus = ui.world.scene == PW_CAMPUS;
     visible(ui.campus, campus);
     visible(ui.background, !campus);
+    visible(ui.decor, !campus);
+    visible(ui.phone, ui.world.scene == PW_DORM);
+    visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
+                    ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
     if (!campus)
         lv_label_set_text(ui.location_text, room_names[ui.scene]);
@@ -416,16 +516,25 @@ static void paint(void)
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
     lv_label_set_text(ui.state, pw_state_text(&ui.world));
-    visible(ui.layer, ui.status_open);
-    lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.status_open ? 0xDCEAF3 : PAPER), 0);
+    visible(ui.layer, ui.panel != PANEL_NONE);
+    visible(ui.status_dialog, ui.panel == PANEL_STATUS);
+    visible(ui.order_dialog, ui.panel == PANEL_ORDER);
+    if (ui.panel == PANEL_ORDER)
+        paint_order();
+    lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.panel == PANEL_STATUS ? 0xDCEAF3 : PAPER), 0);
     const char *msg = pw_message_text(&ui.world);
     if (ui.world.now < 2300 && !*msg)
         msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";
-    if (ui.world.phase == PW_ACTION && ui.world.action == PW_EAT && ui.world.now < ui.world.message_until)
-        lv_label_set_text_fmt(ui.bubble_text, "开饭啦，饱食 +%d", ui.world.gain);
+    bool gains = ui.world.now < ui.world.gain_until;
+    if (gains && ui.world.gain && ui.world.mood_gain)
+        lv_label_set_text_fmt(ui.bubble_text, "饱食 %+d · 心情 %+d", ui.world.gain, ui.world.mood_gain);
+    else if (gains && ui.world.gain)
+        lv_label_set_text_fmt(ui.bubble_text, "饱食 %+d", ui.world.gain);
+    else if (gains)
+        lv_label_set_text_fmt(ui.bubble_text, "心情 %+d", ui.world.mood_gain);
     else
         lv_label_set_text(ui.bubble_text, msg);
-    visible(ui.bubble, *msg != 0);
+    visible(ui.bubble, gains || *msg);
 }
 void pet_ui_update(const pet_world_t *world)
 {

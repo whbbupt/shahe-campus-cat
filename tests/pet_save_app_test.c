@@ -71,6 +71,22 @@ int main(void)
     puts("[host:save-app] immediate pending, mid-action reboot, travel/wake and rejected-no-change feedback PASS");
 
     puts("[host:save-app] real app/driver callbacks: autosave, scenes, meals, sleep/wake, reboot, failure/retry PASS");
+    assert(action(PW_ORDER) == PW_OK && status == PET_SAVE_PENDING);
+    step(4000);
+    assert(status == PET_SAVE_SAVED);
+    reboot();
+    assert(snapshot.order == PW_ORDER_DELIVERING && snapshot.order_due > snapshot.now);
+    step((uint32_t)(snapshot.order_due - snapshot.now) + 40);
+    assert(snapshot.order == PW_ORDER_READY && status == PET_SAVE_PENDING);
+    step(11000);
+    reboot();
+    assert(snapshot.order == PW_ORDER_READY && status == PET_SAVE_SAVED);
+    assert(action(PW_TAKEOUT) == PW_OK);
+    step(22000);
+    assert(status == PET_SAVE_SAVED && snapshot.order == PW_ORDER_NONE && snapshot.food == 100);
+    reboot();
+    assert(snapshot.order == PW_ORDER_NONE && snapshot.food == 100);
+    puts("[host:save-app] actual app order countdown, ready and pickup across reboot PASS");
     ps_io_t io; capacity=8*1024*1024; assert(!ps_flash_io(&io)); reboot(); assert(status==PET_SAVE_UNAVAILABLE);
     assert(action(PW_NONE)==PW_INVALID && status==PET_SAVE_UNAVAILABLE);
     capacity=16*1024*1024; alignment=8192; assert(!ps_flash_io(&io)); alignment=4096; assert(ps_flash_io(&io));
