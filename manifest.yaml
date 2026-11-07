@@ -881,6 +881,13 @@ test_results:
     status: investigating_boot_log
     pass: null
 
+  - test_id: TC-216
+    description: BLE启动阶段与只读诊断命令实机
+    expected: 按docs/03的TC-216取得15秒状态和pet_ble_status结果
+    actual: 实现前登记，尚未执行
+    status: planned_not_executed
+    pass: null
+
 known_issues:
   - "TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"

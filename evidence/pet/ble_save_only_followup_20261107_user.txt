@@ -1,0 +1,8 @@
+来源：用户后续粘贴，未取得原始会话导出。
+20:10:31 RX 3 food=0 mood=4 sleeping=0
+20:11:31 RX [pet:SAVE] saved seq=2024 scene=
+20:11:31 RX 3 food=0 mood=4 sleeping=0
+20:12:32 RX [pet:SAVE] saved seq=2025 scene=
+20:12:32 RX 3 food=0 mood=4 sleeping=0
+
+当前仅确认这些回传片段没有pet:BLE行，不推定全部接收期间均没有。
