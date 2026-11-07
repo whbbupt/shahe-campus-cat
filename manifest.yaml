@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.12.4实际广播与iPhone连接已确认，TC-214手机读写和重连待测"
+  milestone: "沙河校园小猫v0.12.4广播及连接日志确认，PING/PONG用户确认，TC-214重连等子项待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -213,6 +213,13 @@ physical_verification:
     evidence_path: "evidence/pet/ble_v0.12.4_connected_20261107_user_raw.txt"
     evidence_note_path: "evidence/pet/ble_v0.12.4_connected_20261107_analysis.json"
     agent_conclusion: "v0.12.4真实boot、GATT和广播成功；ShaheCat-800CD1，SDK/app连接index0，后续查询connected且fault0。用户确认iPhone连上。TC-214连接子项通过；手机Info/READY/PONG、重连和完整并发使用尚未取得结果，整体不判通过。"
+
+  - item: "REQ-197 / TC-214：v0.12.4手机READY与PING/PONG实物确认"
+    required_action: "在当前LightBlue测试特征读取READY，十六进制写50494E47，再读取PONG。"
+    executed_at: null # 用户文本未给出本轮完整操作时间。
+    evidence_received_at: "2026-11-07"
+    evidence_path: "evidence/pet/ble_v0.12.4_pingpong_20261107_user_confirmation.txt"
+    agent_conclusion: "用户提供5245414459即READY，在写PING再读PONG的明确指导后回复有了读取到了，按上下文和用户实物确认登记双向数据子项通过；没有手机截图或原始PONG字节，不补造。Info、重连及完整并发等仍待结果。"
 
 test_results:
   - test_id: "TC-001"
@@ -886,9 +893,9 @@ test_results:
   - test_id: TC-214
     description: iPhone与小猫BLE连接探针
     expected: 按docs/03的TC-214扫描连接、读信息、PING/PONG及断开重连
-    actual: 历史v0.12.1扫描失败保留；新v0.12.4日志确认ShaheCat-800CD1广播成功、手机连接index0、后续查询connected且fault0，用户确认iPhone连上；手机Info和PING/PONG、重连等仍待测
+    actual: 历史v0.12.1扫描失败保留；新v0.12.4日志确认ShaheCat-800CD1广播成功、手机连接index0、后续查询connected且fault0，用户确认iPhone连上；用户已提供READY字节并在PING/PONG操作指导后确认读取成功；手机Info、重连及完整并发等仍待测
     evidence_path: evidence/pet/ble_v0.12.4_connected_20261107_user_raw.txt
-    status: connection_passed_data_pending
+    status: connection_and_data_confirmed_remaining_pending
     pass: null
 
   - test_id: TC-216
@@ -906,13 +913,13 @@ test_results:
     pass: null
 
 known_issues:
-  - "v0.12.3的LCPU镜像遗漏已确认；获用户授权后v0.12.4集成正式加载器和5412字节镜像，TC-219软件通过；TC-214本版启动、广播和iPhone连接已有真实日志；手机Info/READY/PONG、重连及完整并发使用待结果，不等同RTC已校时。"
+  - "v0.12.3的LCPU镜像遗漏已确认；获用户授权后v0.12.4集成正式加载器和5412字节镜像，TC-219软件通过；TC-214本版启动、广播和iPhone连接已有真实日志；READY有原始十六进制文字、PING/PONG已有用户实物成功确认；手机Info、重连及完整并发使用待结果，不等同RTC已校时。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.3仅启用SDK内部日志，TC-217软件通过、TC-218待新启动；0回调的底层原因尚未确认。全量保留原7告警加既有SDK潜在空指针2次。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.2真实查询显示wait-ready、0回调、循环活跃且队列无故障；新增TC-217/218单独开启SDK日志，底层原因尚不确定。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.2只增加启动阶段/计数及pet_ble_status查询，TC-215软件通过、TC-216待实机；原v0.12.1扫描失败根因未定位，不把诊断版等同修复。"
   - "历史记录（当前以v0.12.4连接证据为准）：TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "历史记录（当前以v0.12.4连接证据为准）：2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"
-  - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214已有v0.12.4 iPhone连接，手机读写待测，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"
+  - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214已有v0.12.4 iPhone连接日志及PING/PONG用户确认，其余子项待测，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"
   - "时间系统已确认三项方向并登记REQ-191至REQ-195与TC-203至TC-210，代码未实现；保存布局待评审，初始时刻/窗口/数值是AI初版参数。"
   - "v0.12.0音质、持续送音和声画时序待TC-202；格式5保存声音模式、读1至4；全量阶段有SDK lv_obj_swap潜在空指针告警2次，SDK未改且应用未调用。"
   - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
