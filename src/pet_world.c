@@ -76,11 +76,11 @@ static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
     }
     return true;
 }
-static const uint32_t durations[PW_ACTION_COUNT] = {0, 4000, 1500, 600, 8000, 10000, 500, 8000, 3200};
+static const uint32_t durations[PW_ACTION_COUNT] = {0, 4000, 1500, 600, 8000, 10000, 500, 8000, 3200, 0};
 static const uint32_t cooldowns[PW_ACTION_COUNT] = {
-    0, 2000, 3000, 0, 8000, 10000, 0, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS};
-static const int food_delta[PW_ACTION_COUNT] = {0, 20, 0, 0, -7, -4, 0, -6, 12};
-static const int mood_delta[PW_ACTION_COUNT] = {0, 0, 8, 0, 7, 5, 0, 12, 0};
+    0, 2000, 3000, 0, 8000, 10000, 0, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
+static const int food_delta[PW_ACTION_COUNT] = {0, 20, 0, 0, -7, -4, 0, -6, 12, 0};
+static const int mood_delta[PW_ACTION_COUNT] = {0, 0, 8, 0, 7, 5, 0, 12, 0, 3};
 static const pw_point_t supports[3][2] = {{{94, 154}, {104, 263}}, {{88, 294}, {0, 0}}, {{89, 298}, {0, 0}}};
 enum
 {
@@ -105,7 +105,9 @@ enum
     MSG_DELIVERED,
     MSG_TAKEOUT,
     MSG_ORDER_ACTIVE,
-    MSG_NO_ORDER
+    MSG_NO_ORDER,
+    MSG_MEMORY,
+    MSG_STAMP
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -125,7 +127,7 @@ uint32_t pw_duration(pw_command_t a)
 }
 bool pw_busy(const pet_world_t *w)
 {
-    return w->phase == PW_ACTION || w->phase == PW_SLEEP || w->phase == PW_TRANSITION;
+    return w->phase == PW_ACTION || w->phase == PW_SLEEP || w->phase == PW_TRANSITION || w->phase == PW_MINIGAME;
 }
 static void say(pet_world_t *w, int msg)
 {
@@ -143,12 +145,36 @@ static void feedback(pet_world_t *w, int food, int mood, uint64_t at)
     w->gain_until = food || mood ? at + 2400 : 0;
 }
 
+pw_wish_t pw_journal_wish(const pet_world_t *w, unsigned slot)
+{
+    static const pw_wish_t wishes[3][3] = {
+        {PJ_STUDY, PJ_EAT, PJ_REST}, {PJ_WORKOUT, PJ_EXPLORE, PJ_CODE}, {PJ_STUDY, PJ_WORKOUT, PJ_TOUCH}};
+    return slot < 3 && w->journal_page ? wishes[(w->journal_page - 1) % 3][slot] : PJ_COUNT;
+}
+const char *pw_wish_text(pw_wish_t wish)
+{
+    static const char *names[] = {"学点新知识", "好好吃顿饭", "回床上休息",
+                                   "去锻炼一下", "图书馆旁散步", "写一会代码", "和小猫贴贴"};
+    return (unsigned)wish < PJ_COUNT ? names[wish] : "";
+}
+static void wish_done(pet_world_t *w, pw_wish_t wish)
+{
+    for (unsigned slot = 0; slot < 3; slot++)
+        if (pw_journal_wish(w, slot) == wish)
+            w->journal_progress |= (uint8_t)(1U << slot);
+}
+
 static void settle(pet_world_t *w, pw_command_t a)
 {
     int old_food = w->food, old_mood = w->mood;
     w->food = clamp_value(old_food + food_delta[a]);
     w->mood = clamp_value(old_mood + mood_delta[a]);
     w->settlements[a]++;
+    if (a == PW_STUDY || a == PW_MEMORY) wish_done(w, PJ_STUDY);
+    if (a == PW_EAT || a == PW_TAKEOUT) wish_done(w, PJ_EAT);
+    if (a == PW_WORKOUT) wish_done(w, PJ_WORKOUT);
+    if (a == PW_CODE) wish_done(w, PJ_CODE);
+    if (a == PW_TOUCH) wish_done(w, PJ_TOUCH);
     feedback(w, w->food - old_food, w->mood - old_mood, w->now);
 }
 
@@ -170,6 +196,7 @@ void pw_init(pet_world_t *w)
     memset(w, 0, sizeof(*w));
     w->scene = PW_DORM;
     w->phase = PW_IDLE;
+    w->journal_page = 1;
     w->food = 70;
     w->mood = 60;
     w->node = 3;
@@ -225,7 +252,7 @@ static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
         return PW_BUSY;
     if ((w->scene == PW_CAMPUS && a != PW_TOUCH) ||
         (a == PW_EAT && w->scene != PW_CANTEEN) ||
-        (a == PW_STUDY && w->scene != PW_CLASSROOM) ||
+        ((a == PW_STUDY || a == PW_MEMORY) && w->scene != PW_CLASSROOM) ||
         (a == PW_WORKOUT && w->scene != PW_GYM) ||
         ((a == PW_CODE || a == PW_REST || a == PW_ORDER || a == PW_TAKEOUT) && w->scene != PW_DORM))
         return PW_WRONG_ROOM;
@@ -254,8 +281,8 @@ static pw_result_t reject(pet_world_t *w, pw_result_t r)
 static void begin(pet_world_t *w, pw_command_t a)
 {
     static const int messages[PW_ACTION_COUNT] = {
-        MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT};
-    w->phase = PW_ACTION;
+        MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT, MSG_MEMORY};
+    w->phase = a == PW_MEMORY ? PW_MINIGAME : PW_ACTION;
     w->action = a;
     w->target = PW_NONE;
     w->purpose = 0;
@@ -263,7 +290,9 @@ static void begin(pet_world_t *w, pw_command_t a)
     w->action_start = w->now;
     w->action_end = w->now + durations[a];
     w->gain_until = 0;
-    if (a != PW_REST && a != PW_WAKE && a != PW_WORKOUT && a != PW_TAKEOUT)
+    if (a == PW_MEMORY)
+        pm_start(&w->memory, (uint32_t)w->now ^ w->journal_page * 977U ^ w->memory_wins * 65537U);
+    if (a != PW_REST && a != PW_WAKE && a != PW_WORKOUT && a != PW_TAKEOUT && a != PW_MEMORY)
         settle(w, a);
     say(w, messages[a]);
 }
@@ -381,6 +410,8 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
 static void arrived(pet_world_t *w)
 {
     unsigned purpose = w->purpose;
+    if (w->scene == PW_CAMPUS && w->x > 825 && w->x < 1160 && w->y < 642 && w->y >= 395)
+        wish_done(w, PJ_EXPLORE);
     w->purpose = 0;
     w->edge_a = w->edge_b = -1;
     if (purpose == 1)
@@ -545,6 +576,44 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_MEMORY_CANCEL)
+    {
+        if (w->phase != PW_MINIGAME)
+            return PW_INVALID;
+        w->memory.phase = PM_OFF;
+        idle(w);
+        return PW_OK;
+    }
+    if (cmd >= PW_MEMORY_0 && cmd <= PW_MEMORY_3)
+    {
+        if (w->phase != PW_MINIGAME)
+            return PW_INVALID;
+        pm_phase_t before = w->memory.phase;
+        pm_press(&w->memory, (unsigned)(cmd - PW_MEMORY_0));
+        if (before == PM_INPUT && w->memory.phase == PM_WON)
+        {
+            settle(w, PW_MEMORY);
+            if (w->memory_wins < UINT16_MAX) w->memory_wins++;
+            w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
+        }
+        return PW_OK;
+    }
+    if (cmd == PW_JOURNAL_CLAIM)
+    {
+        if (pw_busy(w))
+            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (w->journal_progress != 7 || w->journal_page == UINT32_MAX)
+            return reject(w, PW_INVALID);
+        w->journal_badges |= (uint8_t)(1U << ((w->journal_page - 1) % 3));
+        if (w->journal_stamps < UINT16_MAX) w->journal_stamps++;
+        w->journal_page++;
+        w->journal_progress = 0;
+        w->gain_until = 0;
+        say(w, MSG_STAMP);
+        return PW_OK;
+    }
+    if (cmd == PW_MEMORY_START)
+        cmd = PW_MEMORY;
     if (cmd == PW_EXIT || (cmd >= PW_ENTER_DORM && cmd <= PW_ENTER_GYM))
     {
         if (pw_busy(w))
@@ -623,6 +692,7 @@ static void finish(pet_world_t *w)
     if (a == PW_REST)
     {
         w->phase = PW_SLEEP;
+        wish_done(w, PJ_REST);
         w->rest_elapsed = 0;
         say(w, MSG_REST);
         return;
@@ -658,6 +728,8 @@ void pw_advance(pet_world_t *w, uint32_t ms)
             if (!until)
                 until = 1;
         }
+        else if (w->phase == PW_MINIGAME)
+            until = pm_remaining(&w->memory);
         else if (w->phase == PW_ACTION)
             until = w->action_end - w->now;
         else if (w->phase == PW_TRANSITION)
@@ -687,6 +759,12 @@ void pw_advance(pet_world_t *w, uint32_t ms)
                 w->y += dy * fraction;
             }
             consume(w);
+        }
+        else if (w->phase == PW_MINIGAME)
+        {
+            pm_advance(&w->memory, (uint32_t)dt);
+            if (w->memory.phase == PM_OFF)
+                idle(w);
         }
         else if (w->phase == PW_ACTION && w->now >= w->action_end)
             finish(w);
@@ -809,6 +887,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
 }
 const char *pw_state_text(const pet_world_t *w)
 {
+    if (w->phase == PW_MINIGAME)
+        return "记忆题中";
     if (w->phase == PW_SLEEP)
         return "睡觉中";
     if (w->phase == PW_TRANSITION)
@@ -847,6 +927,8 @@ const char *pw_message_text(const pet_world_t *w)
                                   "外卖到了，点门旁纸袋",
                                   "取到外卖啦",
                                   "已有一份外卖",
-                                  "还没有可取的外卖"};
+                                  "还没有可取的外卖",
+                                  "看一遍，再按顺序点",
+                                  "收下一枚校园贴纸"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }

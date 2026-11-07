@@ -337,6 +337,55 @@ static void check_campus_tiles(void)
             assert(bounds.x2 - bounds.x1 + 1 == 280 && bounds.y2 - bounds.y1 + 1 == 260);
         }
 }
+static void memory_demo(void)
+{
+    static const char *symbols[] = {"花", "叶", "月", "星"};
+    press("记忆题");
+    for (unsigned i = 0; i < 1000 && world.phase == PW_WALK; i++) step(20);
+    assert(world.phase == PW_MINIGAME && world.memory.phase == PM_SHOW);
+    screenshot("shahe-memory-show.ppm");
+    press("花");
+    assert(world.memory.phase == PM_SHOW && world.memory.input_at == 0);
+    step(pm_remaining(&world.memory));
+    unsigned wrong = (world.memory.sequence[0] + 1) % 4;
+    press(symbols[wrong]);
+    assert(world.memory.phase == PM_LOST && world.memory_wins == 0);
+    screenshot("shahe-memory-retry.ppm");
+    step(1600);
+    assert(world.phase == PW_IDLE);
+    press("记忆题");
+    for (unsigned i = 0; i < 1000 && world.phase == PW_WALK; i++) step(20);
+    for (unsigned round = 0; round < 3; round++)
+    {
+        step(pm_remaining(&world.memory));
+        assert(world.memory.phase == PM_INPUT);
+        screenshot("shahe-memory-input.ppm");
+        unsigned length = world.memory.length;
+        for (unsigned i = 0; i < length; i++)
+            press(symbols[world.memory.sequence[i]]);
+    }
+    assert(world.memory.phase == PM_WON && world.memory_wins == 1);
+    screenshot("shahe-memory-won.ppm");
+    step(1600);
+    assert(world.phase == PW_IDLE);
+}
+static void journal_demo(void)
+{
+    assert(world.phase == PW_SLEEP && world.journal_progress == 7);
+    press("手账");
+    assert(label_with(lv_screen_active(), "点床叫醒小猫后收贴纸"));
+    screenshot("shahe-journal-complete.ppm");
+    press("×");
+    tap(100,126);
+    step(600);
+    assert(world.phase == PW_IDLE);
+    press("手账");
+    press("收下贴纸，翻到下一页");
+    assert(world.journal_page == 2 && world.journal_stamps == 1 && world.journal_badges == 1);
+    assert(label_with(lv_screen_active(), "图书馆旁散步"));
+    screenshot("shahe-journal-next.ppm");
+    press("×");
+}
 static void campus_round_trip(void)
 {
     leave(PW_DORM);
@@ -362,6 +411,7 @@ static void campus_round_trip(void)
     screenshot("shahe-teaching-gate.ppm");
     enter("教综楼", PW_CLASSROOM);
     screenshot("shahe-classroom.ppm");
+    memory_demo();
     check_new_floor(340, 372);
     tap(189, 411);
     idle(PW_CLASSROOM);
@@ -515,10 +565,14 @@ int main(void)
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
     reset();
+    press("手账");
+    screenshot("shahe-journal-first.ppm");
+    press("×");
     dorm();
     puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
     campus_round_trip();
     dorm_takeout();
+    journal_demo();
     campus_extended_route();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
@@ -526,6 +580,6 @@ int main(void)
         reset();
         assert(timers() == expected_timers);
     }
-    puts("[host:shahe-ui] native life route, gym, takeout, gains, campus, glyphs and recreation PASS");
+    puts("[host:shahe-ui] native journal, memory rounds, stamps, life route, glyphs and recreation PASS");
     return 0;
 }

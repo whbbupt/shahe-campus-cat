@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.10.0健身、外卖和四房布置，软件与构建通过，TC-190实机待测"
+  milestone: "沙河校园小猫v0.11.0手账与短记忆题，软件与构建通过，TC-196实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "养成为主，穿插可选短小游戏"
+      alternatives_considered: "小游戏挑战主导；校园照料与收集主导、穿插小游戏"
+      rationale: "手账记录已有照料活动，记忆题提供短暂变化，没有每日惩罚"
+      decided_by: "用户明确选择主次；具体玩法参数由AI设置，ADR-0012"
     - decision: "连续校园地图＋跟随镜头，建筑门口衔接室内"
       alternatives_considered: "分屏道路探索；连续地图与跟随镜头"
       rationale: "用户明确选择连续地图，要求从教室沿路走到十字路口探索，取消生产目的地传送菜单；矢量地图与有界路网由AI实施"
@@ -97,7 +101,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.10.0_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.11.0_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -720,7 +724,47 @@ test_results:
     pass: true
     evidence_path: evidence/pet/host_v0.10.0_final_20261107.txt
 
+  - test_id: TC-192
+    description: 手账愿望和贴纸翻页
+    expected: 按docs/03 v0.11.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.11.0_final_20261107.txt
+
+  - test_id: TC-193
+    description: 三轮记忆题和单次奖励
+    expected: 按docs/03 v0.11.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.11.0_final_20261107.txt
+
+  - test_id: TC-194
+    description: 格式升级与原子恢复
+    expected: 按docs/03 v0.11.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.11.0_final_20261107.txt
+
+  - test_id: TC-195
+    description: 生产LVGL与8MiB构建
+    expected: 按docs/03 v0.11.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.11.0_metadata_20261107.json
+
+  - test_id: TC-196
+    description: 新增玩法实机
+    expected: 按docs/03 v0.11.0用例
+    actual: 尚未执行，等待学生回传真实证据
+    status: pending_physical
+    pass: null
+
 known_issues:
+  - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
   - "v0.10.0使用格式3，旧固件读取时写保护；实际屏幕、触摸和订单复位恢复待TC-190。"
   - "v0.9.0室外全图为校图压缩的主要通道，TC-185 实机待测。"
   - "v0.8.2校园提示精简已过主机和目标构建，真实板端 TC-181 待测。"
@@ -753,6 +797,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "玩法主次"
+    student_confirmation: "我倾向于养成为主，穿插短小游戏。"
+    evidence_path: evidence/pet/growth_choice_20261107_user.txt
   - decision_point: "宿舍重绘审美和首批各场景画风统一"
     student_confirmation: "用户看过宿舍对照后明确同意，要求各场景统一"
     evidence_path: evidence/pet/shahe_art_20261107_user.txt

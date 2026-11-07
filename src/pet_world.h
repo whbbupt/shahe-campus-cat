@@ -2,6 +2,7 @@
 #define PET_WORLD_H
 #include <stdbool.h>
 #include <stdint.h>
+#include "pet_memory.h"
 
 enum
 {
@@ -30,6 +31,7 @@ typedef enum
     PW_WAKE,
     PW_WORKOUT,
     PW_TAKEOUT,
+    PW_MEMORY,
     PW_ACTION_COUNT,
     PW_ORDER = PW_ACTION_COUNT,
     PW_GO_DORM = 20,
@@ -39,7 +41,14 @@ typedef enum
     PW_ENTER_DORM = 30,
     PW_ENTER_CLASSROOM,
     PW_ENTER_CANTEEN,
-    PW_ENTER_GYM
+    PW_ENTER_GYM,
+    PW_MEMORY_START = 40,
+    PW_MEMORY_0,
+    PW_MEMORY_1,
+    PW_MEMORY_2,
+    PW_MEMORY_3,
+    PW_MEMORY_CANCEL,
+    PW_JOURNAL_CLAIM = 50
 } pw_command_t;
 typedef enum
 {
@@ -47,7 +56,8 @@ typedef enum
     PW_WALK,
     PW_ACTION,
     PW_SLEEP,
-    PW_TRANSITION
+    PW_TRANSITION,
+    PW_MINIGAME
 } pw_phase_t;
 typedef enum
 {
@@ -68,7 +78,12 @@ typedef enum
     PW_ORDER_DELIVERING,
     PW_ORDER_READY
 } pw_order_t;
-enum { PW_DELIVERY_MS = 30000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000 };
+enum { PW_DELIVERY_MS = 30000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000, PW_MEMORY_COOLDOWN_MS = 60000 };
+
+typedef enum
+{
+    PJ_STUDY, PJ_EAT, PJ_REST, PJ_WORKOUT, PJ_EXPLORE, PJ_CODE, PJ_TOUCH, PJ_COUNT
+} pw_wish_t;
 
 typedef struct
 {
@@ -90,6 +105,10 @@ typedef struct
     uint64_t order_due, gain_until;
     uint32_t settlements[PW_ACTION_COUNT];
     pw_order_t order;
+    uint32_t journal_page;
+    uint16_t journal_stamps, memory_wins;
+    uint8_t journal_progress, journal_badges;
+    pm_game_t memory;
     int message, gain, mood_gain;
 } pet_world_t;
 typedef struct
@@ -111,6 +130,8 @@ void pw_camera(const pet_world_t *w, float *x, float *y);
 unsigned pw_road_count(void);
 void pw_road(unsigned index, pw_point_t *a, pw_point_t *b);
 bool pw_campus_selftest(void (*report)(const char *, bool));
+pw_wish_t pw_journal_wish(const pet_world_t *world, unsigned slot);
+const char *pw_wish_text(pw_wish_t wish);
 unsigned pw_campus_door(pw_scene_t scene);
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
 uint32_t pw_duration(pw_command_t action);

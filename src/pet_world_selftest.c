@@ -511,6 +511,109 @@ static bool expanded_room_bounds(void)
     return true;
 }
 
+static bool journal_life_cycle(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(w.journal_page == 1 && !w.journal_progress && !w.journal_stamps);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_INVALID);
+    travel(&w, PW_CLASSROOM);
+    CHECK(pw_request(&w, PW_STUDY) == PW_OK && arrive(&w));
+    CHECK(w.journal_progress == 1);
+    pw_advance(&w, 8000);
+    travel(&w, PW_CANTEEN);
+    CHECK(pw_request(&w, PW_EAT) == PW_OK && arrive(&w));
+    CHECK(w.journal_progress == 3);
+    pw_advance(&w, 4000);
+    travel(&w, PW_DORM);
+    CHECK(pw_request(&w, PW_REST) == PW_OK && arrive(&w));
+    pw_advance(&w, 600);
+    CHECK(w.journal_progress == 7);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_ASLEEP);
+    CHECK(pw_request(&w, PW_REST) == PW_OK);
+    pw_advance(&w, 500);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
+    CHECK(w.journal_page == 2 && w.journal_stamps == 1 && w.journal_badges == 1 && !w.journal_progress);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_INVALID && w.journal_stamps == 1);
+    CHECK(pw_journal_wish(&w, 1) == PJ_EXPLORE);
+    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_request(&w, PW_ENTER_GYM) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_OK && arrive(&w));
+    CHECK(!w.journal_progress);
+    pw_advance(&w, PW_WORKOUT_COOLDOWN_MS);
+    CHECK(w.journal_progress == 1);
+    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_walk_to(&w, 1000, 430) == PW_OK && w.journal_progress == 1);
+    pw_advance(&w, 20000);
+    CHECK(w.phase == PW_IDLE && w.journal_progress == 3);
+    CHECK(pw_request(&w, PW_ENTER_DORM) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_request(&w, PW_CODE) == PW_OK && arrive(&w));
+    pw_advance(&w, 10000);
+    CHECK(w.journal_progress == 7 && pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
+    CHECK(w.journal_page == 3 && w.journal_stamps == 2 && w.journal_badges == 3);
+    travel(&w, PW_CLASSROOM);
+    CHECK(pw_request(&w, PW_STUDY) == PW_OK && arrive(&w));
+    pw_advance(&w, 8000);
+    CHECK(pw_request(&w, PW_TOUCH) == PW_OK && w.journal_progress == 5);
+    pw_advance(&w, 1500);
+    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_request(&w, PW_ENTER_GYM) == PW_OK);
+    pw_advance(&w, 20000);
+    CHECK(pw_request(&w, PW_WORKOUT) == PW_OK && arrive(&w));
+    pw_advance(&w, 8000);
+    CHECK(w.journal_progress == 7);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
+    CHECK(w.journal_page == 4 && w.journal_stamps == 3 && w.journal_badges == 7);
+    CHECK(pw_journal_wish(&w, 0) == PJ_STUDY && !w.journal_progress);
+    return true;
+}
+
+static bool memory_rounds_and_guards(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(pw_request(&w, PW_MEMORY_START) == PW_WRONG_ROOM);
+    travel(&w, PW_CLASSROOM);
+    CHECK(pw_request(&w, PW_MEMORY_START) == PW_OK);
+    for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
+    CHECK(w.phase == PW_MINIGAME && w.memory.phase == PM_SHOW);
+    CHECK(pw_request(&w, PW_MEMORY_0) == PW_OK && !w.memory.input_at && !w.memory_wins);
+    pw_advance(&w, pm_remaining(&w.memory));
+    unsigned wrong = (w.memory.sequence[0] + 1) % 4;
+    CHECK(pw_request(&w, (pw_command_t)(PW_MEMORY_0 + wrong)) == PW_OK);
+    CHECK(w.memory.phase == PM_LOST && !w.memory_wins && w.mood == 60);
+    pw_advance(&w, 1500);
+    CHECK(w.phase == PW_IDLE && pw_request(&w, PW_MEMORY_START) == PW_OK);
+    w.mood = 99;
+    for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
+    for (unsigned round = 0; round < 3; round++)
+    {
+        CHECK(w.memory.length == 3 + round);
+        pw_advance(&w, pm_remaining(&w.memory));
+        CHECK(w.memory.phase == PM_INPUT);
+        unsigned length = w.memory.length;
+        for (unsigned i = 0; i < length; i++)
+        {
+            unsigned symbol = w.memory.sequence[i];
+            CHECK(pw_request(&w, (pw_command_t)(PW_MEMORY_0 + symbol)) == PW_OK);
+        }
+    }
+    CHECK(w.memory.phase == PM_WON && w.memory_wins == 1 && w.mood == 100 && w.mood_gain == 1 && w.journal_progress == 1);
+    CHECK(pw_request(&w, PW_MEMORY_0) == PW_OK && w.memory_wins == 1 && w.mood == 100);
+    pw_advance(&w, 1500);
+    CHECK(pw_request(&w, PW_MEMORY_START) == PW_COOLDOWN);
+    pw_advance(&w, PW_MEMORY_COOLDOWN_MS);
+    CHECK(pw_request(&w, PW_MEMORY_START) == PW_OK);
+    for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
+    CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK && w.phase == PW_IDLE && w.memory_wins == 1);
+    return true;
+}
+
 bool pw_campus_selftest(void (*report)(const char *, bool))
 {
     static const struct
@@ -554,6 +657,8 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"indoor-floor-detour-and-retarget", indoor_floor},
                  {"classroom-and-canteen-detours", other_room_detours},
                  {"reset-invalid", reset_invalid},
+                 {"journal-wishes-stamp-and-page", journal_life_cycle},
+                 {"memory-rounds-wrong-cancel-and-once", memory_rounds_and_guards},
                  {"rebalanced-actions-and-sleep-clamp", rebalanced_actions},
                  {"gym-access-workout-and-return", gym_cycle},
                  {"takeout-delivery-guards-and-once", takeout_cycle},

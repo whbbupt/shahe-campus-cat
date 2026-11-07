@@ -170,7 +170,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 3);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 4);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -242,6 +242,37 @@ static bool takeout_autosave(void)
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_READY);
     return true;
 }
+static bool journal_restore(void)
+{
+    blank();
+    pet_save_t s;
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    w.journal_progress = 7;
+    CHECK(!ps_visible_saved(&s, &w) && ps_save(&s, &w) == PS_OK);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
+    CHECK(!ps_visible_saved(&s, &w));
+    ram.budget = 63;
+    CHECK(ps_save(&s, &w) == PS_IO_ERROR);
+    ram.budget = -1;
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.journal_page == 1 &&
+          w.journal_progress == 7 && w.journal_stamps == 0);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK && ps_save(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.journal_page == 2 && w.journal_stamps == 1);
+    CHECK(w.journal_badges == 1 && w.journal_progress == 0 && ps_visible_saved(&s, &w));
+    w.memory_wins = 17;
+    w.cooldown[PW_MEMORY] = PW_MEMORY_COOLDOWN_MS;
+    w.scene = PW_CLASSROOM;
+    CHECK(ps_save(&s, &w) == PS_OK);
+    w.phase = PW_MINIGAME;
+    w.action = PW_MEMORY;
+    pm_start(&w.memory, 4);
+    CHECK(ps_save(&s, &w) == PS_WAIT);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.memory_wins == 17 && w.memory.phase == PM_OFF);
+    CHECK(w.phase == PW_IDLE && w.cooldown[PW_MEMORY] == PW_MEMORY_COOLDOWN_MS);
+    return true;
+}
 bool ps_selftest(void (*report)(const char *, bool))
 {
     static const struct { const char *name; bool (*run)(void);
@@ -252,7 +283,8 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"no-unfinished-action-replay", no_busy_replay},    {"autosave-throttle-checkpoint-retry", scheduler},
         {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore},
         {"takeout-resume-and-atomic-pickup", takeout_resume},
-        {"takeout-autosave-phase-key", takeout_autosave}};
+        {"takeout-autosave-phase-key", takeout_autosave},
+        {"journal-atomic-stamp-and-game-restore", journal_restore}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

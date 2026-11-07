@@ -16,9 +16,11 @@ enum
 {
     TAG_STATUS = 100,
     TAG_CLOSE,
-    TAG_PHONE
+    TAG_PHONE,
+    TAG_JOURNAL,
+    TAG_MEMORY_CLOSE
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_JOURNAL };
 static struct
 {
     pet_ui_action_fn action;
@@ -31,6 +33,9 @@ static struct
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
+    lv_obj_t *journal_button, *journal_dialog, *journal_page, *wish[3], *wish_mark[3],
+             *journal_count, *claim, *claim_hint, *badge[3];
+    lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
 } ui;
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
@@ -47,7 +52,7 @@ void pet_ui_set_point_handler(pet_ui_point_fn handler)
 static void ground_click(lv_event_t *e)
 {
     (void)e;
-    if (ui.panel || !ui.point)
+    if (ui.panel || ui.world.phase == PW_MINIGAME || !ui.point)
         return;
     lv_indev_t *indev = lv_indev_active();
     if (!indev)
@@ -93,6 +98,28 @@ static void click(lv_event_t *e)
     if (lv_obj_has_state(o, LV_STATE_DISABLED))
         return;
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
+    if (cmd == TAG_MEMORY_CLOSE || (cmd == TAG_CLOSE && ui.world.phase == PW_MINIGAME))
+    {
+        if (ui.action) ui.action(PW_MEMORY_CANCEL);
+        return;
+    }
+    if (ui.world.phase == PW_MINIGAME)
+    {
+        if (cmd >= PW_MEMORY_0 && cmd <= PW_MEMORY_3 && ui.action)
+            ui.action((pw_command_t)cmd);
+        return;
+    }
+    if (cmd == TAG_JOURNAL)
+    {
+        ui.panel = ui.panel == PANEL_JOURNAL ? PANEL_NONE : PANEL_JOURNAL;
+        paint();
+        return;
+    }
+    if (cmd == PW_JOURNAL_CLAIM && ui.panel == PANEL_JOURNAL)
+    {
+        if (ui.action) ui.action(PW_JOURNAL_CLAIM);
+        return;
+    }
     if (cmd == TAG_STATUS)
     {
         ui.panel = ui.panel == PANEL_STATUS ? PANEL_NONE : PANEL_STATUS;
@@ -326,6 +353,43 @@ static void build_panel(lv_obj_t *screen)
     ui.order_button = button(ui.order_dialog, 18, 163, 240, 44, PW_ORDER, 0xDCE6CB, 10);
     lv_obj_t *order = text(ui.order_button, "确认下单", 0, 0, &pet_font_16, INK);
     lv_obj_center(order);
+    ui.journal_dialog = box(ui.layer, 36, 76, 318, 308, PAPER, 18);
+    text(ui.journal_dialog, "小猫的校园手账", 18, 12, &pet_font_20, INK);
+    lv_obj_t *journal_close = button(ui.journal_dialog, 267, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *journal_x = text(journal_close, "×", 0, 0, &pet_font_20, BLUE);
+    lv_obj_center(journal_x);
+    ui.journal_page = text(ui.journal_dialog, "", 18, 42, &pet_font_16, BLUE);
+    for (unsigned i = 0; i < 3; i++)
+    {
+        lv_obj_t *row = box(ui.journal_dialog, 18, 74 + i * 41, 282, 35, 0xF0EAD8, 9);
+        ui.wish_mark[i] = text(row, "", 10, 5, &pet_font_16, BLUE);
+        ui.wish[i] = text(row, "", 39, 5, &pet_font_16, INK);
+        ui.badge[i] = box(ui.journal_dialog, 18 + i * 37, 207, 28, 28, 0xDCD9C8, 14);
+        lv_obj_t *star = text(ui.badge[i], "★", 0, 0, &pet_font_16, INK);
+        lv_obj_center(star);
+    }
+    ui.journal_count = text(ui.journal_dialog, "", 137, 210, &pet_font_16, BLUE);
+    ui.claim_hint = text(ui.journal_dialog, "", 18, 250, &pet_font_16, BLUE);
+    ui.claim = button(ui.journal_dialog, 18, 248, 282, 44, PW_JOURNAL_CLAIM, 0xDCE6CB, 10);
+    lv_obj_t *claim_name = text(ui.claim, "收下贴纸，翻到下一页", 0, 0, &pet_font_16, INK);
+    lv_obj_center(claim_name);
+
+    ui.memory_dialog = box(ui.layer, 29, 75, 332, 312, PAPER, 18);
+    text(ui.memory_dialog, "课堂记忆题", 18, 12, &pet_font_20, INK);
+    lv_obj_t *memory_close = button(ui.memory_dialog, 282, 2, 44, 44, TAG_MEMORY_CLOSE, PAPER, 12);
+    lv_obj_t *memory_x = text(memory_close, "×", 0, 0, &pet_font_20, BLUE);
+    lv_obj_center(memory_x);
+    ui.memory_note = text(ui.memory_dialog, "", 18, 50, &pet_font_20, INK);
+    ui.memory_round = text(ui.memory_dialog, "", 18, 80, &pet_font_16, BLUE);
+    static const char *symbols[] = {"花", "叶", "月", "星"};
+    for (unsigned i = 0; i < 4; i++)
+    {
+        ui.memory_tile[i] = button(ui.memory_dialog, 20 + (i % 2) * 152,
+                                   111 + (i / 2) * 83, 140, 72, PW_MEMORY_0 + i, 0xE7E4CF, 13);
+        lv_obj_t *symbol = text(ui.memory_tile[i], symbols[i], 0, 0, &pet_font_20, INK);
+        lv_obj_center(symbol);
+    }
+    ui.memory_footer = text(ui.memory_dialog, "", 20, 281, &pet_font_16, BLUE);
     visible(ui.layer, false);
 }
 static void build_dorm_items(lv_obj_t *screen)
@@ -384,6 +448,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
     gate_badge(ui.door, "出门", 1, 65, 63);
     build_gates(screen);
+    ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
+    lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
+    gate_badge(ui.blackboard, "记忆题", 59, 40, 80);
     ui.location = box(screen, 13, 13, 206, 52, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     text(ui.location, "沙河校园小猫", 12, 2, &pet_font_16, BLUE);
@@ -396,6 +463,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
     build_panel(screen);
+    ui.journal_button = button(screen, 265, 13, 52, 52, TAG_JOURNAL, PAPER, 14);
+    lv_obj_set_style_bg_opa(ui.journal_button, LV_OPA_90, 0);
+    image(ui.journal_button, pw_icons[4], 14, 4);
+    text(ui.journal_button, "手账", 10, 29, &pet_font_16, BLUE);
     ui.status_button = button(screen, 325, 13, 52, 52, TAG_STATUS, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
     image(ui.status_button, pw_icons[0], 14, 4);
@@ -446,6 +517,49 @@ static void paint_order(void)
     visible(ui.order_button, can_order);
 }
 
+static void paint_journal(void)
+{
+    const pet_world_t *w = &ui.world;
+    lv_label_set_text_fmt(ui.journal_page, "第 %u 页 · 三件小愿望", (unsigned)w->journal_page);
+    for (unsigned i = 0; i < 3; i++)
+    {
+        bool done = (w->journal_progress & (1U << i)) != 0;
+        lv_label_set_text(ui.wish[i], pw_wish_text(pw_journal_wish(w, i)));
+        lv_label_set_text(ui.wish_mark[i], done ? "✓" : "○");
+        lv_obj_set_style_bg_color(ui.badge[i], lv_color_hex(w->journal_badges & (1U << i) ? 0xD5DDA8 : 0xE0DDCE), 0);
+    }
+    lv_label_set_text_fmt(ui.journal_count, "贴纸 %u 枚", w->journal_stamps);
+    bool ready = w->journal_progress == 7 && !pw_busy(w);
+    visible(ui.claim, ready);
+    visible(ui.claim_hint, !ready);
+    lv_label_set_text(ui.claim_hint, w->journal_progress != 7 ? "按自己的顺序慢慢完成"
+                        : w->phase == PW_SLEEP ? "点床叫醒小猫后收贴纸" : "等当前活动结束再收贴纸");
+}
+static void paint_memory(void)
+{
+    const pm_game_t *game = &ui.world.memory;
+    const char *note = game->phase == PM_SHOW ? "先记住亮起的顺序"
+                       : game->phase == PM_INPUT ? "按刚才的顺序点"
+                       : game->phase == PM_WON ? "都记住啦！" : "差一点，下次再试";
+    lv_label_set_text(ui.memory_note, note);
+    lv_label_set_text_fmt(ui.memory_round, "第 %u / 3 轮 · %u 个图案", game->round + 1, game->length);
+    int highlight = pm_highlight(game);
+    static const uint32_t colors[] = {0xE4B9A1, 0xBFCEA5, 0xB5CDD2, 0xE5D49D};
+    for (unsigned i = 0; i < 4; i++)
+    {
+        lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(highlight == (int)i ? colors[i] : 0xE8E3D2), 0);
+        lv_obj_set_style_border_width(ui.memory_tile[i], highlight == (int)i ? 3 : 0, 0);
+        lv_obj_set_style_border_color(ui.memory_tile[i], lv_color_hex(BLUE), 0);
+    }
+    if (game->phase == PM_INPUT)
+        lv_label_set_text_fmt(ui.memory_footer, "已经想起 %u / %u 个", game->input_at, game->length);
+    else if (game->phase == PM_WON)
+        lv_label_set_text_fmt(ui.memory_footer, "心情 +%d · 课堂记忆已记下", ui.world.mood_gain);
+    else
+        lv_label_set_text(ui.memory_footer, game->phase == PM_SHOW ? "看完再点，不用赶时间"
+                                                                  : "随时可以重新挑战");
+}
+
 static void paint(void)
 {
     if (ui.scene != ui.world.scene)
@@ -467,6 +581,9 @@ static void paint(void)
     visible(ui.background, !campus);
     visible(ui.decor, !campus);
     visible(ui.phone, ui.world.scene == PW_DORM);
+    visible(ui.blackboard, ui.world.scene == PW_CLASSROOM);
+    visible(ui.status_button, ui.world.phase != PW_MINIGAME);
+    visible(ui.journal_button, ui.world.phase != PW_MINIGAME);
     visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
@@ -516,9 +633,14 @@ static void paint(void)
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
     lv_label_set_text(ui.state, pw_state_text(&ui.world));
-    visible(ui.layer, ui.panel != PANEL_NONE);
-    visible(ui.status_dialog, ui.panel == PANEL_STATUS);
-    visible(ui.order_dialog, ui.panel == PANEL_ORDER);
+    bool memory = ui.world.phase == PW_MINIGAME;
+    visible(ui.layer, memory || ui.panel != PANEL_NONE);
+    visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
+    visible(ui.order_dialog, !memory && ui.panel == PANEL_ORDER);
+    visible(ui.journal_dialog, !memory && ui.panel == PANEL_JOURNAL);
+    visible(ui.memory_dialog, memory);
+    if (memory) paint_memory();
+    if (ui.panel == PANEL_JOURNAL) paint_journal();
     if (ui.panel == PANEL_ORDER)
         paint_order();
     lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.panel == PANEL_STATUS ? 0xDCEAF3 : PAPER), 0);

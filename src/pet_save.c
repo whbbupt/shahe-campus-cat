@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 3U
+#define SCHEMA 4U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -13,6 +13,20 @@ static void put32(uint8_t *p, uint32_t n)
 {
     for (unsigned i = 0; i < 4; i++) p[i] = (uint8_t)(n >> (8 * i));
 }
+static uint16_t get16(const uint8_t *p)
+{
+    return (uint16_t)((uint16_t)p[0] | (uint16_t)p[1] << 8);
+}
+static void put16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)value;
+    p[1] = (uint8_t)(value >> 8);
+}
+static const pw_command_t saved_actions[] = {
+    PW_EAT, PW_TOUCH, PW_STUDY, PW_CODE, PW_WORKOUT, PW_TAKEOUT, PW_MEMORY};
+static const uint32_t saved_limits[] = {
+    2000, 3000, 8000, 10000, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
+
 static uint32_t crc(const uint8_t *p, unsigned n)
 {
     uint32_t c = ~0U;
@@ -37,17 +51,22 @@ static bool known_header(const uint8_t *r)
 }
 static uint32_t order_code(const uint8_t *r)
 {
-    return r[4] == SCHEMA ? get32(r + ORDER_OFFSET) : 0;
+    return r[4] >= 3 ? get32(r + ORDER_OFFSET) : 0;
 }
 static pw_order_t order_state(const uint8_t *r)
 {
     uint32_t code = order_code(r);
     return code == 0 ? PW_ORDER_NONE : code == 1 ? PW_ORDER_READY : PW_ORDER_DELIVERING;
 }
-static void visible_key(const uint8_t *r, uint8_t key[5])
+static void visible_key(const uint8_t *r, uint8_t key[15])
 {
     memcpy(key, r + 12, 4);
     key[4] = (uint8_t)order_state(r);
+    memset(key + 5, 0, 10);
+    if (r[4] == SCHEMA)
+        memcpy(key + 5, r + 46, 10);
+    else
+        key[5] = 1; /* Older snapshots start on journal page one. */
 }
 static bool valid(const uint8_t *r)
 {
@@ -56,10 +75,19 @@ static bool valid(const uint8_t *r)
         (r[15] && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
         return false;
+    if (r[4] == SCHEMA)
+    {
+        if (!get32(r + 46) || r[54] > 7 || r[55] > 7 || order_code(r) > PW_DELIVERY_MS + 1)
+            return false;
+        for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
+            if (get16(r + 32 + 2 * i) > saved_limits[i])
+                return false;
+        return true;
+    }
     if (get32(r + 32) > 2000 || get32(r + 36) > 3000 ||
         get32(r + 44) > 8000 || get32(r + 48) > 10000)
         return false;
-    if (r[4] != SCHEMA)
+    if (r[4] < 3)
         return !get32(r + ORDER_OFFSET) && !get32(r + WORKOUT_OFFSET) && !get32(r + TAKEOUT_OFFSET);
     return order_code(r) <= PW_DELIVERY_MS + 1 &&
            get32(r + WORKOUT_OFFSET) <= PW_WORKOUT_COOLDOWN_MS &&
@@ -67,7 +95,7 @@ static bool valid(const uint8_t *r)
 }
 static bool snapshot_ready(const pet_world_t *w)
 {
-    return w->phase != PW_ACTION && w->phase != PW_TRANSITION &&
+    return w->phase != PW_ACTION && w->phase != PW_TRANSITION && w->phase != PW_MINIGAME &&
            !(w->phase == PW_WALK && w->purpose != 0);
 }
 bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
@@ -75,7 +103,14 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
     return s->enabled && s->has_saved && snapshot_ready(w) &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
            s->saved[14] == (uint8_t)w->scene && s->saved[15] == (w->phase == PW_SLEEP) &&
-           order_state(s->saved) == w->order;
+           order_state(s->saved) == w->order &&
+           (s->saved[4] == SCHEMA
+                ? get32(s->saved + 46) == w->journal_page &&
+                  get16(s->saved + 50) == w->journal_stamps &&
+                  get16(s->saved + 52) == w->memory_wins &&
+                  s->saved[54] == w->journal_progress && s->saved[55] == w->journal_badges
+                : w->journal_page == 1 && !w->journal_stamps && !w->memory_wins &&
+                  !w->journal_progress && !w->journal_badges);
 }
 static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 {
@@ -94,10 +129,17 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     put32(r + 16, (uint32_t)w->food_elapsed);
     put32(r + 20, (uint32_t)w->mood_elapsed);
     put32(r + 24, (uint32_t)w->rest_elapsed);
-    put32(r + 32, remaining(w, PW_EAT));
-    put32(r + 36, remaining(w, PW_TOUCH));
-    put32(r + 44, remaining(w, PW_STUDY));
-    put32(r + 48, remaining(w, PW_CODE));
+    for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
+    {
+        uint32_t value = remaining(w, saved_actions[i]);
+        if (value > saved_limits[i]) return false;
+        put16(r + 32 + 2 * i, (uint16_t)value);
+    }
+    put32(r + 46, w->journal_page);
+    put16(r + 50, w->journal_stamps);
+    put16(r + 52, w->memory_wins);
+    r[54] = w->journal_progress;
+    r[55] = w->journal_badges;
     uint32_t order = 0;
     if (w->order == PW_ORDER_READY)
         order = 1;
@@ -108,8 +150,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
         order = 1U + (uint32_t)(w->order_due - w->now);
     }
     put32(r + ORDER_OFFSET, order);
-    put32(r + WORKOUT_OFFSET, remaining(w, PW_WORKOUT));
-    put32(r + TAKEOUT_OFFSET, remaining(w, PW_TAKEOUT));
+
     put32(r + 56, crc(r, 56)); put32(r + 60, COMMIT);
     return valid(r);
 }
@@ -122,17 +163,30 @@ static void restore(const uint8_t *r, pet_world_t *w)
     pw_point_t p = pw_node(w->scene, (unsigned)w->node);
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
-    w->cooldown[PW_EAT] = get32(r + 32);
-    w->cooldown[PW_TOUCH] = get32(r + 36);
-    w->cooldown[PW_STUDY] = get32(r + 44);
-    w->cooldown[PW_CODE] = get32(r + 48);
     w->order = order_state(r);
     if (w->order == PW_ORDER_DELIVERING)
         w->order_due = order_code(r) - 1;
     if (r[4] == SCHEMA)
     {
-        w->cooldown[PW_WORKOUT] = get32(r + WORKOUT_OFFSET);
-        w->cooldown[PW_TAKEOUT] = get32(r + TAKEOUT_OFFSET);
+        for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
+            w->cooldown[saved_actions[i]] = get16(r + 32 + 2 * i);
+        w->journal_page = get32(r + 46);
+        w->journal_stamps = get16(r + 50);
+        w->memory_wins = get16(r + 52);
+        w->journal_progress = r[54];
+        w->journal_badges = r[55];
+    }
+    else
+    {
+        w->cooldown[PW_EAT] = get32(r + 32);
+        w->cooldown[PW_TOUCH] = get32(r + 36);
+        w->cooldown[PW_STUDY] = get32(r + 44);
+        w->cooldown[PW_CODE] = get32(r + 48);
+        if (r[4] == 3)
+        {
+            w->cooldown[PW_WORKOUT] = get32(r + WORKOUT_OFFSET);
+            w->cooldown[PW_TAKEOUT] = get32(r + TAKEOUT_OFFSET);
+        }
     }
 }
 ps_result_t ps_open(pet_save_t *s, ps_io_t io, pet_world_t *w)
@@ -203,7 +257,7 @@ ps_result_t ps_poll(pet_save_t *s, const pet_world_t *w)
     uint8_t r[64];
     if (!s->enabled) return PS_IO_ERROR;
     if (!capture(w, r, 0)) { s->pending = false; return PS_WAIT; }
-    uint8_t key[5], saved[5];
+    uint8_t key[15], saved[15];
     visible_key(r, key);
     visible_key(s->saved, saved);
     bool changed = !s->has_saved || memcmp(key, saved, sizeof(key)) != 0;

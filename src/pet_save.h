@@ -16,7 +16,7 @@ typedef struct
 typedef struct
 {
     ps_io_t io;
-    uint8_t saved[PS_RECORD_SIZE], pending_key[5];
+    uint8_t saved[PS_RECORD_SIZE], pending_key[15];
     uint32_t sequence;
     int sector;
     bool enabled, has_saved, pending, attempted;
