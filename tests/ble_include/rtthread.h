@@ -4,6 +4,8 @@
 #include <stddef.h>
 typedef uint32_t rt_tick_t;
 typedef int rt_err_t;
+typedef intptr_t rt_base_t;
+#define RT_USING_FINSH 1
 typedef void *rt_mq_t;
 typedef void *rt_thread_t;
 #define RT_EOK 0

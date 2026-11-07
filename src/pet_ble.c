@@ -7,6 +7,10 @@
 #include "bf0_sibles.h"
 #include "bf0_sibles_advertising.h"
 #include "ble_connection_manager.h"
+#include <rthw.h>
+#ifdef RT_USING_FINSH
+#include <finsh.h>
+#endif
 #include <string.h>
 
 #define UUID(n) {0x43,0x45,0x48,0x41,0x48,0x53,0x4d,0x9a,0x25,0x4f,0x73,0x2f,n,0x00,0x7c,0x8a}
@@ -27,6 +31,67 @@ static uint8_t info[]="ShaheCat " PET_FIRMWARE_VERSION " BLE probe; RTC sync not
 static sibles_hdl service;
 SIBLES_ADVERTISING_CONTEXT_DECLAR(advertising);
 
+enum { DIAG_OFF, DIAG_QUEUE, DIAG_THREAD, DIAG_STACK_CALL, DIAG_WAIT_READY,
+       DIAG_GATT, DIAG_NAME, DIAG_ADV_INIT, DIAG_ADV_START, DIAG_ADVERTISING,
+       DIAG_CONNECTED, DIAG_WAIT_ADV, DIAG_ERROR };
+typedef struct {
+    uint32_t stage, callbacks, power_events, queued, handled, loops;
+    uint32_t last_callback, last_handled, adv_events, adv_result;
+    int result, last_receive;
+} diagnostic_t;
+static diagnostic_t diagnostic;
+static rt_tick_t diagnostic_start_tick;
+static bool diagnostic_started, diagnostic_reported;
+
+static const char *stage_name(unsigned stage)
+{
+    static const char *names[]={"off","queue","thread","stack-call","wait-ready",
+        "gatt","name","adv-init","adv-start","advertising","connected","wait-adv","error"};
+    return stage<sizeof(names)/sizeof(names[0]) ? names[stage] : "unknown";
+}
+static void set_stage(unsigned stage,int result)
+{
+    rt_base_t level=rt_hw_interrupt_disable();
+    diagnostic.stage=stage; diagnostic.result=result;
+    rt_hw_interrupt_enable(level);
+    rt_kprintf("[pet:BLE] stage=%s result=%d\n",stage_name(stage),result);
+}
+static diagnostic_t snapshot(void)
+{
+    rt_base_t level=rt_hw_interrupt_disable();
+    diagnostic_t copy=diagnostic;
+    rt_hw_interrupt_enable(level);
+    return copy;
+}
+static void print_status(const char *reason)
+{
+    diagnostic_t d=snapshot();
+    rt_kprintf("[pet:BLE:STATUS] %s version=%s tick=%u stage=%s result=%d\n",
+        reason,PET_FIRMWARE_VERSION,(unsigned)rt_tick_get(),stage_name(d.stage),d.result);
+    rt_kprintf("[pet:BLE:STATUS] callbacks=%u power=%u queued=%u handled=%u loops=%u\n",
+        (unsigned)d.callbacks,(unsigned)d.power_events,(unsigned)d.queued,(unsigned)d.handled,(unsigned)d.loops);
+    rt_kprintf("[pet:BLE:STATUS] last_cb=0x%04X last_handled=0x%04X recv=%d adv_events=%u adv_result=%u fault=%u\n",
+        (unsigned)d.last_callback,(unsigned)d.last_handled,d.last_receive,
+        (unsigned)d.adv_events,(unsigned)d.adv_result,(unsigned)queue_fault);
+}
+void pet_ble_poll(void)
+{
+    if (diagnostic_started && !diagnostic_reported &&
+        (rt_tick_t)(rt_tick_get()-diagnostic_start_tick)>=rt_tick_from_millisecond(15000)) {
+        diagnostic_reported=true;
+        print_status("15s");
+    }
+}
+#ifdef RT_USING_FINSH
+static int cmd_pet_ble_status(int argc,char **argv)
+{
+    (void)argc; (void)argv;
+    print_status("query");
+    return 0;
+}
+MSH_CMD_EXPORT_ALIAS(cmd_pet_ble_status,pet_ble_status,Read pet BLE diagnostic snapshot);
+#endif
+
 BLE_GATT_SERVICE_DEFINE_128(attributes) {
     BLE_GATT_SERVICE_DECLARE(ATTR_SERVICE,SERIAL_UUID_16_PRI_SERVICE,BLE_GATT_PERM_READ_ENABLE),
     BLE_GATT_CHAR_DECLARE(ATTR_INFO_CHAR,SERIAL_UUID_16_CHARACTERISTIC,BLE_GATT_PERM_READ_ENABLE),
@@ -44,6 +109,7 @@ static bool enqueue(uint16_t id,const void *data,unsigned length)
     event_t event={0}; event.id=id; event.length=(uint16_t)length;
     if (length) memcpy(event.data.bytes,data,length);
     if (rt_mq_send(events,&event,sizeof(event))!=RT_EOK) { queue_fault=true; return false; }
+    rt_base_t level=rt_hw_interrupt_disable(); diagnostic.queued++; rt_hw_interrupt_enable(level);
     return true;
 }
 static uint8_t *read_value(uint8_t connection,uint8_t attribute,uint16_t *length)
@@ -82,6 +148,10 @@ static uint8_t advertising_event(uint8_t id,void *context,void *data)
 static int stack_event(uint16_t id,uint8_t *data,uint16_t length,uint32_t context)
 {
     (void)context;
+    rt_base_t level=rt_hw_interrupt_disable();
+    diagnostic.callbacks++; diagnostic.last_callback=id;
+    if (id==BLE_POWER_ON_IND) diagnostic.power_events++;
+    rt_hw_interrupt_enable(level);
     if (!events) return 0;
     unsigned needed=0;
     if (id==BLE_POWER_ON_IND) { if (!enqueue(id,NULL,0)) queue_fault=true; return 0; }
@@ -109,10 +179,11 @@ static void disconnect(uint8_t connection)
 }
 static bool register_service(void)
 {
+    set_stage(DIAG_GATT,0);
     BLE_GATT_SERVICE_INIT_128(definition,attributes,ATTR_COUNT,
         BLE_GATT_SERVICE_PERM_NOAUTH|BLE_GATT_SERVICE_PERM_UUID_128,service_uuid);
     service=sibles_register_svc_128(&definition);
-    if (!service) { rt_kprintf("[pet:BLE] GATT registration failed\n"); return false; }
+    if (!service) { set_stage(DIAG_ERROR,-100); rt_kprintf("[pet:BLE] GATT registration failed\n"); return false; }
     sibles_register_cbk(service,read_value,write_value);
     char name[24]="ShaheCat";
     bd_addr_t address;
@@ -124,9 +195,11 @@ static bool register_service(void)
     sibles_adv_type_srv_uuid_t *uuid=rt_malloc(sizeof(*uuid)+sizeof(sibles_adv_uuid_t));
     if (!device_name || !scan_name || !uuid) {
         rt_free(device_name); rt_free(scan_name); rt_free(uuid);
+        set_stage(DIAG_ERROR,-RT_ENOMEM);
         rt_kprintf("[pet:BLE] advertising allocation failed\n"); return false;
     }
     device_name->len=length; memcpy(device_name->name,name,length);
+    set_stage(DIAG_NAME,0);
     unsigned result=ble_gap_set_dev_name(device_name);
     scan_name->name_len=length; memcpy(scan_name->name,name,length);
     uuid->count=1; uuid->uuid_list[0].uuid_len=16;
@@ -141,27 +214,36 @@ static bool register_service(void)
     parameters.rsp_data.completed_name=scan_name;
     parameters.adv_data.completed_uuid=uuid;
     parameters.evt_handler=advertising_event;
-    if (!result) result=sibles_advertising_init(advertising,&parameters);
+    if (!result) { set_stage(DIAG_ADV_INIT,0); result=sibles_advertising_init(advertising,&parameters); }
     rt_free(device_name); rt_free(scan_name); rt_free(uuid);
-    if (!result) result=sibles_advertising_start(advertising);
-    if (result) { rt_kprintf("[pet:BLE] advertising setup failed=%u\n",result); return false; }
+    if (!result) { set_stage(DIAG_ADV_START,0); result=sibles_advertising_start(advertising); }
+    if (result) { set_stage(DIAG_ERROR,(int)result); rt_kprintf("[pet:BLE] advertising setup failed=%u\n",result); return false; }
     rt_kprintf("[pet:BLE] name=%s; open LightBlue, scan and connect\n",name);
     return true;
 }
 static void handle(const event_t *event)
 {
+    rt_base_t level=rt_hw_interrupt_disable();
+    diagnostic.handled++; diagnostic.last_handled=event->id;
+    rt_hw_interrupt_enable(level);
     if (event->id==BLE_POWER_ON_IND) {
         if (!service_ready) service_ready=register_service();
     } else if (event->id==CONNECTION_MANAGER_CONNCTED_IND) {
         const connection_manager_connect_ind_t *p=(const void *)event->data.bytes;
         if (active_connection!=0xff || !service_ready) { disconnect(p->conn_idx); return; }
         active_connection=p->conn_idx;
+        set_stage(DIAG_CONNECTED,0);
         rt_kprintf("[pet:BLE] connected index=%u; link only, read/write not verified\n",p->conn_idx);
     } else if (event->id==BLE_GAP_DISCONNECTED_IND) {
         const ble_gap_disconnected_ind_t *p=(const void *)event->data.bytes;
         if (active_connection==p->conn_idx) active_connection=0xff;
+        set_stage(DIAG_WAIT_ADV,0);
         rt_kprintf("[pet:BLE] disconnected reason=%u; SDK restarts advertising\n",p->reason);
     } else if (event->id==EVENT_ADV_ON) {
+        level=rt_hw_interrupt_disable();
+        diagnostic.adv_events++; diagnostic.adv_result=event->data.bytes[0];
+        rt_hw_interrupt_enable(level);
+        set_stage(event->data.bytes[0] ? DIAG_ERROR : DIAG_ADVERTISING,event->data.bytes[0]);
         rt_kprintf("[pet:BLE] advertising result=%u\n",event->data.bytes[0]);
     } else if (event->id==EVENT_ADV_OFF) {
         rt_kprintf("[pet:BLE] advertising stopped reason=%u\n",event->data.bytes[0]);
@@ -173,6 +255,7 @@ static void stop_faulted_radio(const event_t *event)
 {
     if (!fault_latched) {
         fault_latched=true;
+        set_stage(DIAG_ERROR,-101);
         if (service_ready) sibles_advertising_stop(advertising);
         if (active_connection!=0xff) disconnect(active_connection);
         uint8_t pending_connection=callback_connection;
@@ -190,12 +273,17 @@ static void stop_faulted_radio(const event_t *event)
 static void task(void *unused)
 {
     (void)unused;
+    set_stage(DIAG_STACK_CALL,0);
     sifli_ble_enable();
+    set_stage(DIAG_WAIT_READY,0);
     rt_tick_t startup=rt_tick_get();
     bool timeout_reported=false;
     for (;;) {
         event_t event;
         rt_err_t received=rt_mq_recv(events,&event,sizeof(event),rt_tick_from_millisecond(100));
+        rt_base_t level=rt_hw_interrupt_disable();
+        diagnostic.loops++; diagnostic.last_receive=received;
+        rt_hw_interrupt_enable(level);
         if (queue_fault) stop_faulted_radio(received==RT_EOK ? &event : NULL);
         else if (received==RT_EOK) handle(&event);
         if (!service_ready && !timeout_reported &&
@@ -208,14 +296,17 @@ static void task(void *unused)
 rt_err_t pet_ble_start(void)
 {
     if (started) return RT_EOK;
+    diagnostic_start_tick=rt_tick_get(); diagnostic_started=true; diagnostic_reported=false;
+    set_stage(DIAG_QUEUE,0);
     if (!pet_ble_probe_selftest()) { rt_kprintf("[pet:BLE-TEST] protocol FAIL\n"); return -RT_ERROR; }
     rt_kprintf("[pet:BLE-TEST] protocol PASS (RAM only, no radio verdict)\n");
     events=rt_mq_create("pet_ble",sizeof(event_t),16,RT_IPC_FLAG_FIFO);
-    if (!events) return -RT_ENOMEM;
+    if (!events) { set_stage(DIAG_ERROR,-RT_ENOMEM); return -RT_ENOMEM; }
     rt_thread_t thread=rt_thread_create("pet_ble",task,NULL,4096,21,10);
-    if (!thread) { rt_mq_delete(events); events=NULL; return -RT_ENOMEM; }
+    if (!thread) { rt_mq_delete(events); events=NULL; set_stage(DIAG_ERROR,-RT_ENOMEM); return -RT_ENOMEM; }
+    set_stage(DIAG_THREAD,0);
     rt_err_t result=rt_thread_startup(thread);
-    if (result!=RT_EOK) { rt_thread_delete(thread); rt_mq_delete(events); events=NULL; return result; }
+    if (result!=RT_EOK) { rt_thread_delete(thread); rt_mq_delete(events); events=NULL; set_stage(DIAG_ERROR,result); return result; }
     started=true;
     return RT_EOK;
 }

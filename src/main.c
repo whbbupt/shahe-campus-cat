@@ -32,6 +32,7 @@ int main(void)
     while (1)
     {
         pet_app_poll();
+        pet_ble_poll();
         uint32_t delay_ms = lv_timer_handler();
         if (delay_ms < 2) delay_ms = 2;
         if (delay_ms > 20) delay_ms = 20;

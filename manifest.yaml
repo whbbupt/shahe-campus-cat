@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.12.1 BLE连接探针，软件与构建通过，TC-214 iPhone实机待测"
+  milestone: "沙河校园小猫v0.12.2 BLE诊断，TC-215软件通过，TC-216实机待测，原TC-214连接失败待定位"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -884,11 +884,12 @@ test_results:
   - test_id: TC-216
     description: BLE启动阶段与只读诊断命令实机
     expected: 按docs/03的TC-216取得15秒状态和pet_ble_status结果
-    actual: 实现前登记，尚未执行
+    actual: 诊断代码与构建已通过，尚未取得v0.12.2真实状态输出
     status: planned_not_executed
     pass: null
 
 known_issues:
+  - "v0.12.2只增加启动阶段/计数及pet_ble_status查询，TC-215软件通过、TC-216待实机；原v0.12.1扫描失败根因未定位，不把诊断版等同修复。"
   - "TC-214已收到本版真实boot与RAM协议自检日志（ble_boot_20261107_user_raw.txt），仅覆盖启动后约1秒；UI用户确认可操作，广播/连接尚无证据，下一步读后续日志和list_thread。"
   - "2026-11-07用户在v0.12.1界面用LightBlue未发现ShaheCat，见ble_scan_failure_20261107_user.txt；尚无启动/广播日志，TC-214已尝试但未通过，根因未定位。"
   - "BLE探针REQ-196、REQ-197、REQ-198软件/构建通过；TC-214待iPhone真实连接，不代表已有校时。时间方向仍讨论，原48倍文档尚未替换。"

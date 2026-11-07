@@ -81,6 +81,8 @@ build([root/'src/pet_audio_rt.c', root/'src/pet_audio.c', root/'src/pet_audio_pc
 print(run([out/('pet-audio-driver-test.exe' if os.name == 'nt' else 'pet-audio-driver-test'), 'thread-failure'], cwd=out))
 build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_probe_test.c'], 'pet-ble-probe-test')
 build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_rt_test.c'], 'pet-ble-driver-test', [root/'tests/ble_include'], dependencies=[root/'src/pet_ble.c'])
+for mode in range(1, 5):
+    print(run([out/('pet-ble-driver-test.exe' if os.name == 'nt' else 'pet-ble-driver-test'), str(mode)], cwd=out))
 build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_test.c'], 'pet-audio-test')
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')

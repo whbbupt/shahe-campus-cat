@@ -4,24 +4,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <setjmp.h>
 static event_t queue[16];
 static unsigned queued,advertising_calls,stop_calls,disconnect_calls,allocations,fail_allocation;
 static bool queue_create_fail,thread_create_fail,thread_start_fail,register_fail;
 static unsigned advertising_error;
+static rt_tick_t tick;
+static rt_base_t irq_level;
+static unsigned worker_mode,receives;
+static jmp_buf worker_exit;
+static char printed[32768];
+static size_t printed_length;
 rt_mq_t rt_mq_create(const char *s,size_t n,size_t count,int flags) { (void)s;(void)flags;assert(n==sizeof(event_t)&&count==16);return queue_create_fail?NULL:queue; }
 int rt_mq_send(rt_mq_t q,const void *p,size_t n) { assert(q==queue&&n==sizeof(event_t));if(queued==16)return -1;queue[queued++]=*(const event_t *)p;return 0; }
-int rt_mq_recv(rt_mq_t q,void *p,size_t n,int timeout) { (void)q;(void)timeout;assert(n==sizeof(event_t));if(!queued)return -1;memcpy(p,queue,n);memmove(queue,queue+1,--queued*n);return 0; }
+int rt_mq_recv(rt_mq_t q,void *p,size_t n,int timeout) {
+ (void)q;(void)timeout;assert(n==sizeof(event_t));
+ if(worker_mode) { if(receives++==4)longjmp(worker_exit,1);tick+=100; }
+ if(!queued)return -2;
+ memcpy(p,queue,n);memmove(queue,queue+1,--queued*n);return 0;
+}
 int rt_mq_delete(rt_mq_t q) { assert(q==queue);return 0; }
 rt_thread_t rt_thread_create(const char *n,void (*f)(void *),void *p,unsigned stack,unsigned priority,unsigned slice)
 { (void)n;(void)p;(void)slice;assert(f==task&&stack==4096&&priority==21);return thread_create_fail?NULL:(void *)1; }
 int rt_thread_startup(rt_thread_t p) { assert(p);return thread_start_fail?-1:0; }
 int rt_thread_delete(rt_thread_t p) { assert(p);return 0; }
-rt_tick_t rt_tick_get(void) { return 0; }
+rt_tick_t rt_tick_get(void) { return tick; }
 rt_tick_t rt_tick_from_millisecond(int ms) { return ms; }
+rt_base_t rt_hw_interrupt_disable(void) { return irq_level++; }
+void rt_hw_interrupt_enable(rt_base_t previous) { assert(irq_level==previous+1);irq_level=previous; }
 void *rt_malloc(size_t n) { allocations++;return allocations==fail_allocation?NULL:malloc(n); }
 void rt_free(void *p) { free(p); }
 int rt_snprintf(char *s,size_t n,const char *format,...) { va_list args;va_start(args,format);int r=vsnprintf(s,n,format,args);va_end(args);return r; }
-int rt_kprintf(const char *f,...) { (void)f;return 0; }
+int rt_kprintf(const char *f,...) {
+ assert(irq_level==0);
+ va_list args;va_start(args,f);int result=vsnprintf(printed+printed_length,sizeof(printed)-printed_length,f,args);va_end(args);
+ assert(result>=0&&(size_t)result<sizeof(printed)-printed_length);printed_length+=(size_t)result;return result;
+}
 sibles_hdl sibles_register_svc_128(void *p) { assert(p);return register_fail?NULL:(void *)1; }
 void sibles_register_cbk(sibles_hdl h,uint8_t *(*read)(uint8_t,uint8_t,uint16_t *),uint8_t (*write)(uint8_t,sibles_set_cbk_t *)) { assert(h&&read==read_value&&write==write_value); }
 uint8_t ble_get_public_address(bd_addr_t *p) { memset(p->addr,0x12,6);return 0; }
@@ -33,13 +51,44 @@ uint8_t sibles_advertising_init(void *p,sibles_advertising_para_t *a) {
  assert(!memcmp(a->adv_data.completed_uuid->uuid_list[0].uuid.uuid_128,service_uuid,16));
  return advertising_error;
 }
-uint8_t sibles_advertising_start(void *p) { assert(p);advertising_calls++;return 0; }
+uint8_t sibles_advertising_start(void *p) {
+ assert(p);advertising_calls++;
+ if(worker_mode) { sibles_adv_evt_startted_t event={(uint8_t)(worker_mode==3?12:0)};advertising_event(SIBLES_ADV_EVT_ADV_STARTED,NULL,&event); }
+ return 0;
+}
 uint8_t sibles_advertising_stop(void *p) { assert(p);stop_calls++;return 0; }
-void sifli_ble_enable(void) {}
+void sifli_ble_enable(void) {
+ if(!worker_mode)return;
+ assert(snapshot().stage==DIAG_STACK_CALL);
+ /* Simulate a slow SDK call: the UI watchdog remains independently callable. */
+ tick=14999;pet_ble_poll();assert(!diagnostic_reported);
+ tick=15000;pet_ble_poll();assert(diagnostic_reported&&strstr(printed,"15s version="));
+ assert(strstr(printed,"stage=stack-call"));
+ if(worker_mode==4)queued=16;
+ if(worker_mode!=2)stack_event(BLE_POWER_ON_IND,NULL,0,0);
+}
 static void drain(void) { event_t e;while(rt_mq_recv(events,&e,sizeof(e),0)==0)handle(&e); }
 static void connect_peer(uint8_t index) { connection_manager_connect_ind_t c={index};stack_event(CONNECTION_MANAGER_CONNCTED_IND,(uint8_t *)&c,sizeof(c),0);drain(); }
-int main(void)
+int main(int argc,char **argv)
 {
+ if(argc>1) {
+  worker_mode=(unsigned)atoi(argv[1]);assert(worker_mode>=1&&worker_mode<=4);
+  assert(pet_ble_start()==0);
+  if(!setjmp(worker_exit))task(NULL);
+  diagnostic_t before=snapshot();
+  assert(before.loops==4);
+  if(worker_mode==1)assert(before.stage==DIAG_ADVERTISING&&before.power_events==1&&before.queued==2&&before.handled==2);
+  if(worker_mode==2)assert(before.stage==DIAG_WAIT_READY&&before.callbacks==0&&before.handled==0);
+  if(worker_mode==3)assert(before.stage==DIAG_ERROR&&before.adv_result==12&&before.result==12);
+  if(worker_mode==4)assert(queue_fault&&fault_latched&&before.stage==DIAG_ERROR);
+  unsigned old_advertising=advertising_calls,old_disconnect=disconnect_calls;size_t old_printed=printed_length;
+  pet_ble_poll();assert(printed_length==old_printed);
+  assert(cmd_pet_ble_status(0,NULL)==0);diagnostic_t after=snapshot();
+  assert(!memcmp(&before,&after,sizeof(before))&&advertising_calls==old_advertising&&disconnect_calls==old_disconnect);
+  assert(strstr(printed,"query version="));
+  printf("[host:ble-worker] mode=%u production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict\n",worker_mode);
+  return 0;
+ }
  assert(attributes[ATTR_SERVICE].uuid[0]==0 && attributes[ATTR_SERVICE].uuid[1]==0x28);
  assert(attributes[ATTR_INFO_CHAR].uuid[0]==3 && attributes[ATTR_INFO].uuid[12]==1);
  assert(attributes[ATTR_PROBE].uuid[12]==2 && attributes[ATTR_PROBE].permission==3);
