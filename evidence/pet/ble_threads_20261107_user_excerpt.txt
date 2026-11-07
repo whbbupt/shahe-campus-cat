@@ -1,0 +1,10 @@
+来源：本次用户粘贴的list_thread输出，时间标签20:08:58。以下将分段RX拼接为可读摘录，不冒充原始导出或保留原字节。
+
+KE_EVT3  pri=10 status=suspend stack_size=0x400 max_used=14% error=000
+KE_EVT0  pri=25 status=suspend stack_size=0x400 max_used=11% error=000
+KE_EVT2  pri=12 status=suspend stack_size=0x1000 max_used=16% error=000
+pet_ble  pri=21 status=ready stack_size=0x1000 max_used=14% left_tick=0x3 error=-02
+pet_sfx  pri=18 status=suspend stack_size=0x1000 max_used=21% error=000
+main     pri=19 status=suspend stack_size=0x2000 max_used=53% error=000
+
+另外能看到tpread、lcd_task、tshell、bt_downv、audiosvr、tidle和timer。此为瞬时任务状态，不能据ready推断卡死，也不能凭KE_EVT存在认定广播成功。
