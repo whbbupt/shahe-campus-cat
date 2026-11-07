@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "symbols": {
+    "g_lcpu_bin": [
+      303580152,
+      5364,
+      "T"
+    ],
+    "lcpu_img_install": [
+      302612848,
+      24,
+      "T"
+    ]
+  },
+  "lcpu_sha256": "CBE461A1FB2EE5273B001AB8C787D2BB9AC2A94AAB222496CC4C28E37C3A0A6A",
+  "errors": []
+}

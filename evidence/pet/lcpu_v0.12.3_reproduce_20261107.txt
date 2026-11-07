@@ -1,0 +1,15 @@
+{
+  "result": "FAIL",
+  "symbols": {
+    "lcpu_img_install": [
+      302162530,
+      2,
+      "W"
+    ]
+  },
+  "lcpu_sha256": null,
+  "errors": [
+    "lcpu_img_install must be a nonempty strong implementation",
+    "g_lcpu_bin is missing or empty"
+  ]
+}

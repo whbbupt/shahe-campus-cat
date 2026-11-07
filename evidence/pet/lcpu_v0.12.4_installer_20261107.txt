@@ -1,0 +1,17 @@
+
+project\build_sf32lb52-lchspi-ulp_hcpu\main.elf:     file format elf32-littlearm
+
+
+Disassembly of section .retm_data:
+
+Disassembly of section .text:
+
+1208eec4 <lcpu_img_install>:
+1208eec4:	b508      	push	{r3, lr}
+1208eec6:	f241 5224 	movw	r2, #5412	@ 0x1524
+1208eeca:	4903      	ldr	r1, [pc, #12]	@ (1208eed8 <lcpu_img_install+0x14>)
+1208eecc:	f04f 5001 	mov.w	r0, #541065216	@ 0x20400000
+1208eed0:	f026 f8b2 	bl	120b5038 <memcpy>
+1208eed4:	bd08      	pop	{r3, pc}
+1208eed6:	bf00      	nop
+1208eed8:	12719160 	.word	0x12719160

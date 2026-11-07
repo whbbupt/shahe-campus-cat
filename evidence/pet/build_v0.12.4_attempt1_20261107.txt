@@ -1,0 +1,289 @@
+在工程目录 project/ 中执行：scons --board=sf32lb52-lchspi-ulp -j4
+scons: Reading SConscript files ...
+Board: sf32lb52-lchspi-ulp_hcpu
+-----
+Adding ftab subproject for chip: SF32LB52X (ptab v1/v2)
+========
+Multi-Project Info
+--------
+full_name       main.bootloader
+parent          main
+bsp_root        D:\development\sifli\SiFli-SDK\v2.5.1\example\boot_loader\project\butterflmicro\ram_v2
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/bootloader
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\example/boot_loader/project/butterflmicro/ram_v2\link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+embedded:       False
+--------
+full_name       main.lcpu
+parent          main
+bsp_root        D:\development\sifli\SiFli-SDK\v2.5.1\example\ble\lcpu_general\project\common
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/lcpu
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\drivers/cmsis/sf32lb52x/Templates/gcc/lcpu/link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+embedded:       True
+--------
+full_name       main
+parent          
+bsp_root        D:\project\sifli\course_starter\project
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\drivers/cmsis/sf32lb52x/Templates/gcc/hcpu/link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+--------
+full_name       main.ftab
+parent          main
+bsp_root        D:\development\sifli\SiFli-SDK\v2.5.1\example\flash_table\sf32lb52x_common_v2
+build_dir       build_sf32lb52-lchspi-ulp_hcpu/ftab
+link_script     D:\development\sifli\SiFli-SDK\v2.5.1\drivers/cmsis/sf32lb52x/Templates/gcc/hcpu/link
+ptab            D:\project\sifli\course_starter\project\sf32lb52-lchspi-ulp_hcpu\ptab.json
+embedded:       False
+========
+scons: done reading SConscript files.
+scons: Building targets ...
+scons: building associated VariantDir targets: build_sf32lb52-lchspi-ulp_hcpu
+Generating build_sf32lb52-lchspi-ulp_hcpu\bootloader\link_copy.lds ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\ptab.h ...
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\bootloader\compile_commands.json
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\compile_commands.json
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu_general\bf0_ap_hal_msp.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu_general\board.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu_general\test_ctrl.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\common\bsp_common.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\common\bsp_psram.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\common\flash.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_init.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_lcd_tp.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_pinmux.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\customer\boards\sf32lb52-lchspi-ulp_base\bsp_power.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\cmsis\sf32lb52x\bf0_pin_const.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\cmsis\sf32lb52x\Templates\system_bf0_ap.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\cmsis\sf32lb52x\lcpu_config_type.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\cmsis\sf32lb52x\pmu_ldo_update.o
+AS build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\cmsis\sf32lb52x\Templates\gcc\startup_bf0_lcpu.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_adc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_aes.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_aes_ns.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_audcodec_m.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_audprc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_bleaon.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_busmon.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_can.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_cortex.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_crc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_dcmi.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_dma.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_dsi.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_efuse.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_epic.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_epictl.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_ext_dma.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_ezip.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_facc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_fft.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_gpio.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_hcd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_hlp.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_hpaon.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_i2c.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_i2s.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_jpegd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lcdc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lcdc_aux.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lcpu_config.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lpaon.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lpcomp.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lptim.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_lrc_cal.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_mailbox.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_mpi.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_mpi_ex.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_mpi_psram.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_nn_acc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_patch.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_pcd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_pdm.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_pinmux.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_pmu.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_psram.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_ptc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_pwm.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_rcc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_rng.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_rtc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_sd_ex.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_sdadc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_sdhci.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_sdmmc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_secu.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_spi.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_tim.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_tim_ex.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_tsen.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_uart.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_hal_wdt.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\bf0_sys_cfg.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\flash_table.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\nand_table.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\drivers\hal\sifli_bbm.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\attdet.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\bits.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\bwdet.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\energy.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\lc3.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\ltpf.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\mdct.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\plc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\sns.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\spec.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\tables.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\external\liblc3\src\tns.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\audio\audio_bt_voice\bt_audiopath.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\audio\audio_port\audio_eq_config.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\audio\audio_port\audio_mem.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\audio\audio_port\audio_pa_api.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\audio\audio_voice_proc\audio_3a_dummy.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\bluetooth\porting\rtt\rw_rtt.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\bluetooth\service\bluetooth.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\bluetooth\service\internal\bluetooth_config.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\bluetooth\service\internal\bluetooth_misc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\bluetooth\lib\dummy.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\context_backup\context_backup.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\ipc_queue\common\circular_buf.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\ipc_queue\common\ipc_hw.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\ipc_queue\common\ipc_queue.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\ipc_queue\porting\sf32lb52x\lcpu\ipc_hw_port.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\sifli_matrix\sifli_matrix.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\system\bf0_common.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\middleware\system\bf0_pm.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\os_adaptor\src\os_adaptor_rtthread.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_dma.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_wdt.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_psram.o
+C:\temp\ccWs546c.s: Assembler messages:
+C:\temp\ccWs546c.s:840: writing to APSR without specifying a bitmask is deprecated
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_common.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_dbg.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\rtthread\bsp\sifli\drivers\drv_epictl.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\clock.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\components.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\cpu.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\device.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\idle.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\ipc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\irq.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\kservice.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\mem.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\memheap.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\memheap2.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\object.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\scheduler.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\signal.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\thread.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\src\timer.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\libcpu\arm\cortex-m33\cpuport.o
+AS build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\libcpu\arm\cortex-m33\context_gcc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\libcpu\arm\common\backtrace.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\libcpu\arm\common\div0.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\libcpu\arm\common\showmem.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\pm\pm.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\completion.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\dataqueue.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\pipe.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\ringblk_buf.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\ringbuffer.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\ringbuffer32.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\waitqueue.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\src\workqueue.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\drivers\watchdog\watchdog.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\common\gmtime_r.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\common\unistd.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\newlib\libc.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\newlib\libc_syms.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\newlib\stdio.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\newlib\syscalls.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\libc\compilers\newlib\time.o
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\sifli_sdk\rtos\kernel\components\utilities\llt_mem\llt_mem.o
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\link_copy.lds ...
+CC build_sf32lb52-lchspi-ulp_hcpu\src\main.o
+LINK build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.elf
+CC build_sf32lb52-lchspi-ulp_hcpu\src\pet_ble.o
+CC build_sf32lb52-lchspi-ulp_hcpu\src\pet_ui.o
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.elf has a LOAD segment with RWX permissions
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.hex ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.bin ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\link_copy.lds ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.c ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\ftab\link_copy.lds ...
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\ftab\compile_commands.json
+Building compilation database build_sf32lb52-lchspi-ulp_hcpu\lcpu\compile_commands.json
+Generating build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.asm ...
+CC build_sf32lb52-lchspi-ulp_hcpu\lcpu\lcpu.o
+LINK build_sf32lb52-lchspi-ulp_hcpu\main.elf
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: build_sf32lb52-lchspi-ulp_hcpu\main.elf has a LOAD segment with RWX permissions
+Generating build_sf32lb52-lchspi-ulp_hcpu\main.asm ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\main.hex ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\main.bin ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\ftab\board\ftab.c ...
+WARNING: img "dfu" not found
+CC build_sf32lb52-lchspi-ulp_hcpu\ftab\board\ftab.o
+LINK build_sf32lb52-lchspi-ulp_hcpu\ftab\ftab.elf
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-closer.o): in function `_close_r':
+closer.c:(.text._close_r+0xc): warning: _close is not implemented and will always fail
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-closer.o): note: the message above does not take linker garbage collection into account
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lseekr.o): in function `_lseek_r':
+lseekr.c:(.text._lseek_r+0x10): warning: _lseek is not implemented and will always fail
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lseekr.o): note: the message above does not take linker garbage collection into account
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-readr.o): in function `_read_r':
+readr.c:(.text._read_r+0x10): warning: _read is not implemented and will always fail
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-readr.o): note: the message above does not take linker garbage collection into account
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-writer.o): in function `_write_r':
+writer.c:(.text._write_r+0x10): warning: _write is not implemented and will always fail
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-writer.o): note: the message above does not take linker garbage collection into account
+D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: cannot find entry symbol entry; defaulting to 12000000
+Generating build_sf32lb52-lchspi-ulp_hcpu\ftab\ftab.bin ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\ftab\ftab.hex ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\ftab\ftab.asm ...
+Generating build_sf32lb52-lchspi-ulp_hcpu\download.bat ...
+Generated sftool param: build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json
+scons: done building targets.
+
+                                              main                             
+┌──────────────────────────┬──────────────────┬──────────────────┬─────────────
+│ Region / Section         │            Total │             Used │             
+├──────────────────────────┼──────────────────┼──────────────────┼─────────────
+│ ROM                      │      8,388,608 B │      7,440,868 B │        947,7
+│   .rodata                │      6,784,836 B │                  │             
+│   .text                  │        625,500 B │                  │             
+│   other                  │            568 B │                  │             
+│ RAM                      │        523,264 B │        169,444 B │        353,8
+│   other                  │        118,704 B │                  │             
+│   .bss                   │         46,104 B │                  │             
+│   .data                  │          4,636 B │                  │             
+└──────────────────────────┴──────────────────┴──────────────────┴─────────────
+  Binary size: 7,372,580 B
+
+                                              lcpu                             
+┌──────────────────────────┬──────────────────┬──────────────────┬─────────────
+│ Region / Section         │            Total │             Used │             
+├──────────────────────────┼──────────────────┼──────────────────┼─────────────
+│ ROM                      │         12,288 B │          6,723 B │          5,5
+│   .text                  │          4,784 B │                  │             
+│   .rodata                │            843 B │                  │             
+│   other                  │              8 B │                  │             
+│ RAM                      │         23,552 B │          1,872 B │         21,6
+│   other                  │          1,028 B │                  │             
+│   .bss                   │            784 B │                  │             
+│   .data                  │             60 B │                  │             
+└──────────────────────────┴──────────────────┴──────────────────┴─────────────
+  Binary size: 6,440 B
+
+================================================================================
+Memory Usage Analysis
+================================================================================
+================================================================================
+
+
+✓ 编译成功
+  输出目录：project\build_sf32lb52-lchspi-ulp_hcpu
+  下载（板子用 USB 连到 USB-to-UART 口）：project\build_sf32lb52-lchspi-ulp_hcpu\uart_download.bat
+  下载后用串口助手（波特率 1000000）查看日志，按 docs/guides/agent-collaboration.md 第 4 节留证。
