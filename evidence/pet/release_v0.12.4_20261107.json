@@ -1,0 +1,15 @@
+{
+  "recorded_on": "2026-11-07",
+  "app_version": "0.12.4-blefix",
+  "code_commit": "3df420fc54ea1d1134e49443d25123e24f1c7324",
+  "zip_path": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-ble-lcpu-fix-20261107\\沙河校园小猫-v0.12.4-蓝牙核心镜像修复版.zip",
+  "zip_bytes": 14202895,
+  "zip_sha256": "1D65FBEE211CBD4AA51368DA5A6D7D1C55F80D304A583C011829F00A39BE8459",
+  "zip_crc": "PASS",
+  "verified_payload_count": 32,
+  "build_input_count": 78,
+  "build_artifact_count": 22,
+  "backup": "baseline-v0.12.3: verified 15 original artifacts before build",
+  "physical_result": null,
+  "guide_path": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-ble-lcpu-fix-20261107\\蓝牙镜像修复验证说明.md"
+}
