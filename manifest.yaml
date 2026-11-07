@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.8.2校园提示精简，软件与构建通过，TC-181实机待测"
+  milestone: "沙河校园小猫v0.9.0全图与双数值重平衡，软件与构建通过，TC-185实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -83,11 +83,16 @@ design:
       rationale: "先验证共用走法、实体门和可玩的首批闭环，再扩完整校园"
       decided_by: "用户明确指定首批范围，AI据校图落实坐标与素材，见ADR-0009"
 
+    - decision: "保留饱食与心情两项并重平衡"
+      alternatives_considered: "保留双数值重平衡；新增精力；仅改数值显示"
+      rationale: "保留现有兼容结构，活动体现不同的消耗和恢复"
+      decided_by: "用户明确选择保留两项，详见 ADR-0010"
+
 code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.8.2_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.9.0_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -630,7 +635,40 @@ test_results:
     status: not_executed
     pass: null
 
+
+  - test_id: TC-182
+    description: 全图路网和三门往返
+    expected: 按docs/03 v0.9.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.9.0_final_20261107.txt
+
+  - test_id: TC-183
+    description: 双数值平衡和旧档回归
+    expected: 按docs/03 v0.9.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.9.0_final_20261107.txt
+
+  - test_id: TC-184
+    description: 全图绘本渲染与目标构建
+    expected: 按docs/03 v0.9.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.9.0_metadata_20261107.json
+
+  - test_id: TC-185
+    description: v0.9.0全图与数值真机
+    expected: 按docs/03 v0.9.0用例
+    actual: 未执行，等待板端证据
+    status: not_executed
+    pass: null
+
 known_issues:
+  - "v0.9.0室外全图为校图压缩的主要通道，TC-185 实机待测。"
   - "v0.8.2校园提示精简已过主机和目标构建，真实板端 TC-181 待测。"
   - "v0.8.1绘本重绘已过软件和构建，屏幕显示和流畅度等TC-179实机待测。"
   - "v0.8.0餐厅北门是游戏取点，实际门位待核实；TC-176板端路线、显示、触摸、保存与复位待测。"

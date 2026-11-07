@@ -125,7 +125,7 @@ static void controls_fit(lv_obj_t *p, bool hidden)
         lv_obj_get_coords(p, &a);
         bool map_child = false;
         for (lv_obj_t *q = p; q; q = lv_obj_get_parent(q))
-            if (lv_obj_get_width(q) == 1120)
+            if (lv_obj_get_width(q) == PW_CAMPUS_WIDTH)
                 map_child = true;
         if (!map_child)
             assert(a.x1 >= 0 && a.y1 >= 0 && a.x2 < 390 && a.y2 < 450);
@@ -313,10 +313,10 @@ static void check_campus_tiles(void)
     float cx, cy;
     pw_camera(&world, &cx, &cy);
     lv_obj_update_layout(lv_screen_active());
-    for (int y = 0; y < 4; y++)
-        for (int x = 0; x < 4; x++)
+    for (int y = 0; y < PW_CAMPUS_HEIGHT / 260; y++)
+        for (int x = 0; x < PW_CAMPUS_WIDTH / 280; x++)
         {
-            lv_obj_t *tile = image_with(lv_screen_active(), shahe_ground[y * 4 + x]);
+            lv_obj_t *tile = image_with(lv_screen_active(), shahe_ground[y * (PW_CAMPUS_WIDTH / 280) + x]);
             assert(tile && !lv_obj_has_flag(tile, LV_OBJ_FLAG_CLICKABLE));
             lv_area_t bounds;
             lv_obj_get_coords(tile, &bounds);
@@ -329,10 +329,10 @@ static void campus_round_trip(void)
 {
     leave(PW_DORM);
     screenshot("shahe-yanbei.ppm");
-    road(155, 330);
-    road(255, 390);
-    road(410, 390);
-    road(570, 390);
+    road(385, 630);
+    road(485, 690);
+    road(640, 690);
+    road(800, 690);
     check_campus_tiles();
     screenshot("shahe-hongyan-guomai.ppm");
     assert(label_with(lv_screen_active(), "鸿雁路一带"));
@@ -346,7 +346,7 @@ static void campus_round_trip(void)
     screenshot("shahe-campus-status.ppm");
     press("×");
     assert(!label_with(lv_screen_active(), "小猫状态"));
-    road(715, 390);
+    road(945, 690);
     screenshot("shahe-teaching-gate.ppm");
     enter("教综楼", PW_CLASSROOM);
     screenshot("shahe-classroom.ppm");
@@ -363,13 +363,13 @@ static void campus_round_trip(void)
     step(pw_duration(PW_STUDY));
     leave(PW_CLASSROOM);
     screenshot("shahe-teaching-entry.ppm");
-    road(630, 390);
-    road(570, 520);
+    road(860, 690);
+    road(800, 820);
     assert(label_with(lv_screen_active(), "国脉路南段"));
     screenshot("shahe-guomai-south.ppm");
-    road(570, 650);
-    road(570, 760);
-    road(416, 760);
+    road(800, 950);
+    road(800, 1060);
+    road(646, 1060);
     screenshot("shahe-canteen-gate.ppm");
     enter("学生餐厅", PW_CANTEEN);
     screenshot("shahe-canteen.ppm");
@@ -386,16 +386,63 @@ static void campus_round_trip(void)
     step(pw_duration(PW_EAT));
     leave(PW_CANTEEN);
     screenshot("shahe-canteen-entry.ppm");
-    road(540, 760);
-    road(570, 638);
-    road(570, 485);
-    road(465, 390);
-    road(315, 390);
-    road(160, 390);
-    road(155, 305);
+    road(770, 1060);
+    road(800, 938);
+    road(800, 785);
+    road(695, 690);
+    road(545, 690);
+    road(390, 690);
+    road(385, 605);
     enter("雁北园", PW_DORM);
     assert(world.settlements[PW_EAT] == 1 && world.settlements[PW_STUDY] == 1);
     screenshot("shahe-return-home.ppm");
+}
+static void campus_extended_route(void)
+{
+    /* Use the same safe point as an outdoor save, then navigate by native taps. */
+    pw_init(&world);
+    world.scene = PW_CAMPUS;
+    pw_point_t origin = pw_node(PW_CAMPUS, 0);
+    world.x = origin.x;
+    world.y = origin.y;
+    world.node = 0;
+    pet_ui_update(&world);
+    step(2500);
+    road(800, 560);
+    road(800, 430);
+    road(800, 295);
+    road(800, 175);
+    assert(label_with(lv_screen_active(), "校园北区"));
+    screenshot("shahe-full-north.ppm");
+    road(800, 310);
+    road(800, 445);
+    road(800, 575);
+    road(800, 690);
+    road(650, 690);
+    road(500, 690);
+    road(350, 690);
+    road(200, 690);
+    road(50, 690);
+    assert(label_with(lv_screen_active(), "西门一带"));
+    screenshot("shahe-full-west.ppm");
+    road(210, 690);
+    road(365, 690);
+    road(520, 690);
+    road(670, 690);
+    road(800, 690);
+    road(800, 825);
+    road(800, 965);
+    road(800, 1100);
+    road(800, 1220);
+    assert(label_with(lv_screen_active(), "南门一带"));
+    screenshot("shahe-full-south.ppm");
+    road(945, 1230);
+    road(1095, 1230);
+    road(1235, 1230);
+    road(1340, 1125);
+    road(1340, 990);
+    assert(label_with(lv_screen_active(), "东区教学区"));
+    screenshot("shahe-full-east.ppm");
 }
 int main(void)
 {
@@ -411,12 +458,13 @@ int main(void)
     dorm();
     puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
     campus_round_trip();
+    campus_extended_route();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
     {
         reset();
         assert(timers() == expected_timers);
     }
-    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, simplified HUD, glyphs and recreation PASS");
+    puts("[host:shahe-ui] native campus round trip, doors, lessons, meal, fixed rooms, expanded regions, simplified HUD, glyphs and recreation PASS");
     return 0;
 }

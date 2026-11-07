@@ -52,19 +52,19 @@ int main(void)
 
     assert(action(PW_TOUCH)==PW_OK); assert(status==PET_SAVE_PENDING);
     step(1000); assert(status==PET_SAVE_PENDING);
-    step(500); assert(snapshot.mood==70 && status==PET_SAVE_PENDING);
-    step(10500); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==70);
+    step(500); assert(snapshot.mood==68 && status==PET_SAVE_PENDING);
+    step(10500); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==68);
     assert(action(PW_GO_CANTEEN)==PW_OK && status==PET_SAVE_PENDING); step(15000);
-    reboot(); assert(snapshot.scene==PW_CANTEEN && snapshot.mood==70);
-    assert(action(PW_EAT)==PW_OK); step(18000); assert(snapshot.food==85);
-    reboot(); assert(snapshot.food==85 && snapshot.action==PW_NONE);
+    reboot(); assert(snapshot.scene==PW_CANTEEN && snapshot.mood==68);
+    assert(action(PW_EAT)==PW_OK); step(18000); assert(snapshot.food==90);
+    reboot(); assert(snapshot.food==90 && snapshot.action==PW_NONE);
     assert(action(PW_GO_DORM)==PW_OK); step(13000); assert(action(PW_REST)==PW_OK);
     step(20000); reboot(); assert(snapshot.phase==PW_SLEEP);
     assert(action(PW_REST)==PW_OK && status==PET_SAVE_PENDING); step(12000); reboot(); assert(snapshot.phase!=PW_SLEEP);
     fail_write=true; assert(action(PW_TOUCH)==PW_OK); step(15000); assert(status==PET_SAVE_FAILED);
     assert(action(PW_NONE)==PW_INVALID && status==PET_SAVE_FAILED);
-    fail_write=false; step(11000); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==80);
-    for (int i=0;i<2;i++) { assert(action(PW_TOUCH)==PW_OK && status==PET_SAVE_PENDING); step(14000); }
+    fail_write=false; step(11000); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==76);
+    for (int i=0;i<3;i++) { assert(action(PW_TOUCH)==PW_OK && status==PET_SAVE_PENDING); step(14000); }
     reboot(); assert(snapshot.mood==100 && status==PET_SAVE_SAVED);
     int unchanged_writes=writes;
     assert(action(PW_TOUCH)==PW_FULL && status==PET_SAVE_SAVED && writes==unchanged_writes);

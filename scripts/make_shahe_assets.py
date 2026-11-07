@@ -9,7 +9,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "assets/pet-shahe"
 ROOM_SIZE = (390, 450)
-CAMPUS_SIZE = (1120, 1040)
+CAMPUS_SIZE = (1400, 1300)
 TILE_SIZE = (280, 260)
 ROOM_NAMES = ("dorm", "classroom", "canteen")
 
@@ -42,7 +42,7 @@ def campus_ground():
                    for l, n in zip(light.tobytes(), fine)])
     details = Image.new("RGBA", CAMPUS_SIZE)
     pen = ImageDraw.Draw(details)
-    for _ in range(1850):
+    for _ in range(2900):
         x, y = rng.randrange(width), rng.randrange(height)
         spread = rng.randrange(2, 7)
         tint = rng.choice(((106, 138, 78, 88), (219, 225, 153, 96), (240, 220, 151, 114)))
@@ -53,10 +53,35 @@ def campus_ground():
         for _ in range(20):
             px, py = x+rng.randrange(-23,24), y+rng.randrange(-12,13)
             pen.ellipse((px,py,px+3,py+3), rng.choice(((250,231,167,205),(230,238,194,190))))
+    # Tree-lined grounds, sport courts and a subdued planning parcel.
+    pen.rounded_rectangle((18,49,1378,1262), radius=27, outline=(114,142,99,154), width=3)
+    pen.rounded_rectangle((76,116,341,342), radius=30, fill=(166,189,131,80),
+                          outline=(207,216,159,155), width=2)
+    pen.rounded_rectangle((66,785,333,1066), radius=26, fill=(170,186,136,155),
+                          outline=(145,161,110,170), width=3)
+    for y in range(810,1060,31):
+        pen.line((92,y,307,y), (191,201,147,140))
+    pen.rounded_rectangle((193,438,342,645), radius=69, fill=(155,139,101,168))
+    pen.rounded_rectangle((195,441,338,640), radius=65, fill=(195,131,102,240))
+    for i in range(4):
+        pen.rounded_rectangle((200+i*5,446+i*5,333-i*5,635-i*5), radius=61-i*5,
+                              outline=(235,194,153,215), width=1)
+    pen.rounded_rectangle((222,469,313,612), radius=43, fill=(132,169,108,250))
+    pen.rectangle((231,478,304,603), outline=(221,224,169,233), width=2)
+    pen.line((231,541,304,541), (221,224,169,233), width=2)
+    pen.ellipse((256,530,279,553), outline=(221,224,169,233), width=2)
+    for x in (231,288):
+        pen.rectangle((x,483,x+16,499), outline=(221,224,169,190))
+        pen.rectangle((x,582,x+16,598), outline=(221,224,169,190))
+    pen.rounded_rectangle((449,129,498,363), radius=13, fill=(183,186,152,134),
+                          outline=(149,157,119,153), width=2)
+    for y in range(146,354,16):
+        pen.line((454,y+9,491,y), (152,157,124,120))
     # A small planted pond marks the south section of Guomai Road.
     bank = [(321,686),(324,674),(340,663),(368,660),(384,650),(423,650),
             (447,661),(475,657),(504,662),(525,676),(527,688),(510,702),
             (483,708),(449,703),(422,711),(384,711),(362,706),(337,704)]
+    bank = [(x+230,y+300) for x,y in bank]
     shore = Image.new("L", CAMPUS_SIZE)
     ImageDraw.Draw(shore).polygon(bank, 255)
     shore = shore.filter(ImageFilter.GaussianBlur(4)).point(lambda a: min(255, max(0, (a-100)*4)))
@@ -64,15 +89,15 @@ def campus_ground():
     water = shore.filter(ImageFilter.MinFilter(7))
     water_pen = Image.new("RGBA", CAMPUS_SIZE)
     wave = ImageDraw.Draw(water_pen)
-    for y in range(648,715):
-        depth = (y-648)/67
-        wave.line((316,y,531,y), (round(151+19*depth), round(184+22*depth), round(174+15*depth), 255))
+    for y in range(948,1015):
+        depth = (y-948)/67
+        wave.line((546,y,761,y), (round(151+19*depth), round(184+22*depth), round(174+15*depth), 255))
     for x, y, length in ((353,673,43),(432,679,51),(394,689,66),(351,696,37),(473,696,25)):
-        wave.arc((x,y,x+length,y+4), 6, 174, (225, 234, 206, 255), 1)
+        wave.arc((x+230,y+300,x+230+length,y+304), 6, 174, (225, 234, 206, 255), 1)
     details.paste(water_pen, mask=water)
     for x, y in ((332,669),(367,658),(425,653),(510,670),(504,700),(399,709)):
         for _ in range(13):
-            px, py = x+rng.randrange(-6,7), y+rng.randrange(-3,4)
+            px, py = x+230+rng.randrange(-6,7), y+300+rng.randrange(-3,4)
             pen.line((px,py,px+rng.randrange(-2,3),py-rng.randrange(2,7)),
                      rng.choice(((111,146,91,225),(144,168,93,230),(188,189,112,230))))
     grass = Image.alpha_composite(grass.convert("RGBA"), details).convert("RGB")
@@ -110,11 +135,11 @@ def furniture_layer(room, polygon):
     return layer.crop(bounds), bounds[:2]
 
 
-def sprites():
-    atlas = Image.open(ART / "campus-atlas.png").convert("RGBA")
+def sprites(filename, sizes):
+    atlas = Image.open(ART / filename).convert("RGBA")
     w, h = atlas.size
     assert atlas.getchannel("A").getextrema() == (0, 255)
-    for i, size in enumerate(((218, 182), (254, 187), (236, 160), (82, 106))):
+    for i, size in enumerate(sizes):
         x, y = i % 2, i // 2
         sprite = atlas.crop((x*w//2, y*h//2, (x+1)*w//2, (y+1)*h//2))
         bbox = sprite.getchannel("A").point(lambda a: 255 if a >= 16 else 0).getbbox()
@@ -168,7 +193,11 @@ def main():
         foreground(f"shahe_front_{i}", room, masks[i])
         if i == 0:
             foreground("shahe_seat_0", room, ((80,232),(119,230),(121,244),(82,248)))
-    for name, sprite in zip(("shahe_building_0", "shahe_building_1", "shahe_building_2", "shahe_tree"), sprites()):
+    buildings = ("shahe_building_0", "shahe_building_1", "shahe_building_2", "shahe_tree")
+    for name, sprite in zip(buildings, sprites("campus-atlas.png", ((150,130),(254,187),(174,135),(82,106)))):
+        emit(name, sprite, True)
+    landmarks = ("shahe_library", "shahe_center", "shahe_lecture", "shahe_gate")
+    for name, sprite in zip(landmarks, sprites("landmark-atlas.png", ((241,171),(101,79),(119,103),(114,77)))):
         emit(name, sprite, True)
     shadow = Image.new("RGBA", (66, 24))
     shadow.putdata([
@@ -184,9 +213,9 @@ def main():
             name = f"shahe_ground_{len(tiles)}"
             emit(name, terrain.crop((x,y,x+TILE_SIZE[0],y+TILE_SIZE[1])))
             tiles.append(name)
-    code.append("const lv_image_dsc_t *const shahe_ground[16] = {"
+    code.append("const lv_image_dsc_t *const shahe_ground[25] = {"
                 + ", ".join("&"+name for name in tiles) + "};")
-    header.append("extern const lv_image_dsc_t *const shahe_ground[16];")
+    header.append("extern const lv_image_dsc_t *const shahe_ground[25];")
     header.append("#endif")
     for name, lines in (("pet_shahe_assets.c", code), ("pet_shahe_assets.h", header)):
         (ROOT / "src" / name).write_text("\n".join(lines)+"\n", encoding="utf-8")

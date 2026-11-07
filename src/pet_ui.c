@@ -143,14 +143,19 @@ static void build_campus(lv_obj_t *screen)
     ui.campus = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, 0xB9CEA2, 0);
     lv_obj_add_flag(ui.campus, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.campus, ground_click, LV_EVENT_CLICKED, NULL);
-    for (unsigned y = 0; y < 4; y++)
-        for (unsigned x = 0; x < 4; x++)
-            image(ui.campus, shahe_ground[y * 4 + x], x * 280, y * 260);
+    for (unsigned y = 0; y < PW_CAMPUS_HEIGHT / 260; y++)
+        for (unsigned x = 0; x < PW_CAMPUS_WIDTH / 280; x++)
+            image(ui.campus, shahe_ground[y * (PW_CAMPUS_WIDTH / 280) + x], x * 280, y * 260);
     static const int16_t trees[][2] = {
-        {32,190}, {49,293}, {243,215}, {303,262}, {448,257}, {598,262},
-        {690,256}, {853,274}, {197,424}, {310,466}, {420,434}, {615,453},
-        {651,545}, {929,489}, {932,575}, {626,690}, {677,794}, {477,817},
-        {249,765}, {287,860}, {522,879}};
+        {65,136}, {146,111}, {245,142}, {105,249}, {249,250},
+        {590,121}, {691,117}, {875,112}, {996,123}, {1090,150},
+        {590,321}, {688,338}, {885,318}, {988,327}, {1085,304},
+        {116,443}, {93,548}, {279,388}, {282,621}, {450,373},
+        {583,444}, {603,562}, {816,459}, {1102,555}, {1242,475},
+        {107,729}, {288,729}, {444,727}, {696,745}, {816,778},
+        {1087,859}, {1273,856}, {418,948}, {574,951}, {894,965},
+        {1001,970}, {1262,971}, {253,1096}, {445,1076}, {710,1084},
+        {892,1093}, {1035,1092}, {1244,1110}};
     for (unsigned i = 0; i < sizeof(trees) / sizeof(trees[0]); i++)
     {
         int x = trees[i][0], y = trees[i][1];
@@ -158,6 +163,15 @@ static void build_campus(lv_obj_t *screen)
         image(ui.campus, &shahe_tree_shadow, x + 18, y + h - 12);
         image(ui.campus, &shahe_tree, x, y);
     }
+    image(ui.campus, &shahe_library, 868, 472);
+    image(ui.campus, &shahe_center, 690, 566);
+    image(ui.campus, &shahe_lecture, 617, 751);
+    image(ui.campus, &shahe_lecture, 1215, 750);
+    image(ui.campus, &shahe_lecture, 1213, 1084);
+    image(ui.campus, &shahe_building_0, 401, 792);
+    image(ui.campus, &shahe_gate, 12, 629);
+    image(ui.campus, &shahe_gate, 328, 1175);
+    image(ui.campus, &shahe_gate, 743, 1175);
     for (unsigned room = 0; room < 3; room++)
     {
         pw_point_t door = pw_node(PW_CAMPUS, 13 + room);
@@ -322,6 +336,27 @@ static int limit(int x, int lo, int hi)
 {
     return x < lo ? lo : (x > hi ? hi : x);
 }
+static const char *campus_area(float x, float y)
+{
+    if (y < 395)
+        return "校园北区";
+    if (x < 350 && y < 665)
+        return "运动场一带";
+    if (x < 220 && y < 780)
+        return "西门一带";
+    if (x < 475 && y > 1140)
+        return "西南门一带";
+    if (x > 704 && x < 895 && y > 1160)
+        return "南门一带";
+    if (x > 825 && x < 1160 && y < 642)
+        return "图书馆一带";
+    if (x > 605 && x < 794 && y < 665)
+        return "学生活动中心";
+    if (x > 1185 && y > 690)
+        return "东区教学区";
+    return y > 775 ? "国脉路南段" : "鸿雁路一带";
+}
+
 static void paint(void)
 {
     if (ui.scene != ui.world.scene)
@@ -344,7 +379,7 @@ static void paint(void)
     lv_obj_set_pos(ui.gates, -left, -top);
     visible(ui.gates, campus);
     if (campus)
-        lv_label_set_text(ui.location_text, ui.world.y > 475 ? "国脉路南段" : "鸿雁路一带");
+        lv_label_set_text(ui.location_text, campus_area(ui.world.x, ui.world.y));
     visible(ui.goal, campus && ui.world.phase == PW_WALK && ui.world.purpose == 3);
     lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10);
     pw_visual_t v;

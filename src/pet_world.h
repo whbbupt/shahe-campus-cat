@@ -3,7 +3,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum { PW_CAMPUS_WIDTH = 1120, PW_CAMPUS_HEIGHT = 1040, PW_ROAD_RADIUS = 32 };
+enum
+{
+    PW_CAMPUS_WIDTH = 1400,
+    PW_CAMPUS_HEIGHT = 1300,
+    PW_ROAD_RADIUS = 32,
+    PW_PATH_CAPACITY = 64
+};
 
 typedef enum
 {
@@ -57,7 +63,7 @@ typedef struct
     pw_scene_t scene;
     pw_phase_t phase;
     pw_command_t action, target;
-    int8_t node, edge_a, edge_b, route[32];
+    int8_t node, edge_a, edge_b, route[PW_PATH_CAPACITY];
     uint8_t route_at, route_len, purpose, food, mood, facing;
     int8_t destination, entry_node, point_edge_a, point_edge_b;
     pw_point_t point_goal;

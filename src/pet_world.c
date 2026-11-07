@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string.h>
 
-static const pw_point_t nodes[4][32] = {
+static const pw_point_t nodes[4][PW_PATH_CAPACITY] = {
     {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}},
     {{343, 242}, [3] = {188, 358}, [6] = {148, 298}},
     {{346, 239}, [3] = {184, 302}, [6] = {152, 300}},
@@ -22,7 +22,7 @@ static const uint8_t campus_edges[][2] = {
 #undef SHAHE_NODE
 #undef SHAHE_ROAD
 };
-enum { ROOM_CORNERS = 8, ROOM_START = 20, ROOM_GOAL = 21, ROAD_GOAL = 16 };
+enum { ROOM_CORNERS = 8, ROOM_START = 20, ROOM_GOAL = 21, ROAD_GOAL = PW_PATH_CAPACITY - 1 };
 
 typedef struct
 {
@@ -76,7 +76,7 @@ static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
 }
 static const uint32_t durations[7] = {0, 4000, 1500, 600, 8000, 10000, 500};
 static const uint32_t cooldowns[7] = {0, 2000, 3000, 0, 8000, 10000, 0};
-static const int food_delta[7] = {0, 15, 0, 0, -5, -3, 0}, mood_delta[7] = {0, 0, 10, 0, 5, 4, 0};
+static const int food_delta[7] = {0, 20, 0, 0, -7, -4, 0}, mood_delta[7] = {0, 0, 8, 0, 7, 5, 0};
 static const pw_point_t supports[3][2] = {{{94, 154}, {104, 263}}, {{88, 294}, {0, 0}}, {{89, 298}, {0, 0}}};
 enum
 {
@@ -103,7 +103,7 @@ static float distance(float ax, float ay, float bx, float by)
 }
 pw_point_t pw_node(pw_scene_t s, unsigned n)
 {
-    return (unsigned)s <= PW_CAMPUS && n < 32 ? nodes[s][n] : (pw_point_t){0, 0};
+    return (unsigned)s <= PW_CAMPUS && n < PW_PATH_CAPACITY ? nodes[s][n] : (pw_point_t){0, 0};
 }
 uint32_t pw_duration(pw_command_t a)
 {
@@ -161,6 +161,7 @@ static void clock_step(pet_world_t *w, uint64_t dt)
         w->rest_elapsed += dt;
         n = w->rest_elapsed / 60000U;
         w->rest_elapsed %= 60000U;
+        n *= 3; /* Three mood points per minute asleep. */
         w->mood = n >= 100U - w->mood ? 100 : (uint8_t)(w->mood + n);
     }
     else
@@ -262,9 +263,9 @@ void pw_camera(const pet_world_t *w, float *x, float *y)
 static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, unsigned *len, float *cost)
 {
     pw_scene_t s = w->scene;
-    float dist[32];
-    int8_t prev[32];
-    bool done[32] = {false};
+    float dist[PW_PATH_CAPACITY];
+    int8_t prev[PW_PATH_CAPACITY];
+    bool done[PW_PATH_CAPACITY] = {false};
     int count = s == PW_CAMPUS ? ROAD_GOAL + 1 : ROOM_GOAL + 1;
     for (int i = 0; i < count; i++)
     {
@@ -319,14 +320,14 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
     }
     if (dist[goal] == FLT_MAX)
         return false;
-    int8_t rev[32];
+    int8_t rev[PW_PATH_CAPACITY];
     unsigned n = 0;
     for (int x = goal; x >= 0; x = prev[x])
     {
         rev[n++] = (int8_t)x;
         if (x == start)
             break;
-        if (n == 32)
+        if (n == PW_PATH_CAPACITY)
             return false;
     }
     for (unsigned i = 0; i < n; i++)
@@ -407,13 +408,13 @@ static bool move(pet_world_t *w, int goal, unsigned purpose)
         anchor[0] = w->edge_a >= 0 ? w->edge_a : w->node;
         anchor[1] = w->edge_b;
     }
-    int8_t best[32];
+    int8_t best[PW_PATH_CAPACITY];
     unsigned best_n = 0;
     float best_cost = FLT_MAX;
     for (int k = 0; k < 2; k++)
         if (anchor[k] >= 0)
         {
-            int8_t route[32];
+            int8_t route[PW_PATH_CAPACITY];
             unsigned n;
             float cost;
             if (shortest(w, anchor[k], goal, route, &n, &cost))

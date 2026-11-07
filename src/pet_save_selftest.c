@@ -66,7 +66,7 @@ static bool sleep_restore(void)
     w.phase = PW_SLEEP; w.rest_elapsed = 59999;
     CHECK(ps_save(&s, &w) == PS_OK && ps_open(&s, io(), &w) == PS_OK);
     CHECK(w.phase == PW_SLEEP && w.node == 6 && w.rest_elapsed == 59999);
-    pw_advance(&w, 1); CHECK(w.mood == 61); /* elapsed time survives, offline time does not */
+    pw_advance(&w, 1); CHECK(w.mood == 63); /* elapsed time survives, offline time does not */
     CHECK(pw_request(&w, PW_REST) == PW_OK); pw_advance(&w, 500);
     CHECK(w.phase == PW_IDLE); return true;
 }
@@ -175,7 +175,7 @@ static bool campus_restore(void)
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
     CHECK(w.x == pw_node(PW_CAMPUS, 0).x && w.y == pw_node(PW_CAMPUS, 0).y && w.phase == PW_IDLE && w.target == PW_NONE);
-    CHECK(pw_walk_to(&w, 570, 510) == PW_OK && !ps_visible_saved(&s, &w));
+    CHECK(pw_walk_to(&w, 800, 810) == PW_OK && !ps_visible_saved(&s, &w));
     CHECK(ps_save(&s, &w) == PS_WAIT);
     pw_advance(&w, 3000);
     CHECK(ps_visible_saved(&s, &w));
