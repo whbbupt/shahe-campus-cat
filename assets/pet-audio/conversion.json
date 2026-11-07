@@ -1,0 +1,69 @@
+{
+  "source": "Original synthesized instrument sounds and eight-bar melody, generated locally; no third-party recordings",
+  "rate": 16000,
+  "channels": 1,
+  "bits": 16,
+  "pcm_bytes": 609280,
+  "files": {
+    "music": {
+      "samples": 256000,
+      "peak": 1634,
+      "wav_sha256": "f9c147373ae66f6c836beaff579c441e245f21bfd9751920e2a968948b8b887e"
+    },
+    "touch": {
+      "samples": 5440,
+      "peak": 6713,
+      "wav_sha256": "4892c438af6ac8d8d13a4366fbccb73e6f19f0bed4c218108961b216399ec165"
+    },
+    "meal": {
+      "samples": 4000,
+      "peak": 5714,
+      "wav_sha256": "3fe1934541209975815c10ac8ac823e81cb204ca4d7623a9528e7e03ddd89156"
+    },
+    "rest": {
+      "samples": 5120,
+      "peak": 3772,
+      "wav_sha256": "b0b07fba784092c9f0ff8bba985c4e26eaa4ebc81eeb6bf880e970492986e37e"
+    },
+    "done": {
+      "samples": 4160,
+      "peak": 4449,
+      "wav_sha256": "426fd04179495ad766f36e5d8c96fc9080758b0c55330e33f4c02629ac9c6e40"
+    },
+    "stamp": {
+      "samples": 6720,
+      "peak": 4963,
+      "wav_sha256": "a1a7f34a0df43451d37feb4b5aad426543a59b13b407c9bff1cfb276e0fef1e8"
+    },
+    "win": {
+      "samples": 6880,
+      "peak": 5148,
+      "wav_sha256": "562e162327a2383dc3160e8baefb82cf5b112d01b5014d524f21794510c48f21"
+    },
+    "retry": {
+      "samples": 3520,
+      "peak": 3276,
+      "wav_sha256": "b65fc26cd9182f8b1ce124758cd143524fd6f8b9348a3a3602603b487a1b1dc8"
+    },
+    "note0": {
+      "samples": 3200,
+      "peak": 5956,
+      "wav_sha256": "89c69b3688f8f6c783e894d9c9a3f11af983e477f5d8aec750889acc9463dbcf"
+    },
+    "note1": {
+      "samples": 3200,
+      "peak": 5930,
+      "wav_sha256": "abd067c44d01b5b0d35541d1b86e67ddb9131a8876a1d9b873e8daef69829a30"
+    },
+    "note2": {
+      "samples": 3200,
+      "peak": 5932,
+      "wav_sha256": "8b08f65011e8f4d8ddebb07ea152e0f4f330fac88da65d27b47c6daac89a805d"
+    },
+    "note3": {
+      "samples": 3200,
+      "peak": 5940,
+      "wav_sha256": "635d3b40a29b1100512ff40e128a874517957c55a73f00a753d86e806a720e66"
+    }
+  }
+}
