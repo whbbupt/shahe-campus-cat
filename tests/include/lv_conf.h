@@ -7,6 +7,9 @@
 #define LV_USE_STDLIB_SPRINTF 1
 #define LV_USE_DRAW_SW 1
 #define LV_USE_LOG 0
+#define LV_USE_LZ4 1
+#define LV_USE_LZ4_INTERNAL 1
+#define LV_BIN_DECODER_RAM_LOAD 1
 #define LV_DRAW_BUF_STRIDE_ALIGN 1
 #define LV_ASSERT_HANDLER_INCLUDE <stdlib.h>
 #define LV_ASSERT_HANDLER abort();

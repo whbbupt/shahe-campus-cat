@@ -4,6 +4,8 @@
 #include "pet_world_assets.h"
 #include "pet_shahe_assets.h"
 #include "pet_world_font.h"
+#include "src/draw/lv_draw_buf_private.h"
+#include "src/draw/lv_image_decoder_private.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -23,6 +25,57 @@ static pw_result_t result;
 static unsigned char frame[450][390][3], draw_buffer[390 * 50 * 3];
 static lv_point_t pointer;
 static lv_indev_state_t pointer_state;
+static lv_draw_buf_malloc_cb_t image_allocate;
+static lv_draw_buf_free_cb_t image_release;
+static size_t image_live, image_peak;
+static void *image_pointer;
+static void *track_image_allocate(size_t size, lv_color_format_t format)
+{
+    assert(!image_pointer);
+    image_pointer = image_allocate(size, format);
+    assert(image_pointer);
+    image_live = size;
+    if (image_live > image_peak) image_peak = image_live;
+    return image_pointer;
+}
+static void track_image_release(void *p)
+{
+    assert(p == image_pointer);
+    image_release(p);
+    image_pointer = NULL;
+    image_live = 0;
+}
+static void check_scene_decoders(void)
+{
+    const lv_image_dsc_t *plates[] = {
+        &shahe_room_0, &shahe_room_1, &shahe_room_2, &shahe_room_3,
+        &shahe_front_0, &shahe_front_1, &shahe_front_2, &shahe_seat_0,
+        &shahe_building_0, &shahe_building_1, &shahe_building_2, &shahe_tree,
+        &shahe_library, &shahe_center, &shahe_lecture, &shahe_gate,
+        &shahe_decor_0, &shahe_decor_1, &shahe_decor_2, &shahe_decor_3,
+        &shahe_tree_shadow
+    };
+    lv_draw_buf_handlers_t *handlers = lv_draw_buf_get_image_handlers();
+    image_allocate = handlers->buf_malloc_cb;
+    image_release = handlers->buf_free_cb;
+    handlers->buf_malloc_cb = track_image_allocate;
+    handlers->buf_free_cb = track_image_release;
+    for (unsigned repeat = 0; repeat < 10; repeat++)
+        for (unsigned i = 0; i < 46; i++)
+        {
+            const lv_image_dsc_t *src = i < 25 ? shahe_ground[i] : plates[i - 25];
+            lv_image_decoder_dsc_t decoder;
+            assert(lv_image_decoder_open(&decoder, src, NULL) == LV_RESULT_OK);
+            assert(decoder.decoded);
+            assert(decoder.header.w == src->header.w && decoder.header.h == src->header.h);
+            lv_image_decoder_close(&decoder);
+            assert(!image_pointer && !image_live);
+        }
+    handlers->buf_malloc_cb = image_allocate;
+    handlers->buf_free_cb = image_release;
+    assert(image_peak <= 351000 + 64);
+    printf("[host:assets] 46 production decoders x10, released each time; peak image allocation=%zu bytes PASS\n", image_peak);
+}
 static void flush(lv_display_t *d, const lv_area_t *a, uint8_t *data)
 {
     int width = a->x2 - a->x1 + 1;
@@ -557,6 +610,7 @@ static void campus_extended_route(void)
 int main(void)
 {
     lv_init();
+    check_scene_decoders();
     lv_display_t *d = lv_display_create(390, 450);
     lv_display_set_color_format(d, LV_COLOR_FORMAT_RGB888);
     lv_display_set_buffers(d, draw_buffer, NULL, sizeof(draw_buffer), LV_DISPLAY_RENDER_MODE_PARTIAL);

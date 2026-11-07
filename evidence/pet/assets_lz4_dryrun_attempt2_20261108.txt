@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "D:\project\sifli\course_starter\scripts\compress_pet_assets.py", line 111, in <module>
+    main()
+    ~~~~^^
+  File "D:\project\sifli\course_starter\scripts\compress_pet_assets.py", line 47, in main
+    raise RuntimeError(result.stdout.decode('mbcs', errors='replace') +
+                       result.stderr.decode('mbcs', errors='replace'))
+RuntimeError: lz4.c
+
+   Creating library D:\project\sifli\course_starter\build\pet-asset-codec\pet-lz4.lib and object D:\project\sifli\course_starter\build\pet-asset-codec\pet-lz4.exp
+
+lz4.obj : error LNK2019: unresolved external symbol lv_memcpy referenced in function LZ4_compress_destSize_extState_internal
+
+lz4.obj : error LNK2019: unresolved external symbol lv_memset referenced in function LZ4_compress_destSize_extState
+
+lz4.obj : error LNK2019: unresolved external symbol lv_memmove referenced in function LZ4_decompress_fast
+
+D:\project\sifli\course_starter\build\pet-asset-codec\pet-lz4.dll : fatal error LNK1120: 3 unresolved externals
+
+

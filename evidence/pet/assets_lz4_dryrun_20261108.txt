@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "D:\project\sifli\course_starter\scripts\compress_pet_assets.py", line 107, in <module>
+    main()
+    ~~~~^^
+  File "D:\project\sifli\course_starter\scripts\compress_pet_assets.py", line 36, in main
+    result = subprocess.run([
+        'cl', '/nologo', '/O2', '/LD', '/DLZ4_DLL_EXPORT=1',
+    ...<2 lines>...
+        str(source), '/Fo' + str(cache / 'lz4.obj'), '/Fe' + str(dll)],
+        env=env, cwd=cache, capture_output=True)
+  File "D:\development\python\Lib\subprocess.py", line 554, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\development\python\Lib\subprocess.py", line 1036, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\development\python\Lib\subprocess.py", line 1548, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+                             # no special security
+                             ^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+                             cwd,
+                             ^^^^
+                             startupinfo)
+                             ^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] 系统找不到指定的文件。

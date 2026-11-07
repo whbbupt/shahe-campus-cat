@@ -1,0 +1,378 @@
+{
+  "method": "SDK LVGL LZ4 lossless",
+  "write": true,
+  "raw_bytes": 5506957,
+  "packed_bytes": 2453894,
+  "saved_image_bytes": 3053063,
+  "largest_decoded_image_bytes": 351000,
+  "entries": [
+    {
+      "name": "shahe_room_0",
+      "raw_bytes": 351000,
+      "packed_bytes": 172881,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "74FFD5DEE415DC4DD17034A63C662541E2C357D549794F65B4E276326D37885E"
+    },
+    {
+      "name": "shahe_front_0",
+      "raw_bytes": 4644,
+      "packed_bytes": 1829,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "1F9A42AC4A9DD08521DBB3C296E32E2DD2F5DDBA7B24CB1EE7C1D9C1D6915A66"
+    },
+    {
+      "name": "shahe_seat_0",
+      "raw_bytes": 2394,
+      "packed_bytes": 1121,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "E5571D219A7AAEA3E3582E1FF1CA2F091D86C144078111B8684D630CAE212D3D"
+    },
+    {
+      "name": "shahe_room_1",
+      "raw_bytes": 351000,
+      "packed_bytes": 166116,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "FDA2E4E6A2A1AD06C1A38B4EA27648CBA83EB856883578AFA55B59C434C60694"
+    },
+    {
+      "name": "shahe_front_1",
+      "raw_bytes": 2244,
+      "packed_bytes": 1234,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "5275768BCD6B52CBDF36146DABC33EAEFF9E11F7BF60C1A22D350BC4624B83CE"
+    },
+    {
+      "name": "shahe_room_2",
+      "raw_bytes": 351000,
+      "packed_bytes": 180089,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "7486EF0E6A4A86EE74BCBED86101214EA0DB1535B70AE7FE0130C0B1783B6C55"
+    },
+    {
+      "name": "shahe_front_2",
+      "raw_bytes": 2700,
+      "packed_bytes": 1345,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "E7347631AD29C8BB787FFAF546D6C921908E48CB12A10F20BEDAE6172FF54708"
+    },
+    {
+      "name": "shahe_room_3",
+      "raw_bytes": 351000,
+      "packed_bytes": 166920,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F0ED5A4D1705ACCF67D7339C5E1392E54D78E85F77294C7F214455DA3814C6CB"
+    },
+    {
+      "name": "shahe_building_0",
+      "raw_bytes": 48150,
+      "packed_bytes": 27262,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "46E3E2BEC072D8F17DC10200B2E3468A9681B3B7C3AD623B652719B77CD8ED32"
+    },
+    {
+      "name": "shahe_building_1",
+      "raw_bytes": 115824,
+      "packed_bytes": 60531,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "116E3C92CD0D21533B46AE829394FA4C6560EF809DF7C82E2096994ECE7E3FD6"
+    },
+    {
+      "name": "shahe_building_2",
+      "raw_bytes": 53766,
+      "packed_bytes": 31880,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "2DD29063191F1DCC668994CC22594C8BC0DB681FA7430915D568EEBE4E97C976"
+    },
+    {
+      "name": "shahe_tree",
+      "raw_bytes": 18204,
+      "packed_bytes": 10559,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "63F0CF6AEF421DDD32BDA13E921CF1B23DEEB5EFD6E0858459D4308B71E6E164"
+    },
+    {
+      "name": "shahe_library",
+      "raw_bytes": 118572,
+      "packed_bytes": 66664,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "60E198F019D609F43A199F1D222EAEEE9E2F476654B6B20E5958620A497F2CC6"
+    },
+    {
+      "name": "shahe_center",
+      "raw_bytes": 16362,
+      "packed_bytes": 10768,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F58AA16D7F160BFE86274CA4E4422EE94EF8F9728BE7A93F78FEEB0B19F7FF90"
+    },
+    {
+      "name": "shahe_lecture",
+      "raw_bytes": 26061,
+      "packed_bytes": 16171,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "84F2B4D75251644A98214B065A1C5553C69AF4969063265576CF67E6D577682B"
+    },
+    {
+      "name": "shahe_gate",
+      "raw_bytes": 20520,
+      "packed_bytes": 11398,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F40555AF1CFB15379043CA6762588633BDE745A40A31EC3CC80244171FFDE144"
+    },
+    {
+      "name": "shahe_decor_0",
+      "raw_bytes": 8040,
+      "packed_bytes": 5569,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "BACA40C8D43E4002C5CBFE4485D5357EEBB85CAF3A04E884D51E13E6DA0FBD21"
+    },
+    {
+      "name": "shahe_decor_1",
+      "raw_bytes": 7452,
+      "packed_bytes": 4859,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "5479AF6F66296C5CE5D459FC3D2AD786F8A96703264D6BAA628F00B86E1C1772"
+    },
+    {
+      "name": "shahe_decor_2",
+      "raw_bytes": 5640,
+      "packed_bytes": 4463,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "BCA760CB725A1BEDF12C7BFAB3E4C0FFE0706C60BA207C2ABF92E245E7C49052"
+    },
+    {
+      "name": "shahe_decor_3",
+      "raw_bytes": 7632,
+      "packed_bytes": 5561,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "0925601B67DC959783362EF40CFD64B3CFA6B1F45EDD1E9FDB9A5FA1F1A72382"
+    },
+    {
+      "name": "shahe_tree_shadow",
+      "raw_bytes": 4752,
+      "packed_bytes": 655,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "2579A19FA23D108B1E1F502084601E519CF14EBD888C80131BB31FCA909ECE18"
+    },
+    {
+      "name": "shahe_ground_0",
+      "raw_bytes": 145600,
+      "packed_bytes": 67476,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "E8099E34CE19AE628B88DCD13F991CB15DD371BB36510F34CFC4126482DE2595"
+    },
+    {
+      "name": "shahe_ground_1",
+      "raw_bytes": 145600,
+      "packed_bytes": 62200,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "3B918AB1C0A2AD545F930AF5DC91A3EB622A22B3A1CA44F901839DBD5E87AEA6"
+    },
+    {
+      "name": "shahe_ground_2",
+      "raw_bytes": 145600,
+      "packed_bytes": 60046,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "EF96121AEFB0F236B59876D80265F86887760CCFD11C532FB14EB3EC6DDA0525"
+    },
+    {
+      "name": "shahe_ground_3",
+      "raw_bytes": 145600,
+      "packed_bytes": 61535,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "593BBA5DA33CDBA629D8D07CB7C0C9F16F4E2BEAA3512BF819F3A4374DB5E5B4"
+    },
+    {
+      "name": "shahe_ground_4",
+      "raw_bytes": 145600,
+      "packed_bytes": 60652,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "431D79131620BACB356E7A8BBF46AA07EC3919BD5A44A7502A39B25B04293AF2"
+    },
+    {
+      "name": "shahe_ground_5",
+      "raw_bytes": 145600,
+      "packed_bytes": 60108,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "76DEE78CCFA114A8B3F0BAB1CB883206E957DFAEFB5852CB3DB21EFB7DC8BD80"
+    },
+    {
+      "name": "shahe_ground_6",
+      "raw_bytes": 145600,
+      "packed_bytes": 59327,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "DF5F88B952F9E26F4EA7657AEAF84AE1C6749BFD1FF5109B209BCCF6DA9445BE"
+    },
+    {
+      "name": "shahe_ground_7",
+      "raw_bytes": 145600,
+      "packed_bytes": 58320,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "0E511C2485170584E51D94A02DD251C44940CAC097EF157A2ACD67A4536EE75A"
+    },
+    {
+      "name": "shahe_ground_8",
+      "raw_bytes": 145600,
+      "packed_bytes": 61087,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "762440B892D1AA49EA4D2844D7FA08AC379784CF2BEDC6C9660C5953D0DF186C"
+    },
+    {
+      "name": "shahe_ground_9",
+      "raw_bytes": 145600,
+      "packed_bytes": 59133,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "1EA83D7E7AAAC0577B73222F95A821A7B70255F336ED38BE8B6BDCE13D562330"
+    },
+    {
+      "name": "shahe_ground_10",
+      "raw_bytes": 145600,
+      "packed_bytes": 59617,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "042C1A865433F0540455065847957F4B49E792AE242E235BD0B71C9BEF852671"
+    },
+    {
+      "name": "shahe_ground_11",
+      "raw_bytes": 145600,
+      "packed_bytes": 57343,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "797C5F4A64A4FBC6911FF779416183B938BC73C09017EB41DF4B67EDF0205783"
+    },
+    {
+      "name": "shahe_ground_12",
+      "raw_bytes": 145600,
+      "packed_bytes": 58346,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F9887DD008169CECAD9846C7C62282BD0CEEDECE1EA5DCAAEDD52448A96AA771"
+    },
+    {
+      "name": "shahe_ground_13",
+      "raw_bytes": 145600,
+      "packed_bytes": 63673,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "BCEC4FDFF8F6DB785D6F82D5E539C1913F35591989484E10DF5D2907934971D8"
+    },
+    {
+      "name": "shahe_ground_14",
+      "raw_bytes": 145600,
+      "packed_bytes": 60379,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "A6FFBAE8C28A2C1CB2D38D35EF877FB4E3C3C80CBD376F224AB4B8CBA3A5CEC3"
+    },
+    {
+      "name": "shahe_ground_15",
+      "raw_bytes": 145600,
+      "packed_bytes": 51376,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F8B3DBF5945478B8E3FF176C1906C0E4FC00A4BF433E13736783CD070CCD6BF9"
+    },
+    {
+      "name": "shahe_ground_16",
+      "raw_bytes": 145600,
+      "packed_bytes": 59492,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "09457B83A865103F7C8B27330D36DA022C630FF2D44C1789C910530C529ACE73"
+    },
+    {
+      "name": "shahe_ground_17",
+      "raw_bytes": 145600,
+      "packed_bytes": 57551,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "D5EDC815D75BB8903629FC5AA5C4EB1CB2C2C5282D98806B228058DC9DB10AAE"
+    },
+    {
+      "name": "shahe_ground_18",
+      "raw_bytes": 145600,
+      "packed_bytes": 62275,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "E7C33207A9FFD790902676F5F9AA1566C21825E8FCEE0654177C6099BE8F2B0E"
+    },
+    {
+      "name": "shahe_ground_19",
+      "raw_bytes": 145600,
+      "packed_bytes": 59672,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "D191215BCCCECDDD73FAD6C3B51766AE1293E5F71E386935D2DE41FDDDDEFC4F"
+    },
+    {
+      "name": "shahe_ground_20",
+      "raw_bytes": 145600,
+      "packed_bytes": 65844,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "D89458D03F59070C8F663F37B8B6A4DA1F8F2C82122419D52E4BF92197832726"
+    },
+    {
+      "name": "shahe_ground_21",
+      "raw_bytes": 145600,
+      "packed_bytes": 61598,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "0AFB4E3B1B458330C6BE12FC938704D2339D5F7FDA4F94C1AAA392228A645392"
+    },
+    {
+      "name": "shahe_ground_22",
+      "raw_bytes": 145600,
+      "packed_bytes": 59041,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "FC9D4C919C23B4E911628C09C7036AE9062D98EAA387A6AD739DF1DCBB64F60B"
+    },
+    {
+      "name": "shahe_ground_23",
+      "raw_bytes": 145600,
+      "packed_bytes": 60156,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "F16F40B1EE7DE033745A106ED3605714F4562BB2E8C35D28B7B78596B992D884"
+    },
+    {
+      "name": "shahe_ground_24",
+      "raw_bytes": 145600,
+      "packed_bytes": 59772,
+      "compressed": true,
+      "roundtrip": true,
+      "raw_sha256": "32CD3ECB52F07D8CD822237AF74A29E1355A61A9204A5F57CBFC1B85833A66E7"
+    }
+  ]
+}

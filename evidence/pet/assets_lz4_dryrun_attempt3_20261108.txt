@@ -1,0 +1,8 @@
+{
+  "method": "SDK LVGL LZ4 lossless",
+  "write": false,
+  "raw_bytes": 5506957,
+  "packed_bytes": 2453894,
+  "saved_image_bytes": 3053063,
+  "largest_decoded_image_bytes": 351000
+}
