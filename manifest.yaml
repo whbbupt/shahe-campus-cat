@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "沙河校园小猫v0.11.0手账与短记忆题，软件与构建通过，TC-196实机待测"
+  milestone: "沙河校园小猫v0.12.0循环音乐与互动音效，软件与构建通过，TC-202实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "短音效加循环背景音乐"
+      alternatives_considered: "仅互动短音效；短音效与循环背景音乐"
+      rationale: "用户明确选择同时加入，离线素材混音并提供三种声音模式"
+      decided_by: "用户选择范围；旋律和模式参数由AI设计，ADR-0013"
     - decision: "养成为主，穿插可选短小游戏"
       alternatives_considered: "小游戏挑战主导；校园照料与收集主导、穿插小游戏"
       rationale: "手账记录已有照料活动，记忆题提供短暂变化，没有每日惩罚"
@@ -101,7 +105,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.11.0_metadata_20261107.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.12.0_metadata_20261107.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -763,7 +767,55 @@ test_results:
     status: pending_physical
     pass: null
 
+  - test_id: TC-197
+    description: 混音与四音共享自检
+    expected: 按docs/03 v0.12.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.12.0_final_20261107.txt
+
+  - test_id: TC-198
+    description: 实际事件只响一次
+    expected: 按docs/03 v0.12.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.12.0_final_20261107.txt
+
+  - test_id: TC-199
+    description: 声音模式保存与旧档
+    expected: 按docs/03 v0.12.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.12.0_final_20261107.txt
+
+  - test_id: TC-200
+    description: 原音频工作线程模拟
+    expected: 按docs/03 v0.12.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.12.0_final_20261107.txt
+
+  - test_id: TC-201
+    description: 状态页和8MiB构建
+    expected: 按docs/03 v0.12.0用例
+    actual: 软件判据通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/build_v0.12.0_metadata_20261107.json
+
+  - test_id: TC-202
+    description: 声音与原玩法真机
+    expected: 按docs/03 v0.12.0用例
+    actual: 尚未执行，等待学生有声视频和日志
+    status: pending_physical
+    pass: null
+
 known_issues:
+  - "v0.12.0音质、持续送音和声画时序待TC-202；格式5保存声音模式、读1至4；全量阶段有SDK lv_obj_swap潜在空指针告警2次，SDK未改且应用未调用。"
   - "v0.11.0格式4可读1至3；手账和记忆题软件验证通过，真实屏幕与触摸、存档复位待TC-196。"
   - "v0.10.0使用格式3，旧固件读取时写保护；实际屏幕、触摸和订单复位恢复待TC-190。"
   - "v0.9.0室外全图为校图压缩的主要通道，TC-185 实机待测。"
@@ -797,6 +849,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "声音范围"
+    student_confirmation: "短音效加循环背景音乐"
+    evidence_path: evidence/pet/audio_choice_20261107_user.txt
   - decision_point: "玩法主次"
     student_confirmation: "我倾向于养成为主，穿插短小游戏。"
     evidence_path: evidence/pet/growth_choice_20261107_user.txt

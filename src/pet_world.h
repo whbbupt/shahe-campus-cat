@@ -48,7 +48,8 @@ typedef enum
     PW_MEMORY_2,
     PW_MEMORY_3,
     PW_MEMORY_CANCEL,
-    PW_JOURNAL_CLAIM = 50
+    PW_JOURNAL_CLAIM = 50,
+    PW_SOUND_NEXT = 60
 } pw_command_t;
 typedef enum
 {
@@ -107,7 +108,7 @@ typedef struct
     pw_order_t order;
     uint32_t journal_page;
     uint16_t journal_stamps, memory_wins;
-    uint8_t journal_progress, journal_badges;
+    uint8_t journal_progress, journal_badges, sound_mode;
     pm_game_t memory;
     int message, gain, mood_gain;
 } pet_world_t;

@@ -32,11 +32,13 @@ static struct
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
+    lv_obj_t *audio_label, *audio_note;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
     lv_obj_t *journal_button, *journal_dialog, *journal_page, *wish[3], *wish_mark[3],
              *journal_count, *claim, *claim_hint, *badge[3];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
 } ui;
+static bool audio_available = true;
 static unsigned save_state = PET_SAVE_PENDING;
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
 void pet_ui_set_save_status(unsigned status)
@@ -45,6 +47,10 @@ void pet_ui_set_save_status(unsigned status)
     if (ui.save_note) lv_label_set_text(ui.save_note, save_notes[save_state]);
 }
 static void paint(void);
+void pet_ui_set_audio_available(bool available)
+{
+    audio_available = available;
+}
 void pet_ui_set_point_handler(pet_ui_point_fn handler)
 {
     ui.point = handler;
@@ -118,6 +124,11 @@ static void click(lv_event_t *e)
     if (cmd == PW_JOURNAL_CLAIM && ui.panel == PANEL_JOURNAL)
     {
         if (ui.action) ui.action(PW_JOURNAL_CLAIM);
+        return;
+    }
+    if (cmd == PW_SOUND_NEXT && ui.panel == PANEL_STATUS)
+    {
+        if (ui.action) ui.action(PW_SOUND_NEXT);
         return;
     }
     if (cmd == TAG_STATUS)
@@ -317,7 +328,7 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(ui.layer, LV_OPA_TRANSP, 0);
     lv_obj_t *scrim = button(ui.layer, 0, 0, 390, 450, TAG_CLOSE, 0x223A46, 0);
     lv_obj_set_style_bg_opa(scrim, LV_OPA_50, 0);
-    lv_obj_t *dialog = box(ui.layer, 57, 95, 276, 260, 0xF9FCFD, 18);
+    lv_obj_t *dialog = box(ui.layer, 57, 50, 276, 350, 0xF9FCFD, 18);
     ui.status_dialog = dialog;
     text(dialog, "小猫状态", 18, 13, &pet_font_20, INK);
     lv_obj_t *close = button(dialog, 226, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
@@ -340,6 +351,10 @@ static void build_panel(lv_obj_t *screen)
     ui.state = text(status, "闲逛中", 0, 108, &pet_font_16, BLUE);
     text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 139, &pet_font_16, INK);
     ui.save_note = text(status, save_notes[save_state], 0, 166, &pet_font_16, 0x62736B);
+    lv_obj_t *sound = button(dialog, 18, 255, 240, 44, PW_SOUND_NEXT, 0xDCE6CB, 10);
+    ui.audio_label = text(sound, "", 0, 0, &pet_font_16, INK);
+    lv_obj_center(ui.audio_label);
+    ui.audio_note = text(dialog, "", 18, 307, &pet_font_16, BLUE);
     ui.order_dialog = box(ui.layer, 57, 113, 276, 224, PAPER, 18);
     text(ui.order_dialog, "宿舍外卖", 18, 13, &pet_font_20, INK);
     lv_obj_t *order_close = button(ui.order_dialog, 226, 2, 44, 44, TAG_CLOSE, PAPER, 12);
@@ -633,6 +648,10 @@ static void paint(void)
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
     lv_label_set_text(ui.state, pw_state_text(&ui.world));
+    static const char *modes[] = {"声音：静音", "声音：仅音效", "声音：音乐＋音效"};
+    lv_label_set_text(ui.audio_label, modes[ui.world.sound_mode <= 2 ? ui.world.sound_mode : 0]);
+    lv_obj_center(ui.audio_label);
+    lv_label_set_text(ui.audio_note, audio_available ? "点按切换 · 自动记住" : "声音暂不可用，切换重试");
     bool memory = ui.world.phase == PW_MINIGAME;
     visible(ui.layer, memory || ui.panel != PANEL_NONE);
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);

@@ -4,6 +4,8 @@
 #include "pet_world.h"
 #include "pet_save.h"
 #include "pet_save_flash.h"
+#include "pet_audio.h"
+#include "pet_audio_rt.h"
 #include <string.h>
 static pet_world_t world;
 static pet_save_t save;
@@ -26,12 +28,14 @@ static uint32_t sync_clock(void)
     uint32_t ms = pet_clock_elapsed(previous_tick, now, RT_TICK_PER_SECOND, &fraction);
     previous_tick = now;
     pw_advance(&world, ms);
+    pet_audio_sync(&world);
     return ms;
 }
 static pw_result_t command(pw_command_t cmd)
 {
     sync_clock();
     pw_result_t result = pw_request(&world, cmd);
+    pet_audio_sync(&world);
     refresh_save_status();
     pet_ui_update(&world);
     rt_kprintf("[pet] cmd=%u result=%u scene=%u phase=%u food=%u mood=%u\n", (unsigned)cmd, (unsigned)result,
@@ -51,13 +55,17 @@ static void report(const char *name, bool ok)
 {
     rt_kprintf("[pet:WORLD] %s %s\n", name, ok ? "PASS" : "FAIL");
 }
+static void audio_report(const char *name, bool ok)
+{
+    rt_kprintf("[pet:AUDIO-TEST] %s %s\n", name, ok ? "PASS" : "FAIL");
+}
 static void save_report(const char *name, bool ok)
 {
     rt_kprintf("[pet:SAVE-TEST] %s %s\n", name, ok ? "PASS" : "FAIL");
 }
 rt_err_t pet_app_start(void)
 {
-    if (!pw_selftest(report) || !ps_selftest(save_report))
+    if (!pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
     {
         rt_kprintf("[pet] selftest FAIL; UI not started\n");
         return -RT_ERROR;
@@ -68,11 +76,13 @@ rt_err_t pet_app_start(void)
     ps_io_t io;
     ps_result_t loaded = PS_IO_ERROR;
     if (ps_flash_io(&io)) loaded = ps_open(&save, io, &world);
+    pet_audio_start(&world);
     previous_tick = rt_tick_get();
     fraction = display_elapsed = 0;
     pet_ui_create(command);
     pet_ui_set_point_handler(walk_to);
     show_save(loaded == PS_OK ? PET_SAVE_SAVED : (loaded == PS_EMPTY ? PET_SAVE_PENDING : PET_SAVE_UNAVAILABLE));
+    pet_ui_set_audio_available(pet_audio_available());
     pet_ui_update(&world);
     rt_kprintf("[pet:SAVE] load=%u seq=%u scene=%u food=%u mood=%u sleeping=%u\n", (unsigned)loaded,
                (unsigned)save.sequence, (unsigned)world.scene, (unsigned)world.food, (unsigned)world.mood,
@@ -105,6 +115,7 @@ void pet_app_poll(void)
     if (display_elapsed >= 40)
     {
         display_elapsed %= 40;
+        pet_ui_set_audio_available(pet_audio_available());
         pet_ui_update(&world);
     }
 }

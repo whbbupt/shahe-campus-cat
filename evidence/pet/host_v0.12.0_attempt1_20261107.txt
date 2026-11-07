@@ -1,0 +1,91 @@
+[host:audio] pcm-loop-modes-duck-and-four-notes PASS
+
+[host:audio] world-events-once-no-replay PASS
+
+[host:audio] pure PCM and event policy PASS; no physical sound verdict
+
+
+[host:pet] feed-clamp-spam-cooldown PASS
+
+[host:pet] touch-clamp-cooldown PASS
+
+[host:pet] elapsed-partition-large-gap PASS
+
+[host:pet] rest-reject-resume PASS
+
+[host:pet] view-priority PASS
+
+[host:pet] clock-wrap-fraction PASS
+
+[host:pet] invalid-event-reset PASS
+
+[host:pet] campus-travel-guards PASS
+
+[host:pet] campus-study-cost-cooldown PASS
+
+[host:pet] campus-action-routing-reset PASS
+
+[host:pet] all PASS; board not tested
+
+
+[host:world] initial-scene PASS
+
+[host:world] arrive-once PASS
+
+[host:world] retarget-no-snap PASS
+
+[host:world] arrival-eligibility PASS
+
+[host:world] busy-no-queue PASS
+
+[host:world] cooldown-from-finish PASS
+
+[host:world] capped-meal PASS
+
+[host:world] full-mood-study PASS
+
+[host:world] sleep-wake-support PASS
+
+[host:world] touch-cancels-intent PASS
+
+[host:world] elapsed-and-long-gap PASS
+
+[host:world] jump-and-seat PASS
+
+[host:world] eight-directions PASS
+
+[host:world] indoor-floor-detour-and-retarget PASS
+
+[host:world] classroom-and-canteen-detours PASS
+
+[host:world] reset-invalid PASS
+
+[host:world] journal-wishes-stamp-and-page PASS
+
+[host:world] memory-rounds-wrong-cancel-and-once PASS
+
+[host:world] rebalanced-actions-and-sleep-clamp PASS
+
+[host:world] gym-access-workout-and-return PASS
+
+[host:world] takeout-delivery-guards-and-once PASS
+
+[host:world] four-room-decor-and-expanded-floor PASS
+
+[host:world] campus-point-retarget-road PASS
+
+[host:world] campus-three-building-doors PASS
+
+[host:world] campus-guards-no-wander PASS
+
+[host:world] campus-clock-camera PASS
+
+[host:world] campus-all-road-endpoints PASS
+
+[host:world] all PASS
+
+
+
+Assertion failed: ps_save(&s, &w) == PS_OK && s.saved[4] == 5, file D:\project\sifli\course_starter\tests\pet_save_test.c, line 118
+
+

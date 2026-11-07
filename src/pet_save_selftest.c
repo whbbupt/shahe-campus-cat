@@ -170,7 +170,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 4);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 5);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -242,6 +242,25 @@ static bool takeout_autosave(void)
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.order == PW_ORDER_READY);
     return true;
 }
+static bool sound_restore(void)
+{
+    blank();
+    pet_save_t s;
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    for (unsigned mode = 0; mode < 3; mode++) {
+        while (w.sound_mode != mode) CHECK(pw_request(&w, PW_SOUND_NEXT) == PW_OK);
+        CHECK(ps_save(&s, &w) == PS_OK);
+        CHECK(ps_open(&s, io(), &w) == PS_OK && w.sound_mode == mode && w.phase == PW_IDLE);
+    }
+    CHECK(pw_request(&w, PW_SOUND_NEXT) == PW_OK && !ps_visible_saved(&s, &w));
+    CHECK(ps_poll(&s, &w) == PS_WAIT);
+    pw_advance(&w, 10000);
+    CHECK(ps_poll(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.sound_mode == 1);
+    return true;
+}
 static bool journal_restore(void)
 {
     blank();
@@ -284,7 +303,8 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore},
         {"takeout-resume-and-atomic-pickup", takeout_resume},
         {"takeout-autosave-phase-key", takeout_autosave},
-        {"journal-atomic-stamp-and-game-restore", journal_restore}};
+        {"journal-atomic-stamp-and-game-restore", journal_restore},
+        {"sound-mode-autosave-and-reboot", sound_restore}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

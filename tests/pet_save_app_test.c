@@ -1,6 +1,7 @@
 #include "pet_app.h"
 #include "pet_save_flash.h"
 #include "pet_ui.h"
+#include "pet_audio.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -12,6 +13,12 @@ static pet_ui_action_fn action;
 static unsigned status;
 static int writes, calls, capacity=16*1024*1024, alignment=4096;
 static bool fail_write;
+static pa_observer_t sound_observer;
+static unsigned sound_events;
+void pet_audio_start(const pet_world_t *w) { pa_observer_init(&sound_observer, w); }
+void pet_audio_sync(const pet_world_t *w) { if (pa_observe(&sound_observer, w)) sound_events++; }
+bool pet_audio_available(void) { return true; }
+void pet_ui_set_audio_available(bool ready) { assert(ready); }
 rt_tick_t rt_tick_get(void) { return tick; }
 int rt_kprintf(const char *f, ...) { (void)f; return 0; }
 void pet_ui_set_point_handler(pet_ui_point_fn handler)
@@ -43,6 +50,13 @@ int main(void)
 {
     memset(data,255,sizeof(data));
     assert(pet_app_start()==RT_EOK && writes==0 && status==PET_SAVE_PENDING);
+    assert(action(PW_SOUND_NEXT) == PW_OK && snapshot.sound_mode == 1);
+    assert(action(PW_SOUND_NEXT) == PW_OK && snapshot.sound_mode == 0);
+    step(14000); reboot();
+    assert(snapshot.sound_mode == 0 && sound_events == 0);
+    assert(action(PW_SOUND_NEXT) == PW_OK && snapshot.sound_mode == 2);
+    step(14000);
+    memset(data,255,sizeof(data)); writes = 0; reboot();
     /* Startup SAVE selftests must not touch the real flash writer. */
     step(3300); assert(writes==2 && status==PET_SAVE_SAVED);
     int before_save = writes;

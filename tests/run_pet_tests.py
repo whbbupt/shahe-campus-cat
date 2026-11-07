@@ -52,7 +52,7 @@ def build(sources, name, includes=(), defines=()):
     flags = base + [(('/I' if msvc else '-I') + str(x)) for x in include_paths]
     flags += [(('/D' if msvc else '-D') + x) for x in defines]
     # Cache key includes all production/header/config content relevant to these tests.
-    headers = list((root/'src').glob('*.h'))
+    headers = [p for include in include_paths for p in include.glob('*.h')]
     headers += list((root/'src').glob('*.inc'))
     headers += list((root/'tests/include').glob('*.h'))
     if a.sdk:
@@ -76,10 +76,13 @@ def build(sources, name, includes=(), defines=()):
         run([cc, *objects, '-lm', '-o', executable], cwd=out)
     print(run([executable], cwd=out, timeout=90))
 
+build([root/'src/pet_audio_rt.c', root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_rt_test.c'], 'pet-audio-driver-test', [root/'tests/audio_include'])
+print(run([out/('pet-audio-driver-test.exe' if os.name == 'nt' else 'pet-audio-driver-test'), 'thread-failure'], cwd=out))
+build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_test.c'], 'pet-audio-test')
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'tests/pet_save_test.c'], 'pet-save-test')
-build([root/'src/pet_model.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'src/pet_save_flash.c', root/'src/pet_app.c', root/'tests/pet_save_app_test.c'], 'pet-save-app-test', [root/'tests/save_include'])
+build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_model.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'src/pet_save_flash.c', root/'src/pet_app.c', root/'tests/pet_save_app_test.c'], 'pet-save-app-test', [root/'tests/save_include'])
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))

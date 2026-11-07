@@ -197,6 +197,7 @@ void pw_init(pet_world_t *w)
     w->scene = PW_DORM;
     w->phase = PW_IDLE;
     w->journal_page = 1;
+    w->sound_mode = 2;
     w->food = 70;
     w->mood = 60;
     w->node = 3;
@@ -576,6 +577,11 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_SOUND_NEXT)
+    {
+        w->sound_mode = w->sound_mode ? w->sound_mode - 1 : 2;
+        return PW_OK;
+    }
     if (cmd == PW_MEMORY_CANCEL)
     {
         if (w->phase != PW_MINIGAME)

@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 4U
+#define SCHEMA 5U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -58,24 +58,30 @@ static pw_order_t order_state(const uint8_t *r)
     uint32_t code = order_code(r);
     return code == 0 ? PW_ORDER_NONE : code == 1 ? PW_ORDER_READY : PW_ORDER_DELIVERING;
 }
+static unsigned sound_mode(const uint8_t *r)
+{
+    return r[4] >= 5 ? r[15] >> 1 : 2;
+}
+static bool sleeping(const uint8_t *r) { return (r[15] & 1) != 0; }
 static void visible_key(const uint8_t *r, uint8_t key[15])
 {
     memcpy(key, r + 12, 4);
+    key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1));
     key[4] = (uint8_t)order_state(r);
     memset(key + 5, 0, 10);
-    if (r[4] == SCHEMA)
+    if (r[4] >= 4)
         memcpy(key + 5, r + 46, 10);
     else
         key[5] = 1; /* Older snapshots start on journal page one. */
 }
 static bool valid(const uint8_t *r)
 {
-    if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || r[15] > 1 ||
+    if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || (r[4] < 5 ? r[15] > 1 : sound_mode(r) > 2) ||
         r[14] > (r[4] == 1 ? PW_CANTEEN : r[4] == 2 ? PW_CAMPUS : PW_GYM) ||
-        (r[15] && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
+        (sleeping(r) && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
         return false;
-    if (r[4] == SCHEMA)
+    if (r[4] >= 4)
     {
         if (!get32(r + 46) || r[54] > 7 || r[55] > 7 || order_code(r) > PW_DELIVERY_MS + 1)
             return false;
@@ -102,9 +108,9 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
 {
     return s->enabled && s->has_saved && snapshot_ready(w) &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
-           s->saved[14] == (uint8_t)w->scene && s->saved[15] == (w->phase == PW_SLEEP) &&
+           s->saved[14] == (uint8_t)w->scene && sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode &&
            order_state(s->saved) == w->order &&
-           (s->saved[4] == SCHEMA
+           (s->saved[4] >= 4
                 ? get32(s->saved + 46) == w->journal_page &&
                   get16(s->saved + 50) == w->journal_stamps &&
                   get16(s->saved + 52) == w->memory_wins &&
@@ -125,7 +131,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     r[4] = SCHEMA;
     r[6] = 64;
     put32(r + 8, seq);
-    r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = w->phase == PW_SLEEP;
+    r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = (uint8_t)((w->phase == PW_SLEEP ? 1 : 0) | (w->sound_mode << 1));
     put32(r + 16, (uint32_t)w->food_elapsed);
     put32(r + 20, (uint32_t)w->mood_elapsed);
     put32(r + 24, (uint32_t)w->rest_elapsed);
@@ -158,15 +164,16 @@ static void restore(const uint8_t *r, pet_world_t *w)
 {
     pw_init(w);
     w->food = r[12]; w->mood = r[13]; w->scene = (pw_scene_t)r[14];
-    w->phase = r[15] ? PW_SLEEP : PW_IDLE;
-    w->node = w->scene == PW_CAMPUS ? 0 : (r[15] ? 6 : 3);
+    w->sound_mode = (uint8_t)sound_mode(r);
+    w->phase = sleeping(r) ? PW_SLEEP : PW_IDLE;
+    w->node = w->scene == PW_CAMPUS ? 0 : (sleeping(r) ? 6 : 3);
     pw_point_t p = pw_node(w->scene, (unsigned)w->node);
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
     w->order = order_state(r);
     if (w->order == PW_ORDER_DELIVERING)
         w->order_due = order_code(r) - 1;
-    if (r[4] == SCHEMA)
+    if (r[4] >= 4)
     {
         for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
             w->cooldown[saved_actions[i]] = get16(r + 32 + 2 * i);
@@ -227,7 +234,7 @@ ps_result_t ps_save(pet_save_t *s, const pet_world_t *w)
     s->has_saved = probe.has_saved; s->sector = probe.sector; s->sequence = probe.sequence;
     memcpy(s->saved, probe.saved, 64);
     if (!capture(w, r, s->sequence + 1)) return PS_WAIT;
-    if (s->has_saved && !memcmp(r + 12, s->saved + 12, 44)) return PS_UNCHANGED;
+    if (s->has_saved && s->saved[4] == SCHEMA && !memcmp(r + 12, s->saved + 12, 44)) return PS_UNCHANGED;
     unsigned sector = s->sector < 0 ? 0U : 1U - (unsigned)s->sector;
     uint32_t address = sector * PS_SECTOR_SIZE, slot;
     for (slot = 0; slot < PS_SECTOR_SIZE; slot += 64)
