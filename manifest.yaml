@@ -124,6 +124,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "v0.13.1真机一般使用确认"
+    executed_at: null
+    student_action: "用户反馈：真机我看了可以，并授权完成现实钟/校时/昼夜睡眠。"
+    evidence_path: "evidence/pet/v0131_usage_20261108_user.txt"
+    agent_conclusion: "一般使用已获用户确认；没有逐项画面、帧率、PSRAM启动或0003读取证据，不扩大为TC-234/236全部通过。"
   # 每一个物理验证节点都要有对应记录，节点类型见配套文档《Agent协作开发与评审机制》第三节表格
   - item: "REQ-001 / TC-001：v0.1.1首次启动文字片段"
     required_action: "用户下载当前修改版并回传真实启动输出，核对版本与练习文字；具体复位方式未包含在首段原文中。"
