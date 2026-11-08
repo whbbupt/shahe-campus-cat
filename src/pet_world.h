@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "pet_memory.h"
+#include "pet_challenge.h"
 #include "pet_time.h"
 
 enum
@@ -53,7 +54,11 @@ typedef enum
     PW_SOUND_NEXT = 60,
     PW_MUSIC_TOGGLE,
     PW_VOLUME_DOWN,
-    PW_VOLUME_UP
+    PW_VOLUME_UP,
+    PW_MEAL_GAME = 70,
+    PW_RHYTHM_GAME,
+    PW_FIND_GAME,
+    PW_LIFE
 } pw_command_t;
 typedef enum
 {
@@ -114,6 +119,7 @@ typedef struct
     uint16_t journal_stamps, memory_wins;
     uint8_t journal_progress, journal_badges, sound_mode, volume;
     pm_game_t memory;
+    pg_game_t challenge;
     int message, gain, mood_gain;
     pt_clock_t clock;
     uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack */
@@ -132,6 +138,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v);
 bool pw_busy(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
+const char *pw_need_text(const pet_world_t *w);
+const char *pw_life_text(pw_scene_t scene);
 pw_result_t pw_walk_to(pet_world_t *w, float x, float y);
 bool pw_room_ground(pw_scene_t scene, float x, float y);
 void pw_camera(const pet_world_t *w, float *x, float *y);
@@ -144,4 +152,5 @@ unsigned pw_campus_door(pw_scene_t scene);
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
 uint32_t pw_duration(pw_command_t action);
 bool pw_selftest(void (*report)(const char *, bool));
+bool pw_life_selftest(void (*report)(const char *, bool));
 #endif

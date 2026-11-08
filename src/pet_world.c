@@ -168,13 +168,14 @@ static void settle(pet_world_t *w, pw_command_t a)
 {
     int old_food = w->food, old_mood = w->mood;
     int food=food_delta[a], mood=mood_delta[a];
+    if (a == PW_MEMORY && w->challenge.kind == PG_LIFE) mood = 2;
     if(a==PW_STUDY && w->activity_kind==1){food=-4;mood=5;}
     if(a==PW_EAT && w->activity_kind==2){food=10;mood=1;}
     if(w->action_tired && (a==PW_STUDY || a==PW_CODE || a==PW_WORKOUT))mood=mood>2?mood-2:0;
     w->food = clamp_value(old_food + food);
     w->mood = clamp_value(old_mood + mood);
     w->settlements[a]++;
-    if (a == PW_STUDY || a == PW_MEMORY) wish_done(w, PJ_STUDY);
+    if (a == PW_STUDY || (a == PW_MEMORY && w->challenge.kind == PG_NONE)) wish_done(w, PJ_STUDY);
     if (a == PW_EAT || a == PW_TAKEOUT) wish_done(w, PJ_EAT);
     if (a == PW_WORKOUT) wish_done(w, PJ_WORKOUT);
     if (a == PW_CODE) wish_done(w, PJ_CODE);
@@ -258,10 +259,17 @@ static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
         return PW_BUSY;
     if ((w->scene == PW_CAMPUS && a != PW_TOUCH) ||
         (a == PW_EAT && w->scene != PW_CANTEEN) ||
-        ((a == PW_STUDY || a == PW_MEMORY) && w->scene != PW_CLASSROOM) ||
+        (a == PW_STUDY && w->scene != PW_CLASSROOM) ||
         (a == PW_WORKOUT && w->scene != PW_GYM) ||
         ((a == PW_CODE || a == PW_REST || a == PW_ORDER || a == PW_TAKEOUT) && w->scene != PW_DORM))
         return PW_WRONG_ROOM;
+    if (a == PW_MEMORY)
+    {
+        pg_kind_t kind = w->challenge.kind;
+        pw_scene_t room = kind == PG_MEAL ? PW_CANTEEN : kind == PG_RHYTHM ? PW_GYM
+            : kind == PG_FIND ? PW_DORM : PW_CLASSROOM;
+        if (kind == PG_LIFE ? w->scene == PW_CAMPUS : w->scene != room) return PW_WRONG_ROOM;
+    }
     if (a == PW_ORDER && w->order != PW_ORDER_NONE)
         return PW_ORDER_ACTIVE;
     if (a == PW_TAKEOUT && w->order != PW_ORDER_READY)
@@ -288,7 +296,7 @@ static void begin(pet_world_t *w, pw_command_t a)
 {
     static const int messages[PW_ACTION_COUNT] = {
         MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT, MSG_MEMORY};
-    w->phase = a == PW_MEMORY ? PW_MINIGAME : PW_ACTION;
+    w->phase = a == PW_MEMORY && w->challenge.kind != PG_LIFE ? PW_MINIGAME : PW_ACTION;
     w->activity_kind = w->clock.valid && a==PW_STUDY && !pt_class_time(w->clock.utc) ? 1
         : w->clock.valid && a==PW_EAT && !pt_meal_time(w->clock.utc) ? 2 : 0;
     w->action_tired=w->clock.valid && pt_bedtime(w->clock.utc)==2;
@@ -300,7 +308,12 @@ static void begin(pet_world_t *w, pw_command_t a)
     w->action_end = w->now + durations[a];
     w->gain_until = 0;
     if (a == PW_MEMORY)
-        pm_start(&w->memory, (uint32_t)w->now ^ w->journal_page * 977U ^ w->memory_wins * 65537U);
+    {
+        uint32_t seed = (uint32_t)w->now ^ w->journal_page * 977U ^ w->memory_wins * 65537U;
+        if (w->challenge.kind == PG_LIFE) w->action_end = w->now + 4000;
+        else if (w->challenge.kind != PG_NONE) pg_start(&w->challenge, w->challenge.kind, seed);
+        else pm_start(&w->memory, seed);
+    }
     if (a != PW_REST && a != PW_WAKE && a != PW_WORKOUT && a != PW_TAKEOUT && a != PW_MEMORY)
         settle(w, a);
     say(w, messages[a]);
@@ -531,6 +544,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         w->point_goal = (pw_point_t){x, y};
         w->target = PW_NONE;
+        w->challenge.kind = PG_NONE;
         w->destination = -1;
         return move(w, ROOM_GOAL, 3) ? PW_OK : PW_INVALID;
     }
@@ -585,6 +599,25 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd >= PW_MEAL_GAME && cmd <= PW_LIFE)
+    {
+        if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        pg_kind_t kind = (pg_kind_t)(PG_MEAL + cmd - PW_MEAL_GAME);
+        pg_kind_t previous = w->challenge.kind;
+        w->challenge.kind = kind;
+        pw_result_t r = eligible(w, PW_MEMORY);
+        if (r != PW_OK) { w->challenge.kind = previous; return reject(w, r); }
+        w->memory.phase = PM_OFF;
+        w->challenge.phase = PG_OFF;
+        w->destination = -1;
+        w->target = PW_MEMORY;
+        static const pw_point_t corners[] = {{68, 412}, {300, 390}, {304, 390}, {0, 0}, {277, 389}};
+        int goal = 6;
+        if (kind == PG_LIFE) { w->point_goal = corners[w->scene]; goal = ROOM_GOAL; }
+        if (!move(w, goal, 1)) { w->challenge.kind = previous; w->target = PW_NONE; return reject(w, PW_INVALID); }
+        say(w, MSG_WALK);
+        return PW_OK;
+    }
     if (cmd == PW_VOLUME_DOWN || cmd == PW_VOLUME_UP)
     {
         if (cmd == PW_VOLUME_UP && w->volume < 10) w->volume++;
@@ -607,6 +640,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         if (w->phase != PW_MINIGAME)
             return PW_INVALID;
         w->memory.phase = PM_OFF;
+        w->challenge.phase = PG_OFF;
         idle(w);
         return PW_OK;
     }
@@ -614,6 +648,18 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
     {
         if (w->phase != PW_MINIGAME)
             return PW_INVALID;
+        if (w->challenge.kind != PG_NONE)
+        {
+            pg_phase_t before = w->challenge.phase;
+            pg_press(&w->challenge, (unsigned)(cmd - PW_MEMORY_0));
+            if (before == PG_INPUT && w->challenge.phase == PG_WON)
+            {
+                settle(w, PW_MEMORY);
+                if (w->memory_wins < UINT16_MAX) w->memory_wins++;
+                w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
+            }
+            return PW_OK;
+        }
         pm_phase_t before = w->memory.phase;
         pm_press(&w->memory, (unsigned)(cmd - PW_MEMORY_0));
         if (before == PM_INPUT && w->memory.phase == PM_WON)
@@ -638,8 +684,15 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         say(w, MSG_STAMP);
         return PW_OK;
     }
-    if (cmd == PW_MEMORY_START)
+    if (cmd == PW_MEMORY_START || cmd == PW_MEMORY)
+    {
+        if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        pg_kind_t previous = w->challenge.kind;
+        w->challenge.kind = PG_NONE;
+        pw_result_t r = eligible(w, PW_MEMORY);
+        if (r != PW_OK) { w->challenge.kind = previous; return reject(w, r); }
         cmd = PW_MEMORY;
+    }
     if (cmd == PW_EXIT || (cmd >= PW_ENTER_DORM && cmd <= PW_ENTER_GYM))
     {
         if (pw_busy(w))
@@ -652,6 +705,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         w->entry_node = cmd == PW_EXIT ? (int8_t)pw_campus_door(w->scene) : 0;
         w->destination = (int8_t)next;
         w->target = PW_NONE;
+        w->challenge.kind = PG_NONE;
         if (!move(w, goal, 2))
             return reject(w, PW_INVALID);
         say(w, MSG_TRAVEL);
@@ -675,6 +729,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         w->destination = (int8_t)next;
         w->target = PW_NONE;
+        w->challenge.kind = PG_NONE;
         if (!move(w, 0, 2))
             return reject(w, PW_INVALID);
         say(w, MSG_TRAVEL);
@@ -701,10 +756,12 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
     w->destination = -1;
     if (cmd == PW_TOUCH)
     {
+        w->challenge.kind = PG_NONE;
         w->route_len = w->route_at = 0;
         begin(w, cmd);
         return PW_OK;
     }
+    if (cmd != PW_MEMORY) w->challenge.kind = PG_NONE;
     w->target = cmd;
     if (!move(w, cmd == PW_CODE ? 7 : (cmd == PW_TAKEOUT ? 1 : 6), 1))
         return reject(w, PW_INVALID);
@@ -730,7 +787,7 @@ static void finish(pet_world_t *w)
         say(w, MSG_WAKE);
         return;
     }
-    if (a == PW_WORKOUT || a == PW_TAKEOUT)
+    if (a == PW_WORKOUT || a == PW_TAKEOUT || a == PW_MEMORY)
         settle(w, a);
     if (a == PW_TAKEOUT)
         w->order = PW_ORDER_NONE;
@@ -755,7 +812,7 @@ void pw_advance(pet_world_t *w, uint32_t ms)
                 until = 1;
         }
         else if (w->phase == PW_MINIGAME)
-            until = pm_remaining(&w->memory);
+            until = w->challenge.kind == PG_NONE ? pm_remaining(&w->memory) : pg_remaining(&w->challenge);
         else if (w->phase == PW_ACTION)
             until = w->action_end - w->now;
         else if (w->phase == PW_TRANSITION)
@@ -788,9 +845,23 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         }
         else if (w->phase == PW_MINIGAME)
         {
-            pm_advance(&w->memory, (uint32_t)dt);
-            if (w->memory.phase == PM_OFF)
-                idle(w);
+            if (w->challenge.kind == PG_NONE)
+            {
+                pm_advance(&w->memory, (uint32_t)dt);
+                if (w->memory.phase == PM_OFF) idle(w);
+            }
+            else
+            {
+                pg_phase_t before = w->challenge.phase;
+                pg_advance(&w->challenge, (uint32_t)dt);
+                if (before == PG_INPUT && w->challenge.phase == PG_WON)
+                {
+                    settle(w, PW_MEMORY);
+                    if (w->memory_wins < UINT16_MAX) w->memory_wins++;
+                    w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
+                }
+                if (w->challenge.phase == PG_OFF) idle(w);
+            }
         }
         else if (w->phase == PW_ACTION && w->now >= w->action_end)
             finish(w);
@@ -834,6 +905,11 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     v->scale = fmaxf(.91f, fminf(1.05f, .92f + (w->y - 240) / 1000));
     if (w->scene == PW_CAMPUS)
         v->scale = .78f;
+    if (w->phase == PW_ACTION && w->action == PW_MEMORY)
+    {
+        v->frame = (uint8_t)(w->facing * 2 + w->now / 500 % 2);
+        return;
+    }
     if (w->phase == PW_ACTION && w->action == PW_WORKOUT)
     {
         float enter = (float)(w->now - w->action_start) / 500.0f;
@@ -913,12 +989,14 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
 }
 const char *pw_state_text(const pet_world_t *w)
 {
+    if (w->phase == PW_ACTION && w->action == PW_MEMORY) return pw_life_text(w->scene);
     if(w->phase==PW_IDLE && w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc)==2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
     if(w->phase==PW_ACTION && w->action==PW_STUDY && w->activity_kind==1)return "安静自习中";
     if(w->phase==PW_ACTION && w->action==PW_EAT && w->activity_kind==2)return "吃份暖暖的简餐";
     if (w->phase == PW_MINIGAME)
-        return "记忆题中";
+        return w->challenge.kind == PG_MEAL ? "配餐中" : w->challenge.kind == PG_RHYTHM ? "跟着节拍动一动"
+            : w->challenge.kind == PG_FIND ? "找东西中" : "记忆题中";
     if (w->phase == PW_SLEEP)
         return "睡觉中";
     if (w->phase == PW_TRANSITION)
@@ -936,6 +1014,7 @@ const char *pw_message_text(const pet_world_t *w)
 {
     if (w->now >= w->message_until)
         return "";
+    if (w->action == PW_MEMORY && w->challenge.kind != PG_NONE) return pw_state_text(w);
     if(w->message==MSG_STUDY && w->activity_kind==1)return "安静自习中";
     if(w->message==MSG_EAT && w->activity_kind==2)return "吃份暖暖的简餐";
     static const char *texts[] = {"",
@@ -963,4 +1042,21 @@ const char *pw_message_text(const pet_world_t *w)
                                   "看一遍，再按顺序点",
                                   "收下一枚校园贴纸"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
+}
+const char *pw_life_text(pw_scene_t scene)
+{
+    static const char *names[] = {"照看盆栽", "整理书架", "餐后小歇", "", "放松伸展"};
+    return (unsigned)scene <= PW_GYM ? names[scene] : "";
+}
+const char *pw_need_text(const pet_world_t *w)
+{
+    if (w->phase == PW_SLEEP) return "正在休息，点床可以叫醒";
+    if (pw_busy(w)) return pw_state_text(w);
+    if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点座位吃饭" : "肚子饿啦，去食堂吃饭吧";
+    if (w->clock.valid && pt_bedtime(w->clock.utc))
+        return pt_bedtime(w->clock.utc) == 2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
+    if (w->order == PW_ORDER_READY) return "外卖到了，回宿舍取餐";
+    if (w->mood < 30) return "想和你贴贴，也想玩一会";
+    if (w->journal_progress == 7 && w->journal_page != UINT32_MAX) return "愿望完成啦，去手账领贴纸";
+    return "今天状态不错，随心逛逛";
 }

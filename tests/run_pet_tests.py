@@ -48,6 +48,8 @@ def run(command, **kwargs):
 def build(sources, name, includes=(), defines=(), dependencies=()):
     if any(x.name in ('pet_world.c','pet_ble_rt_test.c') for x in sources):
         sources=[*sources, root/'src/pet_time.c']
+    if any(x.name == 'pet_world.c' for x in sources):
+        sources=[*sources, root/'src/pet_challenge.c', root/'src/pet_challenge_selftest.c', root/'src/pet_life_selftest.c']
     if any(x.name=='pet_ble_rt_test.c' for x in sources):
         sources=[*sources,root/'src/pet_cts.c']
     if any(x.name=='pet_app.c' for x in sources):
@@ -86,6 +88,7 @@ def build(sources, name, includes=(), defines=(), dependencies=()):
 
 build([root/'src/pet_audio_rt.c', root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_rt_test.c'], 'pet-audio-driver-test', [root/'tests/audio_include'])
 print(run([out/('pet-audio-driver-test.exe' if os.name == 'nt' else 'pet-audio-driver-test'), 'thread-failure'], cwd=out))
+build([root/'src/pet_challenge.c', root/'src/pet_challenge_selftest.c', root/'tests/pet_challenge_test.c'], 'pet-challenge-test')
 build([root/'src/pet_time.c', root/'src/pet_time_rt.c', root/'tests/pet_time_rt_test.c'], 'pet-time-rtc-test', [root/'tests/save_include', root/'tests/time_include'])
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_time_test.c'], 'pet-time-test')
 build([root/'src/pet_time.c',root/'tests/pet_cts_test.c'], 'pet-cts-test', [root/'tests/ble_include'], dependencies=[root/'src/pet_cts.c'])

@@ -85,7 +85,7 @@ static void save_report(const char *name, bool ok)
 }
 rt_err_t pet_app_start(void)
 {
-    if (!pt_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
+    if (!pt_selftest(report) || !pg_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
     {
         rt_kprintf("[pet] selftest FAIL; UI not started\n");
         return -RT_ERROR;

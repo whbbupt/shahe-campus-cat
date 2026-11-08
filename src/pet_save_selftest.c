@@ -306,6 +306,45 @@ static bool journal_restore(void)
     CHECK(w.phase == PW_IDLE && w.cooldown[PW_MEMORY] == PW_MEMORY_COOLDOWN_MS);
     return true;
 }
+static bool challenges_restore(void)
+{
+    for (unsigned k = 0; k < 4; k++)
+    {
+        blank(); pet_save_t s, reader; pet_world_t w, restored;
+        pw_init(&w); w.scene = k == 0 ? PW_CANTEEN : k == 1 ? PW_GYM : PW_DORM;
+        pw_point_t p = pw_node(w.scene, 3); w.x = p.x; w.y = p.y;
+        CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+        CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_GAME + k)) == PW_OK);
+        CHECK(ps_save(&s, &w) == PS_WAIT && !ps_visible_saved(&s, &w));
+        for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 20);
+        CHECK(ps_save(&s, &w) == PS_WAIT);
+        CHECK(ps_open(&reader, io(), &restored) == PS_OK && restored.phase == PW_IDLE && restored.mood == 60);
+        if (k == 3) pw_advance(&w, 4000);
+        else if (k == 1)
+            for (unsigned i = 0; i < 6; i++)
+            {
+                pw_advance(&w, 1500); pw_request(&w, PW_MEMORY_0); pw_advance(&w, 1500);
+            }
+        else
+        {
+            if (k == 2) pw_advance(&w, 5000);
+            for (unsigned i = 0; i < 3; i++)
+            {
+                unsigned pick = w.challenge.targets[i];
+                if (k == 2) for (unsigned j = 0; j < 4; j++)
+                    if (w.challenge.cards[j] == w.challenge.targets[i]) pick = j;
+                pw_request(&w, (pw_command_t)(PW_MEMORY_0 + pick));
+            }
+        }
+        if (k != 3) CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK);
+        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 7);
+        CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.mood == (k == 3 ? 62 : 63));
+        CHECK(restored.memory_wins == (k == 3 ? 0 : 1) && restored.challenge.kind == PG_NONE && restored.phase == PW_IDLE);
+        CHECK(restored.cooldown[PW_MEMORY] > 0 && pw_request(&restored, PW_LIFE) == PW_COOLDOWN);
+        CHECK(ps_visible_saved(&s, &restored));
+    }
+    return true;
+}
 bool ps_selftest(void (*report)(const char *, bool))
 {
     static const struct { const char *name; bool (*run)(void);
@@ -318,7 +357,8 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"takeout-resume-and-atomic-pickup", takeout_resume},
         {"takeout-autosave-phase-key", takeout_autosave},
         {"journal-atomic-stamp-and-game-restore", journal_restore},
-        {"sound-mode-autosave-and-reboot", sound_restore}};
+        {"sound-mode-autosave-and-reboot", sound_restore},
+        {"challenge-life-no-half-replay-and-shared-cooldown", challenges_restore}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {

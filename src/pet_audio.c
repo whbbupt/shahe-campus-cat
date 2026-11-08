@@ -14,6 +14,9 @@ void pa_observer_init(pa_observer_t *s, const pet_world_t *w)
     s->phase = w->phase;
     s->order = w->order;
     s->game_phase = w->memory.phase;
+    s->challenge_phase = w->challenge.phase;
+    s->challenge_score = w->challenge.score;
+    s->challenge_round = w->challenge.round;
     s->show_step = show_step(w);
 }
 pa_cue_t pa_observe(pa_observer_t *s, const pet_world_t *w)
@@ -33,7 +36,15 @@ pa_cue_t pa_observe(pa_observer_t *s, const pet_world_t *w)
         cue = (pa_cue_t)(PA_NOTE0 + w->memory.sequence[w->memory.elapsed / 750]);
     if (w->phase == PW_MINIGAME && w->memory.phase == PM_LOST &&
         s->game_phase != PM_LOST) cue = PA_RETRY;
-    if (w->settlements[PW_MEMORY] != s->settlements[PW_MEMORY]) cue = PA_WIN;
+    if (w->phase == PW_MINIGAME && w->challenge.kind != PG_NONE)
+    {
+        if (w->challenge.kind == PG_RHYTHM && w->challenge.phase == PG_INPUT &&
+            (s->phase != PW_MINIGAME || s->challenge_round != w->challenge.round)) cue = PA_NOTE1;
+        if (w->challenge.score != s->challenge_score) cue = PA_NOTE0;
+        if (w->challenge.phase == PG_LOST && s->challenge_phase != PG_LOST) cue = PA_RETRY;
+    }
+    if (w->settlements[PW_MEMORY] != s->settlements[PW_MEMORY])
+        cue = w->challenge.kind == PG_LIFE ? PA_DONE : PA_WIN;
     pa_observer_init(s, w);
     return cue;
 }

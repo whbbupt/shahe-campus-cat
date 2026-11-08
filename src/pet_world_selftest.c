@@ -707,5 +707,6 @@ bool pw_selftest(void (*report)(const char *, bool))
         all = all && ok;
     }
     bool campus = pw_campus_selftest(report);
-    return all && campus;
+    bool life = pw_life_selftest(report);
+    return all && campus && life;
 }
