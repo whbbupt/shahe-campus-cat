@@ -128,11 +128,16 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "v0.14.1真实CTS失败后串口查询"
+    executed_at: null
+    student_action: "用户发送pet_ble_status并提供12:33:43原始分行日志；确认iPhone没有弹出配对提示。"
+    evidence_path: "evidence/pet/cts_status_v0141_20261108_user_raw.txt"
+    agent_conclusion: "版本0.14.1、connected/result0/fault0、callbacks43/power1/handled8/loops3387、CTS unavailable；查询不含失败reason。0x004B按本机SDK为数据长度更新，不能定位失败阶段；待一次带连接过程日志的重连。"
   - item: "CTS自动校时未完成的用户实物反馈"
     executed_at: null
     student_action: "用户：我连上了，然后等待自动校时之后显示自动校时未完成。"
     evidence_path: "evidence/pet/cts_auto_failure_20261108_user.txt"
-    agent_conclusion: "连接及提示已有用户观察，自动校时成功判据未满足；CTS阶段/原因、配对提示与RTC日志尚未取得，根因待定位，不假定手机不支持或板卡故障。"
+    agent_conclusion: "连接及提示已有用户观察，自动校时成功判据未满足；用户确认无配对提示，CTS具体退出原因与RTC日志尚未取得，根因待定位，不假定手机不支持或板卡故障。"
   - item: "v0.13.1真机一般使用确认"
     executed_at: null
     student_action: "用户反馈：真机我看了可以，并授权完成现实钟/校时/昼夜睡眠。"
@@ -1097,7 +1102,7 @@ test_results:
   - test_id: TC-240
     description: iPhone自动校时实机
     expected: 按docs/03的TC-240验证
-    actual: 用户确认连接后从等待自动校时变成未完成，自动成功判据未满足；根因及原始CTS/TIME日志待补
+    actual: 用户确认连接后从等待自动校时变成未完成，自动成功判据未满足；已得真实查询0.14.1/connected/fault0/CTS unavailable，用户无配对提示；具体reason待连接过程日志
     status: failed_physical_user_confirmation_pending_diagnostics
     pass: false
     evidence_path: evidence/pet/cts_auto_failure_20261108_user.txt

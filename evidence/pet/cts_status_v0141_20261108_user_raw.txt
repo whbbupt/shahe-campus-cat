@@ -1,0 +1,30 @@
+TX
+pet_ble_status
+12:33:43
+RX
+[pet:BLE:STATUS] query version=0
+12:33:43
+RX
+.14.1 tick=344476 stage=connecte
+12:33:43
+RX
+d result=0
+[pet:BLE:STATUS] cal
+12:33:43
+RX
+lbacks=43 power=1 queued=8 handl
+12:33:43
+RX
+ed=8 loops=3387
+[pet:BLE:STATUS
+12:33:43
+RX
+] last_cb=0x004B last_handled=0x
+12:33:43
+RX
+F101 recv=-2 adv_events=2 adv_result=0 fault=0
+[pet:CTS] query 
+12:33:43
+RX
+stage=unavailable
+msh />msh />
