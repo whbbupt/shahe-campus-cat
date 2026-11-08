@@ -78,9 +78,9 @@ static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
 }
 static const uint32_t durations[PW_ACTION_COUNT] = {0, 4000, 1500, 600, 8000, 10000, 500, 8000, 3200, 0};
 static const uint32_t cooldowns[PW_ACTION_COUNT] = {
-    0, 2000, 3000, 0, 8000, 10000, 0, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
+    0, 2000, PW_TOUCH_COOLDOWN_MS, 0, 8000, 10000, 0, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
 static const int food_delta[PW_ACTION_COUNT] = {0, 20, 0, 0, -7, -4, 0, -6, 12, 0};
-static const int mood_delta[PW_ACTION_COUNT] = {0, 0, 8, 0, 7, 5, 0, 12, 0, 3};
+static const int mood_delta[PW_ACTION_COUNT] = {0, 0, 3, 0, 4, 3, 0, 6, 0, 3};
 static const pw_point_t supports[3][2] = {{{94, 154}, {104, 263}}, {{88, 294}, {0, 0}}, {{89, 298}, {0, 0}}};
 enum
 {
@@ -116,7 +116,8 @@ enum
     MSG_CHECKIN_DONE,
     MSG_CHECKIN_TIME,
     MSG_CHECKIN_FUTURE,
-    MSG_CHECKIN_FULL
+    MSG_CHECKIN_FULL,
+    MSG_CURFEW
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -136,7 +137,11 @@ uint32_t pw_duration(pw_command_t a)
 }
 bool pw_busy(const pet_world_t *w)
 {
-    return w->phase == PW_ACTION || w->phase == PW_SLEEP || w->phase == PW_TRANSITION || w->phase == PW_MINIGAME;
+    return w->phase == PW_ACTION || w->phase == PW_SLEEP || w->phase == PW_TRANSITION || w->phase == PW_MINIGAME || w->phase == PW_SEATED;
+}
+bool pw_curfew(const pet_world_t *w)
+{
+    return w->clock.valid && w->clock.trusted && pt_bedtime(w->clock.utc) == 2;
 }
 static void say(pet_world_t *w, int msg)
 {
@@ -178,8 +183,12 @@ static void settle(pet_world_t *w, pw_command_t a)
     int old_food = w->food, old_mood = w->mood;
     int food=food_delta[a], mood=mood_delta[a];
     if (a == PW_MEMORY && w->challenge.kind == PG_LIFE) mood = 2;
-    if(a==PW_STUDY && w->activity_kind==1){food=-4;mood=5;}
+    if(a==PW_STUDY && w->activity_kind==1){food=-4;mood=3;}
     if(a==PW_EAT && w->activity_kind==2){food=10;mood=1;}
+    if (a == PW_EAT && w->selected_meal)
+    { const pe_food_t *dish = pe_menu(false, w->meal_choice); food = dish->food; mood = dish->mood; }
+    if (a == PW_TAKEOUT)
+    { const pe_food_t *dish = pe_order(w->order_choice); food = dish->food; mood = dish->mood; }
     if(w->action_tired && (a==PW_STUDY || a==PW_CODE || a==PW_WORKOUT))mood=mood>2?mood-2:0;
     w->food = clamp_value(old_food + food);
     w->mood = clamp_value(old_mood + mood);
@@ -302,33 +311,34 @@ static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
         return PW_NO_ORDER;
     if (w->cooldown[a == PW_ORDER ? PW_TAKEOUT : a] > w->now)
         return PW_COOLDOWN;
-    if (((a == PW_EAT || a == PW_TAKEOUT) && w->food == 100) ||
+    if (((a == PW_EAT || a == PW_TAKEOUT || a == PW_ORDER) && w->food == 100) ||
         (a == PW_TOUCH && w->mood == 100))
         return PW_FULL;
     if (((a == PW_STUDY || a == PW_WORKOUT) && w->food < 10) ||
         (a == PW_CODE && w->food < 8))
         return PW_LOW_FOOD;
-    if ((a == PW_EAT && w->wallet.coins < pe_price(PE_MEAL)) ||
-        (a == PW_ORDER && w->wallet.coins < pe_price(PE_DELIVERY))) return PW_NO_COINS;
+    if ((a == PW_EAT && w->wallet.coins < (w->selected_meal ? pe_menu(false, w->meal_choice)->price : pe_price(PE_MEAL))) ||
+        (a == PW_ORDER && w->wallet.coins < pe_order(w->order_choice)->price)) return PW_NO_COINS;
     return PW_OK;
 }
 static pw_result_t reject(pet_world_t *w, pw_result_t r)
 {
     static const int msgs[] = {MSG_NONE, MSG_BUSY, MSG_ASLEEP, MSG_COOLDOWN, MSG_FULL, MSG_LOW,
-                               MSG_INVALID, MSG_INVALID, MSG_ORDER_ACTIVE, MSG_NO_ORDER, MSG_POOR};
+                               MSG_INVALID, MSG_INVALID, MSG_ORDER_ACTIVE, MSG_NO_ORDER, MSG_POOR, MSG_CURFEW};
+    if (r == PW_CURFEW) w->curfew_events++;
     w->gain_until = 0;
     say(w, msgs[r]);
     return r;
 }
 static void begin(pet_world_t *w, pw_command_t a)
 {
-    if (a == PW_EAT && !pe_pay(&w->wallet, pe_price(PE_MEAL)))
+    if (a == PW_EAT && !pe_pay(&w->wallet, w->selected_meal ? pe_menu(false, w->meal_choice)->price : pe_price(PE_MEAL)))
     { w->target = PW_NONE; idle(w); reject(w, PW_NO_COINS); return; }
     static const int messages[PW_ACTION_COUNT] = {
         MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT, MSG_MEMORY};
     w->phase = a == PW_MEMORY && w->challenge.kind != PG_LIFE ? PW_MINIGAME : PW_ACTION;
     w->activity_kind = w->clock.valid && a==PW_STUDY && !pt_class_time(w->clock.utc) ? 1
-        : w->clock.valid && a==PW_EAT && !pt_meal_time(w->clock.utc) ? 2 : 0;
+        : w->clock.valid && a==PW_EAT && !w->selected_meal && !pt_meal_time(w->clock.utc) ? 2 : 0;
     w->action_tired=w->clock.valid && pt_bedtime(w->clock.utc)==2;
     w->action = a;
     w->target = PW_NONE;
@@ -466,7 +476,12 @@ static void arrived(pet_world_t *w)
         wish_done(w, PJ_EXPLORE);
     w->purpose = 0;
     w->edge_a = w->edge_b = -1;
-    if (purpose == 1)
+    if (purpose == 4)
+    {
+        w->phase = PW_SEATED; w->action = PW_EAT; w->target = PW_NONE;
+        w->action_start = w->now; w->gain_until = 0;
+    }
+    else if (purpose == 1)
     {
         pw_command_t a = w->target;
         w->phase = PW_IDLE;
@@ -482,6 +497,8 @@ static void arrived(pet_world_t *w)
     }
     else if (purpose == 2)
     {
+        if (w->scene == PW_DORM && w->destination != PW_DORM && pw_curfew(w))
+        { w->destination = -1; w->target = PW_NONE; idle(w); reject(w, PW_CURFEW); return; }
         w->phase = PW_TRANSITION;
         w->transition_start = w->now;
         w->swapped = false;
@@ -642,7 +659,7 @@ pw_checkin_t pw_checkin_status(const pet_world_t *w)
     if (w->wallet.coins == PE_MAX_COINS) return PW_CHECKIN_FULL;
     return PW_CHECKIN_READY;
 }
-pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
+static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
 {
     if (cmd == PW_DAILY_CHECKIN)
     {
@@ -677,6 +694,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         }
         else
         {
+            if (w->scene != PW_DORM) return reject(w, PW_WRONG_ROOM);
             pe_result_t result = pe_furniture(&w->wallet, (pe_item_t)(PE_PLANT + cmd - PW_BUY_PLANT));
             if (result == PE_POOR) return reject(w, PW_NO_COINS);
             if (result == PE_INVALID) return reject(w, PW_INVALID);
@@ -766,6 +784,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if ((cmd == PW_EXIT) == (w->scene == PW_CAMPUS))
             return PW_WRONG_ROOM;
+        if (w->scene == PW_DORM && cmd == PW_EXIT && pw_curfew(w)) return reject(w, PW_CURFEW);
         pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
                           : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
         int goal = cmd == PW_EXIT ? 0 : (int)pw_campus_door(next);
@@ -794,6 +813,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         }
         if (pw_busy(w))
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (w->scene == PW_DORM && pw_curfew(w)) return reject(w, PW_CURFEW);
         w->destination = (int8_t)next;
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;
@@ -812,7 +832,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         return reject(w, r);
     if (cmd == PW_ORDER)
     {
-        if (!pe_pay(&w->wallet, pe_price(PE_DELIVERY))) return reject(w, PW_NO_COINS);
+        if (!pe_pay(&w->wallet, pe_order(w->order_choice)->price)) return reject(w, PW_NO_COINS);
         w->order = PW_ORDER_DELIVERING;
         w->order_due = w->now + PW_DELIVERY_MS;
         w->gain_until = 0;
@@ -836,6 +856,55 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
     say(w, MSG_WALK);
     return PW_OK;
 }
+pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
+{
+    if (cmd == PW_MEAL_LEAVE)
+    {
+        if (w->phase != PW_SEATED) return reject(w, PW_INVALID);
+        idle(w); return PW_OK;
+    }
+    if (cmd == PW_SIT_MEAL)
+    {
+        if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (w->scene != PW_CANTEEN) return reject(w, PW_WRONG_ROOM);
+        w->target = PW_NONE; w->destination = -1; w->selected_meal = false;
+        if (!move(w, 6, 4)) return reject(w, PW_INVALID);
+        return PW_OK;
+    }
+    if ((cmd >= PW_MEAL_FIRST && cmd <= PW_MEAL_LAST) || cmd == PW_EAT)
+    {
+        uint8_t old = w->meal_choice; bool selected = w->selected_meal;
+        if (w->phase == PW_SEATED)
+        {
+            if (w->now - w->action_start < 500) return reject(w, PW_BUSY);
+            w->phase = PW_IDLE;
+            w->selected_meal = cmd != PW_EAT;
+            w->meal_choice = cmd == PW_EAT ? 0 : (uint8_t)(cmd - PW_MEAL_FIRST);
+            pw_result_t result = eligible(w, PW_EAT);
+            if (result == PW_OK)
+            { begin(w, PW_EAT); w->action_start = w->now - 500; w->action_end = w->action_start + durations[PW_EAT]; }
+            else
+            { w->phase = PW_SEATED; w->meal_choice = old; w->selected_meal = selected; reject(w, result); }
+            return result;
+        }
+        /* Never change a meal already being consumed. */
+        if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        w->selected_meal = cmd != PW_EAT;
+        w->meal_choice = cmd == PW_EAT ? 0 : (uint8_t)(cmd - PW_MEAL_FIRST);
+        pw_result_t result = request_base(w, PW_EAT);
+        if (result != PW_OK) { w->meal_choice = old; w->selected_meal = selected; }
+        return result;
+    }
+    if ((cmd >= PW_DELIVERY_FIRST && cmd <= PW_DELIVERY_LAST) || cmd == PW_ORDER)
+    {
+        uint8_t old = w->order_choice;
+        w->order_choice = cmd == PW_ORDER ? 0 : (uint8_t)(cmd - PW_DELIVERY_FIRST + 1);
+        pw_result_t result = request_base(w, PW_ORDER);
+        if (result != PW_OK) w->order_choice = old;
+        return result;
+    }
+    return request_base(w, cmd);
+}
 static void finish(pet_world_t *w)
 {
     pw_command_t a = w->action;
@@ -858,7 +927,7 @@ static void finish(pet_world_t *w)
     if (a == PW_WORKOUT || a == PW_TAKEOUT || a == PW_MEMORY)
         settle(w, a);
     if (a == PW_TAKEOUT)
-        w->order = PW_ORDER_NONE;
+    { w->order = PW_ORDER_NONE; w->order_choice = 0; }
     w->cooldown[a] = w->now + cooldowns[a];
     idle(w);
     say(w, MSG_DONE);
@@ -933,6 +1002,8 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         {
             if (!w->swapped && w->now >= w->transition_start + 200)
             {
+                if (w->scene == PW_DORM && w->destination != PW_DORM && pw_curfew(w))
+                { w->destination = -1; idle(w); reject(w, PW_CURFEW); continue; }
                 w->scene = (pw_scene_t)w->destination;
                 w->node = w->scene == PW_CAMPUS ? w->entry_node : 0;
                 w->x = point(w, w->node).x;
@@ -990,7 +1061,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
         v->frame = (uint8_t)(16 + w->now / 210 % 2);
         return;
     }
-    bool furniture = w->phase == PW_SLEEP || (w->phase == PW_ACTION && w->action != PW_TOUCH);
+    bool furniture = w->phase == PW_SLEEP || w->phase == PW_SEATED || (w->phase == PW_ACTION && w->action != PW_TOUCH);
     bool settled = false;
     if (furniture)
     {
@@ -1000,7 +1071,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
         int mode = 0;
         uint64_t elapsed = w->now - w->action_start;
         uint32_t enter = bed ? 600 : 500;
-        if (w->phase == PW_ACTION)
+        if (w->phase == PW_ACTION || w->phase == PW_SEATED)
         {
             if (w->action == PW_WAKE)
             {
@@ -1012,7 +1083,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
                 mode = 1;
                 progress = (float)elapsed / enter;
             }
-            else if (w->action != PW_REST && elapsed > durations[w->action] - 500)
+            else if (w->phase == PW_ACTION && w->action != PW_REST && elapsed > durations[w->action] - 500)
             {
                 mode = 2;
                 progress = (float)(elapsed - durations[w->action] + 500) / 500;
@@ -1053,6 +1124,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
 }
 const char *pw_state_text(const pet_world_t *w)
 {
+    if (w->phase == PW_SEATED) return "坐好啦，选一份饭吧";
     if (w->phase == PW_ACTION && w->action == PW_MEMORY) return pw_life_text(w->scene);
     if(w->phase==PW_IDLE && w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc)==2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
@@ -1113,7 +1185,8 @@ const char *pw_message_text(const pet_world_t *w)
                                   "今天已经领过饭钱啦",
                                   "先连接手机校准时间",
                                   "签到日期在未来，请校准时间",
-                                  "金币已满，消费后再领"};
+                                  "金币已满，消费后再领",
+                                  "宵禁中，早上6点再出门"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }
 const char *pw_life_text(pw_scene_t scene)
@@ -1126,7 +1199,7 @@ const char *pw_need_text(const pet_world_t *w)
     if (w->phase == PW_SLEEP) return "正在休息，点床可以叫醒";
     if (pw_busy(w)) return pw_state_text(w);
     if (w->food < 20 && w->wallet.coins < pe_price(PE_MEAL)) return "先玩小游戏赚生活费，再买饭";
-    if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点座位吃饭" : "肚子饿啦，去食堂吃饭吧";
+    if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点窗口选餐" : "肚子饿啦，去食堂吃饭吧";
     if (w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc) == 2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
     if (w->order == PW_ORDER_READY) return "外卖到了，回宿舍取餐";

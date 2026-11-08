@@ -64,7 +64,13 @@ typedef enum
     PW_BUY_PLANT,
     PW_BUY_PICTURE,
     PW_BUY_SHELF,
-    PW_DAILY_CHECKIN
+    PW_DAILY_CHECKIN,
+    PW_MEAL_FIRST = 110,
+    PW_MEAL_LAST = PW_MEAL_FIRST + PE_MENU_COUNT - 1,
+    PW_DELIVERY_FIRST = 120,
+    PW_DELIVERY_LAST = PW_DELIVERY_FIRST + PE_MENU_COUNT - 1,
+    PW_SIT_MEAL = 130,
+    PW_MEAL_LEAVE
 } pw_command_t;
 typedef enum
 {
@@ -73,7 +79,8 @@ typedef enum
     PW_ACTION,
     PW_SLEEP,
     PW_TRANSITION,
-    PW_MINIGAME
+    PW_MINIGAME,
+    PW_SEATED
 } pw_phase_t;
 typedef enum
 {
@@ -87,7 +94,8 @@ typedef enum
     PW_WRONG_ROOM,
     PW_ORDER_ACTIVE,
     PW_NO_ORDER,
-    PW_NO_COINS
+    PW_NO_COINS,
+    PW_CURFEW
 } pw_result_t;
 typedef enum
 {
@@ -95,7 +103,7 @@ typedef enum
     PW_ORDER_DELIVERING,
     PW_ORDER_READY
 } pw_order_t;
-enum { PW_DELIVERY_MS = 30000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000, PW_MEMORY_COOLDOWN_MS = 60000 };
+enum { PW_DELIVERY_MS = 30000, PW_TOUCH_COOLDOWN_MS = 10000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000, PW_MEMORY_COOLDOWN_MS = 60000 };
 enum { PW_CHECKIN_COINS = 6, PW_CHECKIN_MIN_DAY = 19723, PW_CHECKIN_MAX_DAY = 24836 };
 typedef enum { PW_CHECKIN_WAIT_TIME, PW_CHECKIN_READY, PW_CHECKIN_DONE, PW_CHECKIN_FUTURE, PW_CHECKIN_FULL } pw_checkin_t;
 
@@ -138,6 +146,9 @@ typedef struct
     int coin_gain;
     uint64_t coin_until;
     uint32_t snacks;
+    uint8_t meal_choice, order_choice;
+    bool selected_meal;
+    uint32_t curfew_events;
 } pet_world_t;
 typedef struct
 {
@@ -150,6 +161,7 @@ void pw_advance(pet_world_t *w, uint32_t ms);
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd);
 void pw_visual(const pet_world_t *w, pw_visual_t *v);
 bool pw_busy(const pet_world_t *w);
+bool pw_curfew(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
 const char *pw_need_text(const pet_world_t *w);

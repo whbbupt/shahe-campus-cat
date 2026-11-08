@@ -34,9 +34,10 @@ static uint32_t sync_clock(void)
     rt_tick_t now = rt_tick_get();
     uint32_t ms = pet_clock_elapsed(previous_tick, now, RT_TICK_PER_SECOND, &fraction);
     previous_tick = now;
-    pw_advance(&world, ms);
     pet_time_poll(ms);
     world.clock=pet_time_snapshot();
+    /* Door checks must see this poll's RTC, including a 23:00 boundary. */
+    pw_advance(&world, ms);
     pet_audio_sync(&world);
     return ms;
 }

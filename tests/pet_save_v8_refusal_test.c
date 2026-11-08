@@ -8,7 +8,7 @@ static bool wr(void *c,uint32_t o,const uint8_t *p,size_t n){(void)c;(void)o;(vo
 static bool er(void *c,uint32_t o,size_t n){(void)c;(void)o;(void)n;writes++;return true;}
 int main(void)
 {
-    FILE *f=fopen("campus-v9-nor.bin","rb");assert(f&&fread(bytes,sizeof(bytes),1,f)==1);fclose(f);
+    FILE *f=fopen("campus-v10-nor.bin","rb");assert(f&&fread(bytes,sizeof(bytes),1,f)==1);fclose(f);
     pet_world_t w;pw_init(&w);pet_save_t s;ps_io_t io={NULL,rd,wr,er};
     assert(ps_open(&s,io,&w)==PS_VERSION&&!s.enabled&&writes==0);
     assert(ps_save(&s,&w)==PS_IO_ERROR&&writes==0);

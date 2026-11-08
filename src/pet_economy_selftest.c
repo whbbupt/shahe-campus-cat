@@ -17,7 +17,12 @@ bool pe_selftest(void (*report)(const char *, bool))
 }
 
 #include "pet_world.h"
+#if defined(_MSC_VER)
+#include <stdio.h>
+#define CHECK(c) do { if (!(c)) { fprintf(stderr,"economy selftest line %d: %s\n",__LINE__,#c); return false; } } while (0)
+#else
 #define CHECK(c) do { if (!(c)) return false; } while (0)
+#endif
 static void room(pet_world_t *w, pw_scene_t scene)
 {
     pw_init(w); w->scene = scene;
@@ -88,7 +93,7 @@ static bool purchases(void)
     CHECK(pw_request(&w, PW_EAT) == PW_OK);
     w.wallet.coins = 0;
     CHECK(arrival(&w) && w.phase == PW_IDLE && !w.settlements[PW_EAT]);
-    w.wallet.coins = 1000;
+    room(&w, PW_DORM); w.wallet.coins = 1000;
     for (pw_command_t cmd = PW_BUY_PLANT; cmd <= PW_BUY_SHELF; cmd++) CHECK(pw_request(&w, cmd) == PW_OK);
     CHECK(w.wallet.coins == 820 && w.wallet.owned == 7 && w.wallet.equipped == 7);
     for (pw_command_t cmd = PW_BUY_PLANT; cmd <= PW_BUY_SHELF; cmd++)
@@ -139,15 +144,92 @@ static bool daily_checkin(void)
     CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.checkin_day == PW_CHECKIN_MAX_DAY);
     return true;
 }
+static bool scene_meals_and_balance(void)
+{
+    CHECK(!pe_menu(false, PE_MENU_COUNT) && !pe_order(PE_MENU_COUNT + 1));
+    for (unsigned i = 0; i < PE_MENU_COUNT; i++)
+    {
+        pet_world_t w; room(&w, PW_CANTEEN); w.food=50; w.mood=50; w.wallet.coins=100;
+        CHECK(pw_request(&w, PW_SIT_MEAL)==PW_OK && arrival(&w));
+        CHECK(w.phase==PW_SEATED && w.wallet.coins==100 && w.food==50 && !w.settlements[PW_EAT]);
+        CHECK(pw_request(&w, PW_MEAL_LEAVE)==PW_OK && w.phase==PW_IDLE && w.wallet.coins==100);
+        CHECK(pw_request(&w, PW_SIT_MEAL)==PW_OK && arrival(&w));
+        const pe_food_t *dish=pe_menu(false,i);
+        CHECK(pw_request(&w,(pw_command_t)(PW_MEAL_FIRST+i))==PW_BUSY && w.wallet.coins==100);
+        pw_advance(&w,500);
+        CHECK(pw_request(&w,(pw_command_t)(PW_MEAL_FIRST+i))==PW_OK);
+        CHECK(w.wallet.coins==100-dish->price && w.food==50+dish->food && w.mood==50+dish->mood);
+        CHECK(w.action_end-w.action_start==pw_duration(PW_EAT));
+        CHECK(pw_request(&w,(pw_command_t)(PW_MEAL_FIRST+(i+1)%PE_MENU_COUNT))==PW_BUSY);
+        for(unsigned frame=0;frame<72;frame++)
+        {
+            pw_visual_t v;pw_visual(&w,&v);
+            CHECK(v.x>=0 && v.x<390 && v.y>=0 && v.y<450 && v.lift>=-0.01f && v.lift<=17.01f);
+            pw_advance(&w,50);
+        }
+        room(&w,PW_DORM);w.food=50;w.mood=50;w.wallet.coins=100;dish=pe_menu(true,i);
+        CHECK(pw_request(&w,(pw_command_t)(PW_DELIVERY_FIRST+i))==PW_OK && w.order_choice==i+1 && w.wallet.coins==100-dish->price);
+        CHECK(pw_request(&w,(pw_command_t)(PW_DELIVERY_FIRST+(i+1)%PE_MENU_COUNT))==PW_ORDER_ACTIVE && w.order_choice==i+1);
+        pw_advance(&w,PW_DELIVERY_MS);
+        CHECK(pw_request(&w,PW_TAKEOUT)==PW_OK && arrival(&w));pw_advance(&w,3200);
+        CHECK(w.food==50+dish->food && w.mood==50+dish->mood && w.wallet.coins==100-dish->price && !w.order_choice);
+    }
+    pet_world_t w;room(&w,PW_DORM);w.food=100;
+    CHECK(pw_request(&w,PW_DELIVERY_FIRST)==PW_FULL && w.wallet.coins==30 && !w.order_choice);
+    w.food=70;w.wallet.coins=0;CHECK(pw_request(&w,PW_DELIVERY_FIRST)==PW_NO_COINS && !w.order_choice);
+    room(&w,PW_DORM);CHECK(pw_request(&w,PW_TOUCH)==PW_OK && w.mood==63 && w.mood_gain==3);
+    CHECK(pw_request(&w,PW_TOUCH)==PW_BUSY && w.mood==63);
+    pw_advance(&w,1500 + PW_TOUCH_COOLDOWN_MS - 1);
+    CHECK(pw_request(&w,PW_TOUCH)==PW_COOLDOWN && w.mood==63);
+    pw_advance(&w,1);CHECK(pw_request(&w,PW_TOUCH)==PW_OK && w.mood==66);
+    room(&w,PW_DORM);w.mood=99;CHECK(pw_request(&w,PW_TOUCH)==PW_OK && w.mood==100 && w.mood_gain==1);
+    return true;
+}
+static void clock_at(pet_world_t *w,unsigned hour,unsigned minute,unsigned second)
+{
+    pt_date_t d={2026,11,9,hour,minute,second};pt_encode(&d,&w->clock.utc);w->clock.valid=w->clock.trusted=true;
+}
+static bool curfew_guards(void)
+{
+    const unsigned times[][4]={{22,59,59,0},{23,0,0,1},{5,59,59,1},{6,0,0,0}};
+    for(unsigned i=0;i<4;i++)
+    {
+        pet_world_t w;room(&w,PW_DORM);clock_at(&w,times[i][0],times[i][1],times[i][2]);
+        CHECK(pw_curfew(&w)==(times[i][3]!=0));
+        CHECK(pw_request(&w,PW_EXIT)==(times[i][3]?PW_CURFEW:PW_OK));
+        if(times[i][3])CHECK(w.scene==PW_DORM && w.phase==PW_IDLE && w.curfew_events==1);
+    }
+    pet_world_t w;room(&w,PW_DORM);clock_at(&w,23,0,0);
+    CHECK(pw_request(&w,PW_GO_CLASSROOM)==PW_CURFEW && pw_request(&w,PW_GO_CANTEEN)==PW_CURFEW);
+    CHECK(pw_request(&w,PW_TOUCH)==PW_OK);pw_advance(&w,2000);
+    CHECK(pw_request(&w,PW_REST)==PW_OK && arrival(&w));pw_advance(&w,600);
+    CHECK(w.phase==PW_SLEEP && pw_request(&w,PW_REST)==PW_OK);pw_advance(&w,600);CHECK(w.phase==PW_IDLE);
+    CHECK(pw_request(&w,PW_DELIVERY_FIRST)==PW_OK);
+    room(&w,PW_DORM);clock_at(&w,23,0,0);w.clock.trusted=false;CHECK(pw_request(&w,PW_EXIT)==PW_OK);
+    room(&w,PW_DORM);clock_at(&w,22,59,59);CHECK(pw_request(&w,PW_EXIT)==PW_OK);clock_at(&w,23,0,0);pw_advance(&w,12000);
+    CHECK(w.scene==PW_DORM && w.phase==PW_IDLE && w.curfew_events==1 && w.destination==-1);
+    room(&w,PW_DORM);clock_at(&w,22,0,0);CHECK(pw_request(&w,PW_EXIT)==PW_OK);
+    for(unsigned i=0;i<1000 && w.phase==PW_WALK;i++)pw_advance(&w,1);
+    /* Place at door to exercise clock changes in the pre-swap transition. */
+    pw_advance(&w,10000);
+    room(&w,PW_DORM);pw_point_t door=pw_node(PW_DORM,0);w.x=door.x;w.y=door.y;w.node=0;
+    clock_at(&w,22,0,0);CHECK(pw_request(&w,PW_EXIT)==PW_OK);CHECK(w.phase==PW_TRANSITION);
+    clock_at(&w,23,0,0);pw_advance(&w,201);CHECK(w.scene==PW_DORM && w.phase==PW_IDLE && w.curfew_events==1);
+    room(&w,PW_CAMPUS);door=pw_node(PW_CAMPUS,pw_campus_door(PW_DORM));w.x=door.x;w.y=door.y;w.node=(int8_t)pw_campus_door(PW_DORM);
+    clock_at(&w,23,0,0);CHECK(pw_request(&w,PW_ENTER_DORM)==PW_OK);pw_advance(&w,5000);CHECK(w.scene==PW_DORM);
+    return true;
+}
 bool pw_economy_selftest(void (*report)(const char *, bool))
 {
-    bool a = earn_with_no_food(), b = result_boundaries(), c = purchases(), d = daily_checkin();
+    bool a = earn_with_no_food(), b = result_boundaries(), c = purchases(), d = daily_checkin(), e = scene_meals_and_balance(), f = curfew_guards();
     if (report)
     {
         report("zero-coins-zero-food-can-earn-and-buy-meal", a);
         report("coin-once-cancel-cap-and-4999-5000-boundary", b);
         report("paid-food-arrival-cancel-and-owned-free-toggle", c);
         report("daily-checkin-trusted-midnight-once-rollback-cap", d);
+        report("twelve-meals-seated-cancel-once-and-touch-balance", e);
+        report("curfew-boundaries-wake-old-route-crossing-and-return", f);
     }
-    return a && b && c && d;
+    return a && b && c && d && e && f;
 }

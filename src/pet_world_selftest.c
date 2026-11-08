@@ -34,7 +34,7 @@ static bool deferred(void)
     CHECK(pw_request(&w, PW_CODE) == PW_OK);
     CHECK(w.phase == PW_WALK && w.food == 70 && w.settlements[PW_CODE] == 0);
     CHECK(arrive(&w));
-    CHECK(w.food == 66 && w.mood == 65 && w.settlements[PW_CODE] == 1);
+    CHECK(w.food == 66 && w.mood == 63 && w.settlements[PW_CODE] == 1);
     return true;
 }
 static bool retarget(void)
@@ -145,9 +145,9 @@ static bool touch_cancel(void)
     pw_advance(&w, 100);
     float x = w.x, y = w.y;
     CHECK(pw_request(&w, PW_TOUCH) == PW_OK);
-    CHECK(w.x == x && w.y == y && w.mood == 68 && w.settlements[PW_CODE] == 0);
+    CHECK(w.x == x && w.y == y && w.mood == 63 && w.settlements[PW_CODE] == 0);
     pw_advance(&w, 1500);
-    CHECK(w.phase == PW_IDLE && w.cooldown[PW_TOUCH] == w.now + 3000);
+    CHECK(w.phase == PW_IDLE && w.cooldown[PW_TOUCH] == w.now + PW_TOUCH_COOLDOWN_MS);
     return true;
 }
 static bool elapsed_partition(void)
@@ -424,7 +424,7 @@ static bool rebalanced_actions(void)
     pw_advance(&w, pw_duration(PW_EAT));
     travel(&w, PW_CLASSROOM);
     CHECK(pw_request(&w, PW_STUDY) == PW_OK && arrive(&w));
-    CHECK(w.food == 83 && w.mood == 67 && w.settlements[PW_STUDY] == 1);
+    CHECK(w.food == 83 && w.mood == 64 && w.settlements[PW_STUDY] == 1);
     pw_advance(&w, pw_duration(PW_STUDY));
     travel(&w, PW_DORM);
     w.mood = 98;
@@ -451,7 +451,7 @@ static bool gym_cycle(void)
     CHECK(w.food == 70 && w.mood == 60 && w.settlements[PW_WORKOUT] == 0);
     CHECK(pw_request(&w, PW_WORKOUT) == PW_BUSY);
     pw_advance(&w, (uint32_t)(w.action_end - w.now));
-    CHECK(w.food == 64 && w.mood == 72 && w.gain == -6 && w.mood_gain == 12);
+    CHECK(w.food == 64 && w.mood == 66 && w.gain == -6 && w.mood_gain == 6);
     CHECK(w.settlements[PW_WORKOUT] == 1 && w.phase == PW_IDLE);
     CHECK(pw_request(&w, PW_WORKOUT) == PW_COOLDOWN);
     CHECK(pw_request(&w, PW_EXIT) == PW_OK);
@@ -484,6 +484,7 @@ static bool takeout_cycle(void)
     CHECK(w.food == 100 && w.gain == 5 && w.order == PW_ORDER_NONE);
     CHECK(w.settlements[PW_TAKEOUT] == 1 && pw_request(&w, PW_ORDER) == PW_COOLDOWN);
     pw_advance(&w, PW_TAKEOUT_COOLDOWN_MS);
+    CHECK(pw_request(&w, PW_ORDER) == PW_FULL); w.food = 90;
     CHECK(pw_request(&w, PW_ORDER) == PW_OK);
     return true;
 }
@@ -608,10 +609,10 @@ static bool real_time_routine(void)
     w.scene=PW_CLASSROOM;w.node=6;pw_point_t p=pw_node(PW_CLASSROOM,6);w.x=p.x;w.y=p.y;
     w.food=w.mood=50;CHECK(pw_request(&w,PW_STUDY)==PW_OK);
     for(unsigned i=0;i<100 && w.phase!=PW_ACTION;i++)pw_advance(&w,40);
-    CHECK(w.activity_kind==1 && w.action_tired && w.food==46 && w.mood==53);
+    CHECK(w.activity_kind==1 && w.action_tired && w.food==46 && w.mood==51);
     uint64_t end=w.action_end,now=w.now;w.clock.utc-=14*3600U;
     CHECK(w.now==now && w.action_end==end);pw_advance(&w,12000);
-    CHECK(w.settlements[PW_STUDY]==1 && w.mood==53);
+    CHECK(w.settlements[PW_STUDY]==1 && w.mood==51);
     return true;
 }
 bool pw_selftest(void (*report)(const char *, bool))

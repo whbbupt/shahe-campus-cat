@@ -33,15 +33,15 @@ int main(void)
         assert(pt_meal_time(t)==((minute>=360&&minute<540)||(minute>=660&&minute<840)||(minute>=1020&&minute<1200)));
         assert(pt_bedtime(t)==(minute>=1380||minute<360?2:minute>=1320?1:0));
     }
-    pet_world_t w;start(&w,PW_CLASSROOM,PW_STUDY,"20261108080000");assert(w.food==43&&w.mood==57&&w.activity_kind==0);
-    start(&w,PW_CLASSROOM,PW_STUDY,"20261108120000");assert(w.food==46&&w.mood==55&&w.activity_kind==1);
-    start(&w,PW_CLASSROOM,PW_STUDY,"20261108230000");assert(w.food==46&&w.mood==53&&w.action_tired);
+    pet_world_t w;start(&w,PW_CLASSROOM,PW_STUDY,"20261108080000");assert(w.food==43&&w.mood==54&&w.activity_kind==0);
+    start(&w,PW_CLASSROOM,PW_STUDY,"20261108120000");assert(w.food==46&&w.mood==53&&w.activity_kind==1);
+    start(&w,PW_CLASSROOM,PW_STUDY,"20261108230000");assert(w.food==46&&w.mood==51&&w.action_tired);
     uint64_t end=w.action_end,now=w.now;uint32_t settlements=w.settlements[PW_STUDY];
     set_time(&w,"20261108080000");assert(w.action_end==end&&w.now==now&&w.settlements[PW_STUDY]==settlements);
-    pw_advance(&w,12000);assert(w.mood==53&&w.settlements[PW_STUDY]==1);
+    pw_advance(&w,12000);assert(w.mood==51&&w.settlements[PW_STUDY]==1);
     start(&w,PW_CANTEEN,PW_EAT,"20261108110000");assert(w.food==70&&w.mood==50);
     start(&w,PW_CANTEEN,PW_EAT,"20261108230000");assert(w.food==60&&w.mood==51&&w.activity_kind==2);
-    start(&w,PW_GYM,PW_WORKOUT,"20261108230000");set_time(&w,"20261108080000");pw_advance(&w,15000);assert(w.mood==60&&w.settlements[PW_WORKOUT]==1);
+    start(&w,PW_GYM,PW_WORKOUT,"20261108230000");set_time(&w,"20261108080000");pw_advance(&w,15000);assert(w.mood==54&&w.settlements[PW_WORKOUT]==1);
     pw_init(&w);set_time(&w,"20261108220000");assert(strstr(pw_state_text(&w),"准备睡觉"));set_time(&w,"20261108230000");assert(strstr(pw_state_text(&w),"有点困"));
     w.clock.valid=false;assert(!strstr(pw_state_text(&w),"困"));
     assert(pw_request(&w,PW_REST)==PW_OK);

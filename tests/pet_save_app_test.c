@@ -70,10 +70,10 @@ int main(void)
 
     assert(action(PW_TOUCH)==PW_OK); assert(status==PET_SAVE_PENDING);
     step(1000); assert(status==PET_SAVE_PENDING);
-    step(500); assert(snapshot.mood==68 && status==PET_SAVE_PENDING);
-    step(10500); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==68);
+    step(500); assert(snapshot.mood==63 && status==PET_SAVE_PENDING);
+    step(10500); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==63);
     assert(action(PW_GO_CANTEEN)==PW_OK && status==PET_SAVE_PENDING); step(15000);
-    reboot(); assert(snapshot.scene==PW_CANTEEN && snapshot.mood==68);
+    reboot(); assert(snapshot.scene==PW_CANTEEN && snapshot.mood==63);
     assert(action(PW_EAT)==PW_OK); step(18000); assert(snapshot.food==90);
     reboot(); assert(snapshot.food==90 && snapshot.action==PW_NONE);
     assert(action(PW_GO_DORM)==PW_OK); step(13000); assert(action(PW_REST)==PW_OK);
@@ -81,9 +81,11 @@ int main(void)
     assert(action(PW_REST)==PW_OK && status==PET_SAVE_PENDING); step(12000); reboot(); assert(snapshot.phase!=PW_SLEEP);
     fail_write=true; assert(action(PW_TOUCH)==PW_OK); step(15000); assert(status==PET_SAVE_FAILED);
     assert(action(PW_NONE)==PW_INVALID && status==PET_SAVE_FAILED);
-    fail_write=false; step(11000); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==76);
-    for (int i=0;i<3;i++) { assert(action(PW_TOUCH)==PW_OK && status==PET_SAVE_PENDING); step(14000); }
+    fail_write=false; step(11000); assert(status==PET_SAVE_SAVED); reboot(); assert(snapshot.mood==66);
+    for (int i=0;i<12;i++) { assert(action(PW_TOUCH)==PW_OK && status==PET_SAVE_PENDING); step(14000); }
     reboot(); assert(snapshot.mood==100 && status==PET_SAVE_SAVED);
+    /* Reboot restores the last saved cooldown conservatively. */
+    step(PW_TOUCH_COOLDOWN_MS);
     int unchanged_writes=writes;
     assert(action(PW_TOUCH)==PW_FULL && status==PET_SAVE_SAVED && writes==unchanged_writes);
     puts("[host:save-app] immediate pending, mid-action reboot, travel/wake and rejected-no-change feedback PASS");
@@ -197,6 +199,22 @@ int main(void)
     step(14000);reboot();assert(snapshot.checkin_day==claimed_day+1&&snapshot.wallet.coins==before_daily+12);
     puts("[host:save-app] actual RTC sync->daily coins/date->pending/saved->reboot same-day denied->next-day income PASS");
 
+
+    memset(data,255,sizeof(data));rtc_value=0;reboot();
+    pt_date_t night={2026,11,9,23,0,0};uint32_t night_utc;assert(pt_encode(&night,&night_utc));
+    assert(pet_app_sync_time(night_utc)==PT_OK);
+    assert(action(PW_EXIT)==PW_CURFEW && snapshot.scene==PW_DORM);
+    assert(action(PW_REST)==PW_OK);step(5000);assert(snapshot.phase==PW_SLEEP);
+    assert(action(PW_REST)==PW_OK);step(600);assert(action(PW_EXIT)==PW_CURFEW);
+    assert(action(PW_DELIVERY_LAST)==PW_OK && snapshot.wallet.coins==25 && snapshot.order_choice==6);
+    step(14000);assert(status==PET_SAVE_SAVED);reboot();
+    assert(snapshot.order_choice==6 && snapshot.wallet.coins==25 && snapshot.order==PW_ORDER_DELIVERING);
+    step(40000);assert(snapshot.order==PW_ORDER_READY && snapshot.order_choice==6);
+    assert(action(PW_TAKEOUT)==PW_OK);step(10000);reboot();
+    assert(snapshot.order==PW_ORDER_NONE && !snapshot.order_choice && snapshot.food==78 && snapshot.wallet.coins==25);
+    assert(pet_app_sync_time(night_utc-1)==PT_OK);assert(action(PW_EXIT)==PW_OK);
+    rtc_value=night_utc;step(10000);assert(snapshot.scene==PW_DORM && snapshot.phase==PW_IDLE && snapshot.curfew_events);
+    puts("[host:save-app] actual RTC-before-navigation guard, night wake/order/congee/save/reboot/pickup and crossing curfew PASS");
 
     return 0;
 }

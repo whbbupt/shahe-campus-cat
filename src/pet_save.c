@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 9U
+#define SCHEMA 10U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -25,7 +25,7 @@ static void put16(uint8_t *p, uint16_t value)
 static const pw_command_t saved_actions[] = {
     PW_EAT, PW_TOUCH, PW_STUDY, PW_CODE, PW_WORKOUT, PW_TAKEOUT, PW_MEMORY};
 static const uint32_t saved_limits[] = {
-    2000, 3000, 8000, 10000, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
+    2000, PW_TOUCH_COOLDOWN_MS, 8000, 10000, PW_WORKOUT_COOLDOWN_MS, PW_TAKEOUT_COOLDOWN_MS, PW_MEMORY_COOLDOWN_MS};
 
 static uint32_t crc(const uint8_t *p, unsigned n)
 {
@@ -51,8 +51,9 @@ static bool known_header(const uint8_t *r)
 }
 static uint32_t order_code(const uint8_t *r)
 {
-    return r[4] >= 3 ? get32(r + ORDER_OFFSET) : 0;
+    return r[4] >= 10 ? get16(r + ORDER_OFFSET) : r[4] >= 3 ? get32(r + ORDER_OFFSET) : 0;
 }
+static unsigned order_choice(const uint8_t *r) { return r[4] >= 10 ? get16(r + ORDER_OFFSET + 2) : 0; }
 static pw_order_t order_state(const uint8_t *r)
 {
     uint32_t code = order_code(r);
@@ -68,7 +69,7 @@ static unsigned volume(const uint8_t *r)
 }
 static bool clock_trusted(const uint8_t *r) { return r[4]>=7 && (r[15]&128)!=0; }
 static bool sleeping(const uint8_t *r) { return (r[15] & 1) != 0; }
-static void visible_key(const uint8_t *r, uint8_t key[15])
+static void visible_key(const uint8_t *r, uint8_t key[16])
 {
     memcpy(key, r + 12, 4);
     key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1) | (volume(r) << 3) | (clock_trusted(r) ? 128 : 0));
@@ -79,6 +80,7 @@ static void visible_key(const uint8_t *r, uint8_t key[15])
     key[10] = r[4] >= 8 ? r[51] : 0;
     if (r[4] >= 4) memcpy(key + 11, r + 52, 2);
     put16(key + 13, r[4] >= 9 ? get16(r + 54) : 0);
+    key[15] = (uint8_t)order_choice(r);
 
 }
 static bool checkin_valid(unsigned day)
@@ -95,7 +97,8 @@ static bool valid(const uint8_t *r)
         return false;
     if (r[4] >= 4)
     {
-        if (order_code(r) > PW_DELIVERY_MS + 1) return false;
+        if (order_code(r) > PW_DELIVERY_MS + 1 || order_choice(r) > PE_MENU_COUNT ||
+            (!order_code(r) && order_choice(r))) return false;
         if (r[4] >= 8)
         {
             pe_wallet_t wallet = {(uint16_t)get32(r + 46), r[50], r[51]};
@@ -103,7 +106,7 @@ static bool valid(const uint8_t *r)
         }
         else if (!get32(r + 46) || r[54] > 7 || r[55] > 7) return false;
         for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
-            if (get16(r + 32 + 2 * i) > saved_limits[i])
+            if (get16(r + 32 + 2 * i) > (i == 1 && r[4] < 10 ? 3000U : saved_limits[i]))
                 return false;
         return true;
     }
@@ -118,7 +121,7 @@ static bool valid(const uint8_t *r)
 }
 static bool snapshot_ready(const pet_world_t *w)
 {
-    return w->phase != PW_ACTION && w->phase != PW_TRANSITION && w->phase != PW_MINIGAME &&
+    return w->phase != PW_ACTION && w->phase != PW_TRANSITION && w->phase != PW_MINIGAME && w->phase != PW_SEATED &&
            !(w->phase == PW_WALK && w->purpose != 0);
 }
 bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
@@ -127,6 +130,7 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
            s->saved[12] == w->food && s->saved[13] == w->mood &&
            s->saved[14] == (uint8_t)w->scene && sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
            clock_trusted(s->saved) == w->clock.trusted && order_state(s->saved) == w->order &&
+           order_choice(s->saved) == w->order_choice &&
            w->wallet.coins == (s->saved[4] >= 8 ? get32(s->saved + 46) : PE_START_COINS) &&
            w->wallet.owned == (s->saved[4] >= 8 ? s->saved[50] : 0) &&
            w->wallet.equipped == (s->saved[4] >= 8 ? s->saved[51] : 0) &&
@@ -140,7 +144,8 @@ static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
     /* Never persist an unfinished business intent or a half-swapped scene. */
-    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day)) return false;
+    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day) ||
+        w->order_choice > PE_MENU_COUNT || (w->order == PW_ORDER_NONE && w->order_choice)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC);
     r[4] = SCHEMA;
@@ -171,6 +176,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
         order = 1U + (uint32_t)(w->order_due - w->now);
     }
     put32(r + ORDER_OFFSET, order);
+    put16(r + ORDER_OFFSET + 2, w->order_choice);
 
     put32(r + 56, crc(r, 56)); put32(r + 60, COMMIT);
     return valid(r);
@@ -188,6 +194,7 @@ static void restore(const uint8_t *r, pet_world_t *w)
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
     w->order = order_state(r);
+    w->order_choice = (uint8_t)order_choice(r);
     if (w->order == PW_ORDER_DELIVERING)
         w->order_due = order_code(r) - 1;
     if (r[4] >= 4)
@@ -239,7 +246,8 @@ ps_result_t ps_save(pet_save_t *s, const pet_world_t *w)
 {
     uint8_t r[64], check[64];
     if (!s->enabled) return PS_IO_ERROR;
-    if (w->volume > 10 || w->sound_mode > 2 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day)) return PS_INVALID;
+    if (w->volume > 10 || w->sound_mode > 2 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day) ||
+        w->order_choice > PE_MENU_COUNT || (w->order == PW_ORDER_NONE && w->order_choice)) return PS_INVALID;
     /* Reconcile a commit whose final read may have failed. Never reuse its sequence. */
     pet_save_t probe;
     pet_world_t ignored;
@@ -282,7 +290,7 @@ ps_result_t ps_poll(pet_save_t *s, const pet_world_t *w)
     uint8_t r[64];
     if (!s->enabled) return PS_IO_ERROR;
     if (!capture(w, r, 0)) { s->pending = false; return PS_WAIT; }
-    uint8_t key[15], saved[15];
+    uint8_t key[16], saved[16];
     visible_key(r, key);
     visible_key(s->saved, saved);
     bool changed = !s->has_saved || memcmp(key, saved, sizeof(key)) != 0;
