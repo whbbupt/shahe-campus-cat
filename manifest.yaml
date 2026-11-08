@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.14.2外设配对接口修正软件/构建通过，旧TC240实物失败保留，新TC243待实机"
+  milestone: "v0.14.2配对及自动校时时间正确获用户真机确认；新原始影像/日志采集、重连和RTC保时等边界待补"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -128,6 +128,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "v0.14.2配对与自动校时时间正确的用户实物确认"
+    executed_at: null
+    student_action: "用户原话：可以 配对成功了 现在成功了 时间正确。"
+    evidence_path: "evidence/pet/cts_v0142_success_20261108_user.txt"
+    agent_conclusion: "依据紧邻v0.14.2操作上下文，配对与自动校时时间正确已有用户实物确认；独立新截图/原始CTS日志和完整操作时间未提供。断开走时/重连/复位/完全断电及错误路径不扩大为已通过。"
   - item: "v0.14.1配对命令66与30秒超时原始日志"
     executed_at: null
     student_action: "用户提供12:36:11的GAPC op10 ret66及12:36:41的CTS timeout原文。"
@@ -995,9 +1000,10 @@ test_results:
   - test_id: TC-225
     description: 手机校时与保时实机
     expected: 按docs/03的TC-225逐项验证
-    actual: v0.14.0已实现并构建，待用户真实校时/昼夜/走时/复位及断电证据
-    status: pending_physical
+    actual: 已有v0.14.2配对及自动校时时间正确的用户实物确认；分秒走时、复位与完整断电保时等完整判据尚待
+    status: auto_time_user_confirmed_retention_pending
     pass: null
+    evidence_path: evidence/pet/cts_v0142_success_20261108_user.txt
 
   - test_id: TC-226
     description: 睡眠作息边界
@@ -1107,8 +1113,8 @@ test_results:
   - test_id: TC-240
     description: iPhone自动校时实机
     expected: 按docs/03的TC-240验证
-    actual: 用户确认连接后从等待自动校时变成未完成，自动成功判据未满足；已得真实查询0.14.1/connected/fault0/CTS unavailable，用户无配对提示；具体reason待连接过程日志
-    status: failed_physical_user_confirmation_pending_diagnostics
+    actual: 历史v0.14.1：连接后自动校时未完成，真实op10 ret66及超时确认外设误调中心API；旧失败保留。v0.14.2已修正，当前成功确认见TC-243
+    status: historical_failed_v0141_fixed_v0142_user_confirmed
     pass: false
     evidence_path: evidence/pet/cts_auto_failure_20261108_user.txt
 
@@ -1131,13 +1137,15 @@ test_results:
   - test_id: TC-243
     description: 新角色修复实机
     expected: 按docs/03的TC-243验证
-    actual: v0.14.2已实现并构建，待新版本iPhone配对/CTS/RTC及持久诊断实物证据
-    status: pending_physical
+    actual: 用户确认配对成功、自动校时后时间正确；本机核心成功已确认，独立新CTS/TIME日志/截图和完整操作时间未提供，完整采集判据仍待
+    status: pairing_and_auto_time_user_confirmed_raw_capture_pending
     pass: null
+    evidence_path: evidence/pet/cts_v0142_success_20261108_user.txt
 
 known_issues:
-  - "v0.14.1外设误调中心配对API已被实机op10 ret66和SDK角色限制确认；v0.14.2软件已修正/构建，新TC243待真实iPhone验证，旧失败不删除。"
-  - "v0.14.1首次用户实物反馈：连接成功后自动校时未完成，TC-240未通过；原因待CTS/TIME阶段日志和配对反馈，不通过猜测修改或抹掉已有软件结果。"
+  - "当前v0.14.2配对/自动校时时间正确已获用户本人实机确认，见cts_v0142_success_20261108_user.txt；独立新日志/截图、完整操作时间及断开走时/重连/复位/全断电保时尚缺，不撤销成功也不扩大范围。"
+  - "v0.14.1外设误调中心配对API已被实机op10 ret66和SDK角色限制确认；v0.14.2修复后配对与正确时间已获用户实物确认，TC243完整原始采集仍待，旧失败不删除。"
+  - "v0.14.1首次用户实物反馈：连接成功后自动校时未完成，TC-240未通过；后续已由真实op10/66日志确认角色错误，v0.14.2修复并获成功反馈，原失败与软件结果均保留。"
   - "v0.14.1原生CTS自动校时只完成软件/构建，TC-240待本机iPhone配对及自动读回证据；不保证每个手机/系统均暴露CTS，0004备用保留。自动重连另属范围，原RTC保时/精度和板端FPS缺口保留。"
   - "v0.14.0现实钟/手动校时/夜景和晚间作息仅软件与构建通过，TC-210/225待新板端；RTC准确度/完整断电保时及新色层帧率未知，不能把已连接当自动手机同步。格式7旧6会写保护。"
   - "用户反馈v0.13.0有明显卡顿、顶部入口圆角裁切且难点；v0.13.1已完成缓存和无效重绘、入口内移及蓝牙信息位置软件修复，未经新板测不能声称流畅。"
