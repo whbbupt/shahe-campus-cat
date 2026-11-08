@@ -569,7 +569,11 @@ void pet_ui_create(pet_ui_action_fn callback)
     build_panel(screen);
     ui.shop_button = button(screen, 228, 28, 62, 62, TAG_SHOP, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.shop_button, LV_OPA_90, 0);
-    image(ui.shop_button, pw_icons[4], 19, 8);
+    lv_obj_t *coin = box(ui.shop_button, 20, 7, 22, 22, 0xD7B86E, 11);
+    lv_obj_set_style_border_width(coin, 1, 0);
+    lv_obj_set_style_border_color(coin, lv_color_hex(0x967027), 0);
+    lv_obj_t *coin_mark = text(coin, "币", 0, 0, &pet_font_16, INK);
+    lv_obj_center(coin_mark);
     text(ui.shop_button, "商店", 15, 36, &pet_font_16, BLUE);
     ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
