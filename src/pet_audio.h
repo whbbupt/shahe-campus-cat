@@ -18,6 +18,7 @@ typedef struct {
     uint8_t challenge_round;
     uint32_t snacks;
     uint8_t furniture_owned, furniture_equipped;
+    uint16_t coins;
 } pa_observer_t;
 typedef struct {
     uint32_t music_at, cue_at;

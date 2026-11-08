@@ -105,6 +105,11 @@ old7_save.write_bytes(subprocess.check_output(['git','show','df6e0db:src/pet_sav
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old7_save, root/'tests/pet_save_v7_producer_test.c'], 'pet-save-v7-producer')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_economy_save_test.c'], 'pet-economy-save-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old7_save, root/'tests/pet_save_v7_refusal_test.c'], 'pet-save-v7-refusal-test')
+old8_save=out/'actual_schema8_pet_save.c'
+old8_save.write_bytes(subprocess.check_output(['git','show','92293c0:src/pet_save.c'],cwd=root))
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old8_save, root/'tests/pet_save_v8_producer_test.c'], 'pet-save-v8-producer')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_daily_test.c'], 'pet-daily-save-test')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old8_save, root/'tests/pet_save_v8_refusal_test.c'], 'pet-save-v8-refusal-test')
 old_save=out/'actual_schema6_pet_save.c'
 old_save.write_bytes(subprocess.check_output(['git','show','a633ec9:src/pet_save.c'],cwd=root))
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old_save, root/'tests/pet_save_v6_refusal_test.c'], 'pet-save-v6-refusal-test')

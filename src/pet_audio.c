@@ -20,11 +20,13 @@ void pa_observer_init(pa_observer_t *s, const pet_world_t *w)
     s->snacks = w->snacks;
     s->furniture_owned = w->wallet.owned;
     s->furniture_equipped = w->wallet.equipped;
+    s->coins = w->wallet.coins;
     s->show_step = show_step(w);
 }
 pa_cue_t pa_observe(pa_observer_t *s, const pet_world_t *w)
 {
     pa_cue_t cue = PA_NONE;
+    if (w->wallet.coins > s->coins) cue = PA_DONE;
     if (w->wallet.owned != s->furniture_owned || w->wallet.equipped != s->furniture_equipped) cue = PA_DONE;
     if (w->snacks != s->snacks) cue = PA_MEAL;
     if (w->settlements[PW_TOUCH] != s->settlements[PW_TOUCH]) cue = PA_TOUCH;

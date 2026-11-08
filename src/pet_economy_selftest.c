@@ -105,14 +105,49 @@ static bool purchases(void)
     CHECK(w.food == 82 && !w.wallet.coins && w.order == PW_ORDER_NONE);
     return true;
 }
+static bool daily_checkin(void)
+{
+    pet_world_t w; room(&w, PW_DORM); w.wallet.coins = 0;
+    CHECK(pw_checkin_status(&w) == PW_CHECKIN_WAIT_TIME && pw_request(&w, PW_DAILY_CHECKIN) == PW_INVALID);
+    pt_date_t date = {2026, 11, 8, 23, 59, 59}; uint32_t utc;
+    CHECK(pt_encode(&date, &utc)); w.clock = (pt_clock_t){utc, true, false, PT_RTC, PT_OK};
+    CHECK(pw_checkin_status(&w) == PW_CHECKIN_WAIT_TIME);
+    w.clock.trusted = true;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.wallet.coins == 6 && w.coin_gain == 6);
+    unsigned today = w.checkin_day;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_COOLDOWN && w.wallet.coins == 6 && !w.cooldown[PW_MEMORY]);
+    w.clock.utc++;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.wallet.coins == 12 && w.checkin_day == today + 1);
+    w.clock.utc -= 3600;
+    CHECK(pw_checkin_status(&w) == PW_CHECKIN_FUTURE && pw_request(&w, PW_DAILY_CHECKIN) == PW_INVALID && w.wallet.coins == 12);
+    w.clock.utc += 3600 + 7 * 86400;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.wallet.coins == 18);
+    w.clock.utc += 86400; w.wallet.coins = PE_MAX_COINS;
+    unsigned last = w.checkin_day;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_FULL && w.checkin_day == last);
+    w.wallet.coins = 9997;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.wallet.coins == 9999 && w.coin_gain == 2);
+    w.clock.utc += 86400; w.wallet.coins = 0; w.phase = PW_SLEEP;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_ASLEEP && !w.wallet.coins);
+    w.phase = PW_WALK; CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_BUSY && !w.wallet.coins);
+    w.phase = PW_IDLE; w.clock.valid = false;
+    CHECK(pw_checkin_status(&w) == PW_CHECKIN_WAIT_TIME);
+    w.clock.valid = true;
+    date = (pt_date_t){2024, 1, 1, 0, 0, 0}; CHECK(pt_encode(&date, &w.clock.utc)); w.checkin_day = 0;
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.checkin_day == PW_CHECKIN_MIN_DAY);
+    date = (pt_date_t){2037, 12, 31, 23, 59, 59}; CHECK(pt_encode(&date, &w.clock.utc));
+    CHECK(pw_request(&w, PW_DAILY_CHECKIN) == PW_OK && w.checkin_day == PW_CHECKIN_MAX_DAY);
+    return true;
+}
 bool pw_economy_selftest(void (*report)(const char *, bool))
 {
-    bool a = earn_with_no_food(), b = result_boundaries(), c = purchases();
+    bool a = earn_with_no_food(), b = result_boundaries(), c = purchases(), d = daily_checkin();
     if (report)
     {
         report("zero-coins-zero-food-can-earn-and-buy-meal", a);
         report("coin-once-cancel-cap-and-4999-5000-boundary", b);
         report("paid-food-arrival-cancel-and-owned-free-toggle", c);
+        report("daily-checkin-trusted-midnight-once-rollback-cap", d);
     }
-    return a && b && c;
+    return a && b && c && d;
 }

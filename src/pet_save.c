@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 8U
+#define SCHEMA 9U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -78,7 +78,12 @@ static void visible_key(const uint8_t *r, uint8_t key[15])
     key[9] = r[4] >= 8 ? r[50] : 0;
     key[10] = r[4] >= 8 ? r[51] : 0;
     if (r[4] >= 4) memcpy(key + 11, r + 52, 2);
+    put16(key + 13, r[4] >= 9 ? get16(r + 54) : 0);
 
+}
+static bool checkin_valid(unsigned day)
+{
+    return day == 0 || (day >= PW_CHECKIN_MIN_DAY && day <= PW_CHECKIN_MAX_DAY);
 }
 static bool valid(const uint8_t *r)
 {
@@ -94,7 +99,7 @@ static bool valid(const uint8_t *r)
         if (r[4] >= 8)
         {
             pe_wallet_t wallet = {(uint16_t)get32(r + 46), r[50], r[51]};
-            if (get32(r + 46) > PE_MAX_COINS || !pe_valid(&wallet) || r[54] || r[55]) return false;
+            if (get32(r + 46) > PE_MAX_COINS || !pe_valid(&wallet) || (r[4] < 9 ? r[54] || r[55] : !checkin_valid(get16(r + 54)))) return false;
         }
         else if (!get32(r + 46) || r[54] > 7 || r[55] > 7) return false;
         for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
@@ -125,7 +130,8 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
            w->wallet.coins == (s->saved[4] >= 8 ? get32(s->saved + 46) : PE_START_COINS) &&
            w->wallet.owned == (s->saved[4] >= 8 ? s->saved[50] : 0) &&
            w->wallet.equipped == (s->saved[4] >= 8 ? s->saved[51] : 0) &&
-           w->memory_wins == (s->saved[4] >= 4 ? get16(s->saved + 52) : 0);
+           w->memory_wins == (s->saved[4] >= 4 ? get16(s->saved + 52) : 0) &&
+           w->checkin_day == (s->saved[4] >= 9 ? get16(s->saved + 54) : 0);
 }
 static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 {
@@ -134,7 +140,7 @@ static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
     /* Never persist an unfinished business intent or a half-swapped scene. */
-    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet)) return false;
+    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC);
     r[4] = SCHEMA;
@@ -154,7 +160,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     r[50] = w->wallet.owned;
     r[51] = w->wallet.equipped;
     put16(r + 52, w->memory_wins);
-    r[54] = r[55] = 0;
+    put16(r + 54, w->checkin_day);
     uint32_t order = 0;
     if (w->order == PW_ORDER_READY)
         order = 1;
@@ -191,6 +197,7 @@ static void restore(const uint8_t *r, pet_world_t *w)
         if (r[4] >= 8) w->wallet = (pe_wallet_t){(uint16_t)get32(r + 46), r[50], r[51]};
         else { w->journal_page = get32(r + 46); w->journal_stamps = get16(r + 50); }
         w->memory_wins = get16(r + 52);
+        if (r[4] >= 9) w->checkin_day = get16(r + 54);
         if (r[4] < 8) { w->journal_progress = r[54]; w->journal_badges = r[55]; }
     }
     else
@@ -232,7 +239,7 @@ ps_result_t ps_save(pet_save_t *s, const pet_world_t *w)
 {
     uint8_t r[64], check[64];
     if (!s->enabled) return PS_IO_ERROR;
-    if (w->volume > 10 || w->sound_mode > 2 || !pe_valid(&w->wallet)) return PS_INVALID;
+    if (w->volume > 10 || w->sound_mode > 2 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day)) return PS_INVALID;
     /* Reconcile a commit whose final read may have failed. Never reuse its sequence. */
     pet_save_t probe;
     pet_world_t ignored;

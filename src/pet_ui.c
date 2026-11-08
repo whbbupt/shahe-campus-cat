@@ -39,7 +39,7 @@ static struct
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
-    lv_obj_t *shop_button, *shop_dialog, *shop_balance, *shop_hint, *shop_tab[2];
+    lv_obj_t *shop_button, *shop_dialog, *shop_balance, *shop_hint, *checkin, *checkin_label, *shop_tab[2];
     lv_obj_t *shop_name[3], *shop_price[3], *shop_buy[3], *shop_action[3], *furniture[3];
     unsigned shop_page;
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
@@ -159,7 +159,7 @@ static void click(lv_event_t *e)
         ui.shop_page = cmd == TAG_SHOP_DECOR ? 1 : 0;
         paint(); return;
     }
-    if (ui.panel == PANEL_SHOP && (cmd == PW_EAT || cmd == PW_ORDER ||
+    if (ui.panel == PANEL_SHOP && (cmd == PW_DAILY_CHECKIN || cmd == PW_EAT || cmd == PW_ORDER ||
         (cmd >= PW_BUY_SNACK && cmd <= PW_BUY_SHELF)))
     {
         pw_result_t result = ui.action ? ui.action((pw_command_t)cmd) : PW_INVALID;
@@ -419,27 +419,29 @@ static void build_panel(lv_obj_t *screen)
     ui.order_button = button(ui.order_dialog, 18, 163, 240, 44, PW_ORDER, 0xDCE6CB, 10);
     lv_obj_t *order = text(ui.order_button, "确认下单", 0, 0, &pet_font_16, INK);
     lv_obj_center(order);
-    ui.shop_dialog = box(ui.layer, 28, 60, 334, 342, PAPER, 18);
+    ui.shop_dialog = box(ui.layer, 28, 40, 334, 374, PAPER, 18);
     text(ui.shop_dialog, "小猫生活商店", 18, 10, &pet_font_20, INK);
     lv_obj_t *shop_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
     lv_obj_t *shop_x = text(shop_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(shop_x);
-    ui.shop_balance = text(ui.shop_dialog, "", 18, 42, &pet_font_20, 0x967027);
+    ui.shop_balance = text(ui.shop_dialog, "", 18, 53, &pet_font_20, 0x967027);
+    ui.checkin = button(ui.shop_dialog, 196, 48, 120, 44, PW_DAILY_CHECKIN, 0xE9D8A8, 10);
+    ui.checkin_label = text(ui.checkin, "", 0, 0, &pet_font_16, INK);
     const char *tabs[] = {"吃点好的", "布置宿舍"};
     for (unsigned i = 0; i < 2; i++)
     {
-        ui.shop_tab[i] = button(ui.shop_dialog, 18 + i * 152, 78, 146, 44,
+        ui.shop_tab[i] = button(ui.shop_dialog, 18 + i * 152, 100, 146, 44,
             i ? TAG_SHOP_DECOR : TAG_SHOP_FOOD, 0xDCEAF3, 10);
         lv_obj_t *name = text(ui.shop_tab[i], tabs[i], 0, 0, &pet_font_16, BLUE); lv_obj_center(name);
     }
     for (unsigned i = 0; i < 3; i++)
     {
-        lv_obj_t *row = box(ui.shop_dialog, 18, 132 + i * 62, 298, 58, 0xE6ECDE, 10);
+        lv_obj_t *row = box(ui.shop_dialog, 18, 154 + i * 62, 298, 58, 0xE6ECDE, 10);
         ui.shop_name[i] = text(row, "", 10, 5, &pet_font_16, INK);
         ui.shop_price[i] = text(row, "", 10, 31, &pet_font_16, BLUE);
         ui.shop_buy[i] = button(row, 192, 7, 96, 44, PW_BUY_SNACK, 0xDCEAF3, 9);
         ui.shop_action[i] = text(ui.shop_buy[i], "", 0, 0, &pet_font_16, INK);
     }
-    ui.shop_hint = text(ui.shop_dialog, "", 18, 320, &pet_font_16, BLUE);
+    ui.shop_hint = text(ui.shop_dialog, "", 18, 346, &pet_font_16, BLUE);
     lv_obj_set_width(ui.shop_hint, 298); lv_label_set_long_mode(ui.shop_hint, LV_LABEL_LONG_CLIP);
 
     ui.memory_dialog = box(ui.layer, 29, 75, 332, 312, PAPER, 18);
@@ -631,6 +633,13 @@ static void paint_shop(void)
 {
     const pet_world_t *w = &ui.world;
     set_label_fmt(ui.shop_balance, "生活费  %u 金币", w->wallet.coins);
+    pw_checkin_t state = pw_checkin_status(w);
+    const char *checkin = state == PW_CHECKIN_WAIT_TIME ? "先校时"
+        : state == PW_CHECKIN_DONE ? "今日已领" : state == PW_CHECKIN_FUTURE ? "校准日期"
+        : state == PW_CHECKIN_FULL ? "余额已满" : w->phase != PW_IDLE ? "稍后签到" : "签到 +6";
+    if (state == PW_CHECKIN_READY && w->phase == PW_IDLE) lv_obj_remove_state(ui.checkin, LV_STATE_DISABLED);
+    else lv_obj_add_state(ui.checkin, LV_STATE_DISABLED);
+    set_label(ui.checkin_label, checkin); lv_obj_center(ui.checkin_label);
     for (unsigned i = 0; i < 2; i++)
         lv_obj_set_style_bg_color(ui.shop_tab[i], lv_color_hex(i == ui.shop_page ? 0xBCD4BC : 0xDCEAF3), 0);
     for (unsigned i = 0; i < 3; i++)

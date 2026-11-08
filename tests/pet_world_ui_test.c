@@ -811,6 +811,29 @@ static void new_life_and_challenges(void)
 
 }
 
+static void daily_checkin_ui(void)
+{
+    reset(); press("商店"); assert(label_with(lv_screen_active(),"先校时"));
+    press("先校时"); assert(world.wallet.coins==30&&!world.checkin_day);
+    screenshot("shahe-checkin-unset.ppm");
+    pt_date_t date={2026,11,8,23,59,59};uint32_t utc;assert(pt_encode(&date,&utc));
+    world.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK};pet_ui_update(&world);
+    assert(label_with(lv_screen_active(),"签到 +6"));screenshot("shahe-checkin-ready.ppm");
+    press("签到 +6");assert(world.wallet.coins==36&&world.checkin_day);
+    assert(label_with(lv_screen_active(),"今日已领"));screenshot("shahe-checkin-claimed.ppm");
+    unsigned day=world.checkin_day;press("今日已领");assert(world.wallet.coins==36&&world.checkin_day==day);
+    world.clock.utc++;pet_ui_update(&world);press("签到 +6");
+    assert(world.wallet.coins==42&&world.checkin_day==day+1);
+    world.clock.utc-=86400;pet_ui_update(&world);
+    assert(label_with(lv_screen_active(),"校准日期"));screenshot("shahe-checkin-rollback.ppm");
+    world.checkin_day=0;world.wallet.coins=9999;pet_ui_update(&world);
+    assert(label_with(lv_screen_active(),"余额已满"));screenshot("shahe-checkin-full.ppm");
+    world.wallet.coins=9997;pet_ui_update(&world);press("签到 +6");
+    assert(world.wallet.coins==9999&&world.coin_gain==2&&label_with(lv_screen_active(),"今日已领"));
+    press("×");
+    puts("[host:daily-ui] real pointer wait/trusted/claim/disabled repeat/Beijing midnight/rollback/full/actual cap PASS");
+}
+
 int main(int argc, char **argv)
 {
     lv_init();
@@ -886,6 +909,7 @@ int main(int argc, char **argv)
     campus_extended_route();
     real_clock_previews();
     new_life_and_challenges();
+    daily_checkin_ui();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
     {

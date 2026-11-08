@@ -111,7 +111,12 @@ enum
     MSG_POOR,
     MSG_PURCHASED,
     MSG_PLACED,
-    MSG_STORED
+    MSG_STORED,
+    MSG_CHECKIN,
+    MSG_CHECKIN_DONE,
+    MSG_CHECKIN_TIME,
+    MSG_CHECKIN_FUTURE,
+    MSG_CHECKIN_FULL
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -622,8 +627,41 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
     }
     return move(w, ROAD_GOAL, 3) ? PW_OK : PW_INVALID;
 }
+static uint16_t local_day(const pet_world_t *w)
+{
+    pt_date_t date;
+    if (!w->clock.valid || !w->clock.trusted || !pt_decode(w->clock.utc, &date)) return 0;
+    return (uint16_t)(((uint64_t)w->clock.utc + 8U * 3600U) / 86400U);
+}
+pw_checkin_t pw_checkin_status(const pet_world_t *w)
+{
+    unsigned day = local_day(w);
+    if (!day) return PW_CHECKIN_WAIT_TIME;
+    if (w->checkin_day > day) return PW_CHECKIN_FUTURE;
+    if (w->checkin_day == day) return PW_CHECKIN_DONE;
+    if (w->wallet.coins == PE_MAX_COINS) return PW_CHECKIN_FULL;
+    return PW_CHECKIN_READY;
+}
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_DAILY_CHECKIN)
+    {
+        if (w->phase != PW_IDLE) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        pw_checkin_t status = pw_checkin_status(w);
+        w->coin_until = 0;
+        w->gain_until = 0;
+        if (status != PW_CHECKIN_READY)
+        {
+            say(w, status == PW_CHECKIN_DONE ? MSG_CHECKIN_DONE : status == PW_CHECKIN_FUTURE ? MSG_CHECKIN_FUTURE
+                : status == PW_CHECKIN_FULL ? MSG_CHECKIN_FULL : MSG_CHECKIN_TIME);
+            return status == PW_CHECKIN_DONE ? PW_COOLDOWN : status == PW_CHECKIN_FULL ? PW_FULL : PW_INVALID;
+        }
+        w->coin_gain = (int)pe_credit(&w->wallet, PW_CHECKIN_COINS);
+        w->checkin_day = local_day(w);
+        w->coin_until = w->now + 2400;
+        say(w, MSG_CHECKIN);
+        return PW_OK;
+    }
     if (cmd >= PW_BUY_SNACK && cmd <= PW_BUY_SHELF)
     {
         if (w->phase != PW_IDLE) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
@@ -1070,7 +1108,12 @@ const char *pw_message_text(const pet_world_t *w)
                                   "金币不够，玩小游戏赚生活费",
                                   "买好啦，已摆进宿舍",
                                   "已摆进宿舍",
-                                  "已收起，随时可以再摆"};
+                                  "已收起，随时可以再摆",
+                                  "今天的饭钱到账啦",
+                                  "今天已经领过饭钱啦",
+                                  "先连接手机校准时间",
+                                  "签到日期在未来，请校准时间",
+                                  "金币已满，消费后再领"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }
 const char *pw_life_text(pw_scene_t scene)

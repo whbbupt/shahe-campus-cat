@@ -63,7 +63,8 @@ typedef enum
     PW_BUY_SNACK = 80,
     PW_BUY_PLANT,
     PW_BUY_PICTURE,
-    PW_BUY_SHELF
+    PW_BUY_SHELF,
+    PW_DAILY_CHECKIN
 } pw_command_t;
 typedef enum
 {
@@ -95,6 +96,8 @@ typedef enum
     PW_ORDER_READY
 } pw_order_t;
 enum { PW_DELIVERY_MS = 30000, PW_WORKOUT_COOLDOWN_MS = 15000, PW_TAKEOUT_COOLDOWN_MS = 60000, PW_MEMORY_COOLDOWN_MS = 60000 };
+enum { PW_CHECKIN_COINS = 6, PW_CHECKIN_MIN_DAY = 19723, PW_CHECKIN_MAX_DAY = 24836 };
+typedef enum { PW_CHECKIN_WAIT_TIME, PW_CHECKIN_READY, PW_CHECKIN_DONE, PW_CHECKIN_FUTURE, PW_CHECKIN_FULL } pw_checkin_t;
 
 typedef enum
 {
@@ -131,6 +134,7 @@ typedef struct
     uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack */
     bool action_tired;
     pe_wallet_t wallet;
+    uint16_t checkin_day;
     int coin_gain;
     uint64_t coin_until;
     uint32_t snacks;
@@ -149,6 +153,7 @@ bool pw_busy(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
 const char *pw_need_text(const pet_world_t *w);
+pw_checkin_t pw_checkin_status(const pet_world_t *w);
 const char *pw_life_text(pw_scene_t scene);
 pw_result_t pw_walk_to(pet_world_t *w, float x, float y);
 bool pw_room_ground(pw_scene_t scene, float x, float y);

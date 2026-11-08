@@ -172,7 +172,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 8);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 9);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -326,7 +326,7 @@ static bool challenges_restore(void)
             }
         }
         if (k != 3) CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK);
-        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 8);
+        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 9);
         CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.mood == (k == 3 ? 62 : 63));
         CHECK(restored.memory_wins == (k == 3 ? 0 : 1) && restored.challenge.kind == PG_NONE && restored.phase == PW_IDLE);
         CHECK(restored.cooldown[PW_MEMORY] > 0 && pw_request(&restored, PW_LIFE) == PW_COOLDOWN);

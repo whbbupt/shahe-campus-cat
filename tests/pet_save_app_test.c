@@ -185,6 +185,18 @@ int main(void)
     assert(action(PW_MEMORY_CANCEL)==PW_OK); step(14000); reboot();
     assert(snapshot.wallet.coins==2 && snapshot.wallet.owned==1 && !snapshot.wallet.equipped && snapshot.memory_wins==1);
     puts("[host:save-app] actual earn->buy furniture->zero balance->free store->save/reboot->participation income, no repeated starter grant PASS");
+    pt_date_t day_date={2026,11,8,12,0,0};uint32_t day_utc;assert(pt_encode(&day_date,&day_utc));
+    assert(pet_app_sync_time(day_utc)==PT_OK);
+    unsigned before_daily=snapshot.wallet.coins;
+    assert(action(PW_DAILY_CHECKIN)==PW_OK&&snapshot.wallet.coins==before_daily+6&&status==PET_SAVE_PENDING);
+    unsigned claimed_day=snapshot.checkin_day;step(14000);assert(status==PET_SAVE_SAVED);reboot();
+    assert(snapshot.checkin_day==claimed_day&&snapshot.wallet.coins==before_daily+6);
+    assert(action(PW_DAILY_CHECKIN)==PW_COOLDOWN&&status==PET_SAVE_SAVED);
+    assert(pet_app_sync_time(day_utc+86400)==PT_OK);
+    assert(action(PW_DAILY_CHECKIN)==PW_OK&&snapshot.wallet.coins==before_daily+12&&status==PET_SAVE_PENDING);
+    step(14000);reboot();assert(snapshot.checkin_day==claimed_day+1&&snapshot.wallet.coins==before_daily+12);
+    puts("[host:save-app] actual RTC sync->daily coins/date->pending/saved->reboot same-day denied->next-day income PASS");
+
 
     return 0;
 }
