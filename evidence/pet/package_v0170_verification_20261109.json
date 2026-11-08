@@ -1,0 +1,14 @@
+{
+  "result": "PASS",
+  "source_head": "386b9556277045ac3623c2dec9f2d18a83b95d2e",
+  "zip": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-v0170-20261109\\沙河校园小猫-v0.17.0-生活互动与图文点餐-20261109.zip",
+  "zip_bytes": 26701404,
+  "zip_sha256": "D19AA3EF46BD93EC429EB3DDF96310A535E1D110209EE841431B556366E4B8DC",
+  "payload_files_checked": 133,
+  "crc": "PASS",
+  "production_inputs": 102,
+  "validation_inputs": 43,
+  "artifacts": 22,
+  "baseline_backup_items": 22,
+  "physical_status": "pending TC-260"
+}
