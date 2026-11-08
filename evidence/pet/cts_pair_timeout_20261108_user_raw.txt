@@ -1,0 +1,59 @@
+[16183492]
+12:36:11
+RX
+ I/ble_cm pet_ble: addr type 1
+
+12:36:11
+RX
+
+[16183509] I/ble_cm pet_ble: ad
+12:36:11
+RX
+dr 58:6f:6f:3a:e:d3
+
+[16183533] D/BLE_GAP KE_EVT2: GAPC event s
+12:36:11
+RX
+tatus, op: 10, ret 66
+
+12:36:11
+RX
+[16193274] I/sibles KE_EVT2: SIB
+12:36:11
+RX
+LES, GATTC_SVC_CHANGED_CFG_IND 2
+
+12:36:11
+RX
+[16198029] D/BLE_GAP KE_EVT2: GA
+12:36:11
+RX
+PC event status, op: 20, ret 0
+
+12:36:11
+RX
+
+12:36:35
+RX
+[pet:WALK] x=968 y=536 result=6
+12:36:35
+RX
+
+12:36:41
+RX
+[pet:CTS] stage=unavailable reas
+12:36:41
+RX
+on=timeout
+12:36:50
+RX
+[pet:WALK] x=964 y=555 result=6
+12:36:50
+RX
+
+12:37:00
+RX
+[pet:SAVE] saved seq=2836 scene=
+12:37:00
+RX
+3 food=0 mood=4 sleeping=0

@@ -128,6 +128,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "v0.14.1配对命令66与30秒超时原始日志"
+    executed_at: null
+    student_action: "用户提供12:36:11的GAPC op10 ret66及12:36:41的CTS timeout原文。"
+    evidence_path: "evidence/pet/cts_pair_timeout_20261108_user_raw.txt"
+    agent_conclusion: "SDK定义op10为中心端GAPC_BOND、66为GAP_ERR_NOT_SUPPORTED；当前小猫外设调用create_bond角色错误已确认，未当作手机不支持CTS。后续修正安全请求并重新实测，原失败保留。"
   - item: "v0.14.1真实CTS失败后串口查询"
     executed_at: null
     student_action: "用户发送pet_ble_status并提供12:33:43原始分行日志；确认iPhone没有弹出配对提示。"
