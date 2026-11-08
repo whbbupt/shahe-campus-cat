@@ -1,0 +1,4 @@
+[host:assets] 46 production decoders x10, released each time; peak image allocation=351000 bytes PASS
+[host:render-profile] scene=0 frames=50 large_decodes=200 pixels=833000 peak=351000
+[host:render-profile] scene=1 frames=50 large_decodes=350 pixels=736400 peak=351000
+[host:render-profile] scene=2 frames=50 large_decodes=1741 pixels=8775000 peak=351000

@@ -7,6 +7,7 @@
 #include "pet_world_font.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 
 #define INK 0x304C4A
@@ -32,7 +33,7 @@ static struct
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
-    lv_obj_t *audio_label, *audio_note, *volume_text, *link_badge, *link_detail, *link_name;
+    lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
     lv_obj_t *journal_button, *journal_dialog, *journal_page, *wish[3], *wish_mark[3],
              *journal_count, *claim, *claim_hint, *badge[3];
@@ -41,11 +42,29 @@ static struct
 static bool audio_available = true;
 static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat"};
 static unsigned save_state = PET_SAVE_PENDING;
+static void set_label(lv_obj_t *label, const char *value)
+{
+    if (strcmp(lv_label_get_text(label), value)) lv_label_set_text(label, value);
+}
+static void set_label_fmt(lv_obj_t *label, const char *format, ...)
+{
+    char value[192];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(value, sizeof(value), format, args);
+    va_end(args);
+    set_label(label, value);
+}
+static void set_image(lv_obj_t *image, const void *source)
+{
+    if (lv_image_get_src(image) != source) lv_image_set_src(image, source);
+}
+
 static const char *save_notes[] = {"等待自动保存", "已保存，重启可恢复", "存档暂不可用", "保存失败，稍后重试"};
 void pet_ui_set_save_status(unsigned status)
 {
     save_state = status <= PET_SAVE_FAILED ? status : PET_SAVE_UNAVAILABLE;
-    if (ui.save_note) lv_label_set_text(ui.save_note, save_notes[save_state]);
+    if (ui.save_note) set_label(ui.save_note, save_notes[save_state]);
 }
 static void paint(void);
 void pet_ui_set_audio_available(bool available)
@@ -93,7 +112,7 @@ static lv_obj_t *text(lv_obj_t *parent, const char *s, int x, int y, const lv_fo
 {
     lv_obj_t *o = lv_label_create(parent);
     lv_obj_remove_flag(o, LV_OBJ_FLAG_CLICKABLE);
-    lv_label_set_text(o, s);
+    set_label(o, s);
     lv_obj_set_pos(o, x, y);
     lv_obj_set_style_text_font(o, font, 0);
     lv_obj_set_style_text_color(o, lv_color_hex(color), 0);
@@ -188,7 +207,7 @@ static lv_obj_t *button(lv_obj_t *parent, int x, int y, int w, int h, int tag, u
 static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
 {
     lv_obj_t *o = lv_image_create(parent);
-    lv_image_set_src(o, src);
+    set_image(o, src);
     lv_obj_set_pos(o, x, y);
     lv_obj_remove_flag(o, LV_OBJ_FLAG_CLICKABLE);
 }
@@ -459,7 +478,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_add_flag(ui.background, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.background, ground_click, LV_EVENT_CLICKED, NULL);
     lv_obj_set_pos(ui.background, 0, 0);
-    lv_image_set_src(ui.background, room_art[0]);
+    set_image(ui.background, room_art[0]);
     ui.decor = lv_image_create(screen);
     lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
@@ -467,14 +486,14 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.shadow, LV_OPA_20, 0);
     ui.sprite = lv_image_create(screen);
     lv_obj_remove_flag(ui.sprite, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui.sprite, pw_frames[0]);
+    set_image(ui.sprite, pw_frames[0]);
     lv_image_set_pivot(ui.sprite, 36, 64);
     ui.cat_hit = button(screen, 0, 0, 64, 68, PW_TOUCH, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.cat_hit, LV_OPA_TRANSP, LV_STATE_PRESSED);
     ui.foreground = lv_image_create(screen);
     lv_obj_remove_flag(ui.foreground, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_src(ui.foreground, &shahe_front_0);
+    set_image(ui.foreground, &shahe_front_0);
     build_dorm_items(screen);
     ui.door = button(screen, 310, 100, 69, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
@@ -484,13 +503,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
     gate_badge(ui.blackboard, "记忆题", 59, 40, 80);
-    ui.location = box(screen, 13, 13, 206, 52, PAPER, 14);
+    ui.location = box(screen, 24, 28, 196, 62, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
-    text(ui.location, "沙河校园小猫", 12, 2, &pet_font_16, BLUE);
-    ui.location_text = text(ui.location, room_names[0], 12, 22, &pet_font_20, INK);
-    lv_obj_t *link = box(screen, 13, 76, 145, 28, PAPER, 10);
-    lv_obj_set_style_bg_opa(link, LV_OPA_90, 0);
-    ui.link_badge = text(link, "", 9, 4, &pet_font_16, BLUE);
+    text(ui.location, "沙河校园小猫", 12, 4, &pet_font_16, BLUE);
+    ui.location_text = text(ui.location, room_names[0], 12, 28, &pet_font_20, INK);
     ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
     ui.bubble = box(screen, 67, 398, 256, 36, PAPER, 12);
     lv_obj_set_style_bg_opa(ui.bubble, LV_OPA_90, 0);
@@ -499,14 +515,14 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
     build_panel(screen);
-    ui.journal_button = button(screen, 265, 13, 52, 52, TAG_JOURNAL, PAPER, 14);
+    ui.journal_button = button(screen, 228, 28, 62, 62, TAG_JOURNAL, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.journal_button, LV_OPA_90, 0);
-    image(ui.journal_button, pw_icons[4], 14, 4);
-    text(ui.journal_button, "手账", 10, 29, &pet_font_16, BLUE);
-    ui.status_button = button(screen, 325, 13, 52, 52, TAG_STATUS, PAPER, 14);
+    image(ui.journal_button, pw_icons[4], 19, 8);
+    text(ui.journal_button, "手账", 15, 36, &pet_font_16, BLUE);
+    ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
-    image(ui.status_button, pw_icons[0], 14, 4);
-    text(ui.status_button, "状态", 10, 29, &pet_font_16, BLUE);
+    image(ui.status_button, pw_icons[0], 19, 8);
+    text(ui.status_button, "状态", 15, 36, &pet_font_16, BLUE);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -538,17 +554,17 @@ static void paint_order(void)
     const pet_world_t *w = &ui.world;
     bool can_order = w->scene == PW_DORM && w->order == PW_ORDER_NONE && w->cooldown[PW_TAKEOUT] <= w->now && !pw_busy(w);
     if (w->order == PW_ORDER_DELIVERING)
-        lv_label_set_text_fmt(ui.order_note, "配送中 · 约 %u 秒", (unsigned)((w->order_due - w->now + 999) / 1000));
+        set_label_fmt(ui.order_note, "配送中 · 约 %u 秒", (unsigned)((w->order_due - w->now + 999) / 1000));
     else if (w->order == PW_ORDER_READY)
-        lv_label_set_text(ui.order_note, "已送到 · 点门旁纸袋");
+        set_label(ui.order_note, "已送到 · 点门旁纸袋");
     else if (w->cooldown[PW_TAKEOUT] > w->now)
-        lv_label_set_text_fmt(ui.order_note, "约 %u 秒后可再下单",
+        set_label_fmt(ui.order_note, "约 %u 秒后可再下单",
                               (unsigned)((w->cooldown[PW_TAKEOUT] - w->now + 999) / 1000));
     else if (pw_busy(w))
-        lv_label_set_text(ui.order_note, w->phase == PW_SLEEP ? "先点床叫醒小猫" : "等当前动作结束");
+        set_label(ui.order_note, w->phase == PW_SLEEP ? "先点床叫醒小猫" : "等当前动作结束");
     else
-        lv_label_set_text(ui.order_note, "约 30 秒送达");
-    lv_label_set_text(ui.order_save, w->order == PW_ORDER_NONE ? "" : save_notes[save_state]);
+        set_label(ui.order_note, "约 30 秒送达");
+    set_label(ui.order_save, w->order == PW_ORDER_NONE ? "" : save_notes[save_state]);
     visible(ui.order_save, !can_order);
     visible(ui.order_button, can_order);
 }
@@ -556,19 +572,19 @@ static void paint_order(void)
 static void paint_journal(void)
 {
     const pet_world_t *w = &ui.world;
-    lv_label_set_text_fmt(ui.journal_page, "第 %u 页 · 三件小愿望", (unsigned)w->journal_page);
+    set_label_fmt(ui.journal_page, "第 %u 页 · 三件小愿望", (unsigned)w->journal_page);
     for (unsigned i = 0; i < 3; i++)
     {
         bool done = (w->journal_progress & (1U << i)) != 0;
-        lv_label_set_text(ui.wish[i], pw_wish_text(pw_journal_wish(w, i)));
-        lv_label_set_text(ui.wish_mark[i], done ? "✓" : "○");
+        set_label(ui.wish[i], pw_wish_text(pw_journal_wish(w, i)));
+        set_label(ui.wish_mark[i], done ? "✓" : "○");
         lv_obj_set_style_bg_color(ui.badge[i], lv_color_hex(w->journal_badges & (1U << i) ? 0xD5DDA8 : 0xE0DDCE), 0);
     }
-    lv_label_set_text_fmt(ui.journal_count, "贴纸 %u 枚", w->journal_stamps);
+    set_label_fmt(ui.journal_count, "贴纸 %u 枚", w->journal_stamps);
     bool ready = w->journal_progress == 7 && !pw_busy(w);
     visible(ui.claim, ready);
     visible(ui.claim_hint, !ready);
-    lv_label_set_text(ui.claim_hint, w->journal_progress != 7 ? "按自己的顺序慢慢完成"
+    set_label(ui.claim_hint, w->journal_progress != 7 ? "按自己的顺序慢慢完成"
                         : w->phase == PW_SLEEP ? "点床叫醒小猫后收贴纸" : "等当前活动结束再收贴纸");
 }
 static void paint_memory(void)
@@ -577,8 +593,8 @@ static void paint_memory(void)
     const char *note = game->phase == PM_SHOW ? "先记住亮起的顺序"
                        : game->phase == PM_INPUT ? "按刚才的顺序点"
                        : game->phase == PM_WON ? "都记住啦！" : "差一点，下次再试";
-    lv_label_set_text(ui.memory_note, note);
-    lv_label_set_text_fmt(ui.memory_round, "第 %u / 3 轮 · %u 个图案", game->round + 1, game->length);
+    set_label(ui.memory_note, note);
+    set_label_fmt(ui.memory_round, "第 %u / 3 轮 · %u 个图案", game->round + 1, game->length);
     int highlight = pm_highlight(game);
     static const uint32_t colors[] = {0xE4B9A1, 0xBFCEA5, 0xB5CDD2, 0xE5D49D};
     for (unsigned i = 0; i < 4; i++)
@@ -588,11 +604,11 @@ static void paint_memory(void)
         lv_obj_set_style_border_color(ui.memory_tile[i], lv_color_hex(BLUE), 0);
     }
     if (game->phase == PM_INPUT)
-        lv_label_set_text_fmt(ui.memory_footer, "已经想起 %u / %u 个", game->input_at, game->length);
+        set_label_fmt(ui.memory_footer, "已经想起 %u / %u 个", game->input_at, game->length);
     else if (game->phase == PM_WON)
-        lv_label_set_text_fmt(ui.memory_footer, "心情 +%d · 课堂记忆已记下", ui.world.mood_gain);
+        set_label_fmt(ui.memory_footer, "心情 +%d · 课堂记忆已记下", ui.world.mood_gain);
     else
-        lv_label_set_text(ui.memory_footer, game->phase == PM_SHOW ? "看完再点，不用赶时间"
+        set_label(ui.memory_footer, game->phase == PM_SHOW ? "看完再点，不用赶时间"
                                                                   : "随时可以重新挑战");
 }
 
@@ -606,9 +622,9 @@ static void paint(void)
         build_hotspots();
         if (ui.scene != PW_CAMPUS)
         {
-            lv_image_set_src(ui.background, room_art[ui.scene]);
+            set_image(ui.background, room_art[ui.scene]);
             const lv_image_dsc_t *art = room_decor[ui.scene];
-            lv_image_set_src(ui.decor, art);
+            set_image(ui.decor, art);
             lv_obj_set_pos(ui.decor, decor_anchor[ui.scene][0], decor_anchor[ui.scene][1] - art->header.h);
         }
     }
@@ -624,7 +640,7 @@ static void paint(void)
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
     if (!campus)
-        lv_label_set_text(ui.location_text, room_names[ui.scene]);
+        set_label(ui.location_text, room_names[ui.scene]);
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
     int left = (int)lroundf(cx), top = (int)lroundf(cy);
@@ -632,14 +648,14 @@ static void paint(void)
     lv_obj_set_pos(ui.gates, -left, -top);
     visible(ui.gates, campus);
     if (campus)
-        lv_label_set_text(ui.location_text, campus_area(ui.world.x, ui.world.y));
+        set_label(ui.location_text, campus_area(ui.world.x, ui.world.y));
     visible(ui.goal, campus && ui.world.phase == PW_WALK && ui.world.purpose == 3);
     lv_obj_set_pos(ui.goal, (int)ui.world.point_goal.x - 10, (int)ui.world.point_goal.y - 10);
     pw_visual_t v;
     pw_visual(&ui.world, &v);
     v.x -= left;
     v.y -= top;
-    lv_image_set_src(ui.sprite, pw_frames[v.frame]);
+    set_image(ui.sprite, pw_frames[v.frame]);
     lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(v.y) - 64);
     lv_image_set_scale(ui.sprite, (uint32_t)lroundf(v.scale * 256));
     lv_obj_set_pos(ui.cat_hit, limit((int)v.x - 32, 0, 326), limit((int)v.y - 64, 0, 382));
@@ -654,33 +670,31 @@ static void paint(void)
         static const lv_image_dsc_t *const front[] = {&shahe_seat_0, &shahe_front_1, &shahe_front_2};
         static const int16_t *const anchor[] = {shahe_seat_0_xy, shahe_front_1_xy, shahe_front_2_xy};
         const int16_t *xy = bed ? shahe_front_0_xy : anchor[ui.scene];
-        lv_image_set_src(ui.foreground, bed ? &shahe_front_0 : front[ui.scene]);
+        set_image(ui.foreground, bed ? &shahe_front_0 : front[ui.scene]);
         lv_obj_set_pos(ui.foreground, xy[0], xy[1]);
     }
     visible(ui.foreground, show_front);
-    lv_label_set_text(ui.marks,
+    set_label(ui.marks,
                       v.sleeping ? "z z"
                                  : (ui.world.phase == PW_ACTION && ui.world.action == PW_TOUCH ? "♥" : ""));
     lv_obj_set_pos(ui.marks, limit((int)v.x + 18, 0, 350), limit((int)v.y - 51, 0, 420));
-    lv_label_set_text_fmt(ui.food, "%u", ui.world.food);
-    lv_label_set_text_fmt(ui.mood, "%u", ui.world.mood);
+    set_label_fmt(ui.food, "%u", ui.world.food);
+    set_label_fmt(ui.mood, "%u", ui.world.mood);
     lv_obj_set_width(ui.food_fill, ui.world.food ? ui.world.food * 240 / 100 : 1);
     lv_obj_set_width(ui.mood_fill, ui.world.mood ? ui.world.mood * 240 / 100 : 1);
     visible(ui.food_fill, ui.world.food > 0);
     visible(ui.mood_fill, ui.world.mood > 0);
-    lv_label_set_text(ui.state, pw_state_text(&ui.world));
+    set_label(ui.state, pw_state_text(&ui.world));
     static const char *links[] = {"蓝牙启动中", "蓝牙等待连接", "蓝牙已连接", "蓝牙异常"};
-    lv_label_set_text(ui.link_badge, links[link_status.state]);
-    lv_label_set_text(ui.link_detail, links[link_status.state]);
-    lv_label_set_text(ui.link_name, link_status.name);
+    set_label(ui.link_detail, links[link_status.state]);
+    set_label(ui.link_name, link_status.name);
     uint32_t link_color = link_status.state == PET_LINK_CONNECTED ? 0x537958
         : link_status.state == PET_LINK_ERROR ? 0xA84D43 : BLUE;
-    lv_obj_set_style_text_color(ui.link_badge, lv_color_hex(link_color), 0);
     lv_obj_set_style_text_color(ui.link_detail, lv_color_hex(link_color), 0);
-    lv_label_set_text_fmt(ui.volume_text, "音量 %u / 10", ui.world.volume);
-    lv_label_set_text(ui.audio_label, ui.world.sound_mode == 2 ? "背景音乐：开" : "背景音乐：关");
+    set_label_fmt(ui.volume_text, "音量 %u / 10", ui.world.volume);
+    set_label(ui.audio_label, ui.world.sound_mode == 2 ? "背景音乐：开" : "背景音乐：关");
     lv_obj_center(ui.audio_label);
-    lv_label_set_text(ui.audio_note, audio_available ? "调至零档无声 · 自动记住" : "声音暂不可用，切换重试");
+    set_label(ui.audio_note, audio_available ? "调至零档无声 · 自动记住" : "声音暂不可用，切换重试");
     bool memory = ui.world.phase == PW_MINIGAME;
     visible(ui.layer, memory || ui.panel != PANEL_NONE);
     if (memory || ui.panel != PANEL_NONE) lv_obj_move_foreground(ui.layer);
@@ -698,13 +712,13 @@ static void paint(void)
         msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";
     bool gains = ui.world.now < ui.world.gain_until;
     if (gains && ui.world.gain && ui.world.mood_gain)
-        lv_label_set_text_fmt(ui.bubble_text, "饱食 %+d · 心情 %+d", ui.world.gain, ui.world.mood_gain);
+        set_label_fmt(ui.bubble_text, "饱食 %+d · 心情 %+d", ui.world.gain, ui.world.mood_gain);
     else if (gains && ui.world.gain)
-        lv_label_set_text_fmt(ui.bubble_text, "饱食 %+d", ui.world.gain);
+        set_label_fmt(ui.bubble_text, "饱食 %+d", ui.world.gain);
     else if (gains)
-        lv_label_set_text_fmt(ui.bubble_text, "心情 %+d", ui.world.mood_gain);
+        set_label_fmt(ui.bubble_text, "心情 %+d", ui.world.mood_gain);
     else
-        lv_label_set_text(ui.bubble_text, msg);
+        set_label(ui.bubble_text, msg);
     visible(ui.bubble, gains || *msg);
 }
 void pet_ui_update(const pet_world_t *world)

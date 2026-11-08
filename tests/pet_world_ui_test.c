@@ -6,6 +6,7 @@
 #include "pet_world_font.h"
 #include "src/draw/lv_draw_buf_private.h"
 #include "src/draw/lv_image_decoder_private.h"
+#include "src/misc/cache/instance/lv_image_cache.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@ static pw_result_t result;
 static unsigned char frame[450][390][3], draw_buffer[390 * 50 * 3];
 static lv_point_t pointer;
 static lv_indev_state_t pointer_state;
+static uint64_t flushed_pixels;
 static lv_draw_buf_malloc_cb_t image_allocate;
 static lv_draw_buf_free_cb_t image_release;
 static size_t image_live, image_peak;
@@ -65,7 +67,9 @@ static void check_scene_decoders(void)
         {
             const lv_image_dsc_t *src = i < 25 ? shahe_ground[i] : plates[i - 25];
             lv_image_decoder_dsc_t decoder;
-            assert(lv_image_decoder_open(&decoder, src, NULL) == LV_RESULT_OK);
+            lv_image_decoder_args_t args = {0};
+            args.no_cache = true;
+            assert(lv_image_decoder_open(&decoder, src, &args) == LV_RESULT_OK);
             assert(decoder.decoded);
             assert(decoder.header.w == src->header.w && decoder.header.h == src->header.h);
             lv_image_decoder_close(&decoder);
@@ -79,6 +83,7 @@ static void check_scene_decoders(void)
 static void flush(lv_display_t *d, const lv_area_t *a, uint8_t *data)
 {
     int width = a->x2 - a->x1 + 1;
+    flushed_pixels += (uint64_t)width * (a->y2 - a->y1 + 1);
     for (int y = a->y1; y <= a->y2; y++)
         for (int x = a->x1; x <= a->x2; x++)
         {
@@ -263,6 +268,66 @@ static void reset(void)
     pet_ui_set_point_handler(point_command);
     pet_ui_update(&world);
     lv_obj_update_layout(lv_screen_active());
+}
+static struct { void *p; size_t size; } profile_allocations[128];
+static unsigned profile_large_decodes;
+static size_t profile_live, profile_peak;
+static void *profile_allocate(size_t size, lv_color_format_t format)
+{
+    void *p = image_allocate(size, format);
+    assert(p);
+    for (unsigned i=0; i<128; i++) if (!profile_allocations[i].p) {
+        profile_allocations[i].p=p; profile_allocations[i].size=size;
+        profile_live+=size;
+        if(profile_live>profile_peak)profile_peak=profile_live;
+        if(size>=100000)profile_large_decodes++;
+        return p;
+    }
+    assert(false); return NULL;
+}
+static void profile_release(void *p)
+{
+    for(unsigned i=0;i<128;i++)if(profile_allocations[i].p==p) {
+        profile_live-=profile_allocations[i].size;
+        profile_allocations[i].p=NULL;image_release(p);return;
+    }
+    assert(false);
+}
+static void render_profile(bool strict)
+{
+    lv_image_cache_drop(NULL);
+    lv_draw_buf_handlers_t *handlers=lv_draw_buf_get_image_handlers();
+    image_allocate=handlers->buf_malloc_cb;image_release=handlers->buf_free_cb;
+    handlers->buf_malloc_cb=profile_allocate;handlers->buf_free_cb=profile_release;
+    FILE *f=fopen("render-profile.jsonl","wb");assert(f);
+    for(unsigned scene=0;scene<3;scene++) {
+        reset();
+        if(scene) {
+            world.scene=PW_CAMPUS;world.node=0;
+            pw_point_t p=pw_node(PW_CAMPUS,0);world.x=p.x;world.y=p.y;
+            pet_ui_update(&world);
+        }
+        for(unsigned i=0;i<80;i++)step(40);
+        if(scene==2)assert(pw_request(&world,PW_ENTER_DORM)==PW_OK);
+        unsigned before=profile_large_decodes;
+        uint64_t pixels=flushed_pixels;
+        for(unsigned i=0;i<50;i++)step(40);
+        unsigned count=profile_large_decodes-before;
+        pixels=flushed_pixels-pixels;
+        printf("[host:render-profile] scene=%u frames=50 large_decodes=%u pixels=%llu peak=%zu\n",
+            scene,count,(unsigned long long)pixels,profile_peak);fflush(stdout);
+        fprintf(f,"{\"scene\":%u,\"frames\":50,\"large_decodes\":%u,\"pixels\":%llu,\"peak_image_bytes\":%zu}\n",
+            scene,count,(unsigned long long)pixels,profile_peak);fflush(f);
+        if(strict) {
+            assert(count<=(scene==2?18U:0U));
+            if(!scene)assert(pixels<390U*450U*10U);
+        }
+    }
+    fclose(f);
+    lv_image_cache_drop(NULL);
+    assert(profile_live==0);
+    assert(profile_peak<=LV_CACHE_DEF_SIZE+351000+4096);
+    handlers->buf_malloc_cb=image_allocate;handlers->buf_free_cb=image_release;
 }
 static void idle(pw_scene_t scene)
 {
@@ -607,7 +672,7 @@ static void campus_extended_route(void)
     assert(label_with(lv_screen_active(), "东区教学区"));
     screenshot("shahe-full-east.ppm");
 }
-int main(void)
+int main(int argc, char **argv)
 {
     lv_init();
     check_scene_decoders();
@@ -618,7 +683,21 @@ int main(void)
     lv_indev_t *input = lv_indev_create();
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
+    bool measure=argc>1 && !strcmp(argv[1],"--measure");
+    render_profile(!measure);
+    if(measure)return 0;
     reset();
+    lv_obj_t *entry=control("状态");lv_area_t entry_area;
+    lv_obj_get_coords(entry,&entry_area);
+    assert(entry_area.x1==296 && entry_area.y1==28 && entry_area.x2<=357);
+    assert(lv_obj_get_width(entry)==62 && lv_obj_get_height(entry)==62);
+    tap(entry_area.x1+4,(entry_area.y1+entry_area.y2)/2);
+    assert(label_with(lv_screen_active(),"小猫状态"));press("×");
+    entry=control("手账");lv_obj_get_coords(entry,&entry_area);
+    assert(entry_area.x1==228 && entry_area.y1==28 && lv_obj_get_width(entry)==62);
+    tap(entry_area.x2-4,(entry_area.y1+entry_area.y2)/2);
+    assert(label_with(lv_screen_active(),"小猫的校园手账"));press("×");
+    assert(!label_with(lv_screen_active(),"蓝牙启动中"));
     press("手账");
     screenshot("shahe-journal-first.ppm");
     press("×");
@@ -658,6 +737,7 @@ int main(void)
     screenshot("shahe-audio-unavailable.ppm");
     pet_ui_set_audio_available(true);
     press("×");
+    assert(!label_with(lv_screen_active(),"蓝牙启动中"));
     screenshot("shahe-audio-room.ppm");
     dorm();
     puts("[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS");
