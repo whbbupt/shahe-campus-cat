@@ -49,7 +49,7 @@ def build(sources, name, includes=(), defines=(), dependencies=()):
     if any(x.name in ('pet_world.c','pet_ble_rt_test.c') for x in sources):
         sources=[*sources, root/'src/pet_time.c']
     if any(x.name == 'pet_world.c' for x in sources):
-        sources=[*sources, root/'src/pet_challenge.c', root/'src/pet_challenge_selftest.c', root/'src/pet_life_selftest.c']
+        sources=[*sources, root/'src/pet_challenge.c', root/'src/pet_challenge_selftest.c', root/'src/pet_life_selftest.c', root/'src/pet_economy.c', root/'src/pet_economy_selftest.c']
     if any(x.name=='pet_ble_rt_test.c' for x in sources):
         sources=[*sources,root/'src/pet_cts.c']
     if any(x.name=='pet_app.c' for x in sources):
@@ -100,6 +100,11 @@ build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_s
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'tests/pet_save_test.c'], 'pet-save-test')
+old7_save=out/'actual_schema7_pet_save.c'
+old7_save.write_bytes(subprocess.check_output(['git','show','df6e0db:src/pet_save.c'],cwd=root))
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old7_save, root/'tests/pet_save_v7_producer_test.c'], 'pet-save-v7-producer')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_economy_save_test.c'], 'pet-economy-save-test')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old7_save, root/'tests/pet_save_v7_refusal_test.c'], 'pet-save-v7-refusal-test')
 old_save=out/'actual_schema6_pet_save.c'
 old_save.write_bytes(subprocess.check_output(['git','show','a633ec9:src/pet_save.c'],cwd=root))
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old_save, root/'tests/pet_save_v6_refusal_test.c'], 'pet-save-v6-refusal-test')

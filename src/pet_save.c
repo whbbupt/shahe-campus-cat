@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 7U
+#define SCHEMA 8U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -74,10 +74,11 @@ static void visible_key(const uint8_t *r, uint8_t key[15])
     key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1) | (volume(r) << 3) | (clock_trusted(r) ? 128 : 0));
     key[4] = (uint8_t)order_state(r);
     memset(key + 5, 0, 10);
-    if (r[4] >= 4)
-        memcpy(key + 5, r + 46, 10);
-    else
-        key[5] = 1; /* Older snapshots start on journal page one. */
+    put32(key + 5, r[4] >= 8 ? get32(r + 46) : PE_START_COINS);
+    key[9] = r[4] >= 8 ? r[50] : 0;
+    key[10] = r[4] >= 8 ? r[51] : 0;
+    if (r[4] >= 4) memcpy(key + 11, r + 52, 2);
+
 }
 static bool valid(const uint8_t *r)
 {
@@ -89,8 +90,13 @@ static bool valid(const uint8_t *r)
         return false;
     if (r[4] >= 4)
     {
-        if (!get32(r + 46) || r[54] > 7 || r[55] > 7 || order_code(r) > PW_DELIVERY_MS + 1)
-            return false;
+        if (order_code(r) > PW_DELIVERY_MS + 1) return false;
+        if (r[4] >= 8)
+        {
+            pe_wallet_t wallet = {(uint16_t)get32(r + 46), r[50], r[51]};
+            if (get32(r + 46) > PE_MAX_COINS || !pe_valid(&wallet) || r[54] || r[55]) return false;
+        }
+        else if (!get32(r + 46) || r[54] > 7 || r[55] > 7) return false;
         for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
             if (get16(r + 32 + 2 * i) > saved_limits[i])
                 return false;
@@ -116,13 +122,10 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
            s->saved[12] == w->food && s->saved[13] == w->mood &&
            s->saved[14] == (uint8_t)w->scene && sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
            clock_trusted(s->saved) == w->clock.trusted && order_state(s->saved) == w->order &&
-           (s->saved[4] >= 4
-                ? get32(s->saved + 46) == w->journal_page &&
-                  get16(s->saved + 50) == w->journal_stamps &&
-                  get16(s->saved + 52) == w->memory_wins &&
-                  s->saved[54] == w->journal_progress && s->saved[55] == w->journal_badges
-                : w->journal_page == 1 && !w->journal_stamps && !w->memory_wins &&
-                  !w->journal_progress && !w->journal_badges);
+           w->wallet.coins == (s->saved[4] >= 8 ? get32(s->saved + 46) : PE_START_COINS) &&
+           w->wallet.owned == (s->saved[4] >= 8 ? s->saved[50] : 0) &&
+           w->wallet.equipped == (s->saved[4] >= 8 ? s->saved[51] : 0) &&
+           w->memory_wins == (s->saved[4] >= 4 ? get16(s->saved + 52) : 0);
 }
 static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 {
@@ -131,7 +134,7 @@ static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
     /* Never persist an unfinished business intent or a half-swapped scene. */
-    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10) return false;
+    if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC);
     r[4] = SCHEMA;
@@ -147,11 +150,11 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
         if (value > saved_limits[i]) return false;
         put16(r + 32 + 2 * i, (uint16_t)value);
     }
-    put32(r + 46, w->journal_page);
-    put16(r + 50, w->journal_stamps);
+    put32(r + 46, w->wallet.coins);
+    r[50] = w->wallet.owned;
+    r[51] = w->wallet.equipped;
     put16(r + 52, w->memory_wins);
-    r[54] = w->journal_progress;
-    r[55] = w->journal_badges;
+    r[54] = r[55] = 0;
     uint32_t order = 0;
     if (w->order == PW_ORDER_READY)
         order = 1;
@@ -185,11 +188,10 @@ static void restore(const uint8_t *r, pet_world_t *w)
     {
         for (unsigned i = 0; i < sizeof(saved_actions) / sizeof(saved_actions[0]); i++)
             w->cooldown[saved_actions[i]] = get16(r + 32 + 2 * i);
-        w->journal_page = get32(r + 46);
-        w->journal_stamps = get16(r + 50);
+        if (r[4] >= 8) w->wallet = (pe_wallet_t){(uint16_t)get32(r + 46), r[50], r[51]};
+        else { w->journal_page = get32(r + 46); w->journal_stamps = get16(r + 50); }
         w->memory_wins = get16(r + 52);
-        w->journal_progress = r[54];
-        w->journal_badges = r[55];
+        if (r[4] < 8) { w->journal_progress = r[54]; w->journal_badges = r[55]; }
     }
     else
     {
@@ -230,7 +232,7 @@ ps_result_t ps_save(pet_save_t *s, const pet_world_t *w)
 {
     uint8_t r[64], check[64];
     if (!s->enabled) return PS_IO_ERROR;
-    if (w->volume > 10 || w->sound_mode > 2) return PS_INVALID;
+    if (w->volume > 10 || w->sound_mode > 2 || !pe_valid(&w->wallet)) return PS_INVALID;
     /* Reconcile a commit whose final read may have failed. Never reuse its sequence. */
     pet_save_t probe;
     pet_world_t ignored;

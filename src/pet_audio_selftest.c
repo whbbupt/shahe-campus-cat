@@ -54,7 +54,7 @@ static bool event_once(void)
     CHECK(pw_request(&w, PW_TOUCH) == PW_BUSY && pa_observe(&s, &w) == PA_NONE);
     pw_advance(&w, 2000);
     w.journal_progress = 7;
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK && pa_observe(&s, &w) == PA_STAMP);
+    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_INVALID && pa_observe(&s, &w) == PA_NONE);
     pa_observer_init(&s, &w);
     CHECK(pa_observe(&s, &w) == PA_NONE);
     w.phase = PW_MINIGAME;

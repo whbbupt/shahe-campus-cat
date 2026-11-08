@@ -9,7 +9,7 @@ root=Path(__file__).resolve().parents[1];art=root/'assets/pet-world';art.mkdir(p
 source=a.sdk/'external/lvgl_v9/scripts/built_in_font/SourceHanSansSC-Normal.otf'
 license_file=a.sdk/'external/lvgl_v9/scripts/built_in_font/font_license/SourceHanSansSC/LICENSE.txt'
 chars=set(chr(i) for i in range(32,127))
-for file in [root/'src/pet_ui.c',root/'src/pet_world.c']:
+for file in [root/'src/pet_ui.c',root/'src/pet_world.c',root/'src/pet_economy.c']:
     for c in file.read_text(encoding='utf-8'):
         if ord(c)>127:chars.add(c)
 cmap=TTFont(source).getBestCmap();missing=[c for c in chars if ord(c) not in cmap]

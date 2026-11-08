@@ -107,7 +107,11 @@ enum
     MSG_ORDER_ACTIVE,
     MSG_NO_ORDER,
     MSG_MEMORY,
-    MSG_STAMP
+    MSG_STAMP,
+    MSG_POOR,
+    MSG_PURCHASED,
+    MSG_PLACED,
+    MSG_STORED
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -183,6 +187,22 @@ static void settle(pet_world_t *w, pw_command_t a)
     feedback(w, w->food - old_food, w->mood - old_mood, w->now);
 }
 
+static void game_result(pet_world_t *w, bool won)
+{
+    w->coin_gain = 0;
+    if (won)
+    {
+        settle(w, PW_MEMORY);
+        if (w->memory_wins < UINT16_MAX) w->memory_wins++;
+    }
+    unsigned reward = won ? 10 : w->now - w->action_start >= 5000 ? 2 : 0;
+    if (reward)
+    {
+        w->coin_gain = (int)pe_credit(&w->wallet, reward);
+        w->coin_until = w->now + 2400;
+        w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
+    }
+}
 static uint8_t heading(float dx, float dy)
 {
     static const uint8_t map[8] = {6, 7, 0, 1, 2, 3, 4, 5};
@@ -202,6 +222,7 @@ void pw_init(pet_world_t *w)
     w->scene = PW_DORM;
     w->phase = PW_IDLE;
     w->journal_page = 1;
+    w->wallet.coins = PE_START_COINS;
     w->sound_mode = 2;
     w->volume = 5;
     w->food = 70;
@@ -282,18 +303,22 @@ static pw_result_t eligible(const pet_world_t *w, pw_command_t a)
     if (((a == PW_STUDY || a == PW_WORKOUT) && w->food < 10) ||
         (a == PW_CODE && w->food < 8))
         return PW_LOW_FOOD;
+    if ((a == PW_EAT && w->wallet.coins < pe_price(PE_MEAL)) ||
+        (a == PW_ORDER && w->wallet.coins < pe_price(PE_DELIVERY))) return PW_NO_COINS;
     return PW_OK;
 }
 static pw_result_t reject(pet_world_t *w, pw_result_t r)
 {
     static const int msgs[] = {MSG_NONE, MSG_BUSY, MSG_ASLEEP, MSG_COOLDOWN, MSG_FULL, MSG_LOW,
-                               MSG_INVALID, MSG_INVALID, MSG_ORDER_ACTIVE, MSG_NO_ORDER};
+                               MSG_INVALID, MSG_INVALID, MSG_ORDER_ACTIVE, MSG_NO_ORDER, MSG_POOR};
     w->gain_until = 0;
     say(w, msgs[r]);
     return r;
 }
 static void begin(pet_world_t *w, pw_command_t a)
 {
+    if (a == PW_EAT && !pe_pay(&w->wallet, pe_price(PE_MEAL)))
+    { w->target = PW_NONE; idle(w); reject(w, PW_NO_COINS); return; }
     static const int messages[PW_ACTION_COUNT] = {
         MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT, MSG_MEMORY};
     w->phase = a == PW_MEMORY && w->challenge.kind != PG_LIFE ? PW_MINIGAME : PW_ACTION;
@@ -599,6 +624,31 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 }
 pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd >= PW_BUY_SNACK && cmd <= PW_BUY_SHELF)
+    {
+        if (w->phase != PW_IDLE) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (cmd == PW_BUY_SNACK)
+        {
+            if (w->food == 100) return reject(w, PW_FULL);
+            if (!pe_pay(&w->wallet, pe_price(PE_SNACK))) return reject(w, PW_NO_COINS);
+            int food = w->food, mood = w->mood;
+            w->food = clamp_value(food + 10); w->mood = clamp_value(mood + 1);
+            w->snacks++;
+            feedback(w, w->food - food, w->mood - mood, w->now);
+            say(w, MSG_EAT);
+        }
+        else
+        {
+            pe_result_t result = pe_furniture(&w->wallet, (pe_item_t)(PE_PLANT + cmd - PW_BUY_PLANT));
+            if (result == PE_POOR) return reject(w, PW_NO_COINS);
+            if (result == PE_INVALID) return reject(w, PW_INVALID);
+            w->gain_until = 0;
+            say(w, result == PE_BOUGHT ? MSG_PURCHASED : result == PE_PLACED ? MSG_PLACED : MSG_STORED);
+        }
+        w->coin_until = 0;
+        return PW_OK;
+    }
+
     if (cmd >= PW_MEAL_GAME && cmd <= PW_LIFE)
     {
         if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
@@ -652,38 +702,17 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         {
             pg_phase_t before = w->challenge.phase;
             pg_press(&w->challenge, (unsigned)(cmd - PW_MEMORY_0));
-            if (before == PG_INPUT && w->challenge.phase == PG_WON)
-            {
-                settle(w, PW_MEMORY);
-                if (w->memory_wins < UINT16_MAX) w->memory_wins++;
-                w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
-            }
+            if (before == PG_INPUT && (w->challenge.phase == PG_WON || w->challenge.phase == PG_LOST))
+                game_result(w, w->challenge.phase == PG_WON);
             return PW_OK;
         }
         pm_phase_t before = w->memory.phase;
         pm_press(&w->memory, (unsigned)(cmd - PW_MEMORY_0));
-        if (before == PM_INPUT && w->memory.phase == PM_WON)
-        {
-            settle(w, PW_MEMORY);
-            if (w->memory_wins < UINT16_MAX) w->memory_wins++;
-            w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
-        }
+        if (before == PM_INPUT && (w->memory.phase == PM_WON || w->memory.phase == PM_LOST))
+            game_result(w, w->memory.phase == PM_WON);
         return PW_OK;
     }
-    if (cmd == PW_JOURNAL_CLAIM)
-    {
-        if (pw_busy(w))
-            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
-        if (w->journal_progress != 7 || w->journal_page == UINT32_MAX)
-            return reject(w, PW_INVALID);
-        w->journal_badges |= (uint8_t)(1U << ((w->journal_page - 1) % 3));
-        if (w->journal_stamps < UINT16_MAX) w->journal_stamps++;
-        w->journal_page++;
-        w->journal_progress = 0;
-        w->gain_until = 0;
-        say(w, MSG_STAMP);
-        return PW_OK;
-    }
+    if (cmd == PW_JOURNAL_CLAIM) return reject(w, PW_INVALID); /* Retired product goal. */
     if (cmd == PW_MEMORY_START || cmd == PW_MEMORY)
     {
         if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
@@ -745,6 +774,7 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd)
         return reject(w, r);
     if (cmd == PW_ORDER)
     {
+        if (!pe_pay(&w->wallet, pe_price(PE_DELIVERY))) return reject(w, PW_NO_COINS);
         w->order = PW_ORDER_DELIVERING;
         w->order_due = w->now + PW_DELIVERY_MS;
         w->gain_until = 0;
@@ -854,12 +884,8 @@ void pw_advance(pet_world_t *w, uint32_t ms)
             {
                 pg_phase_t before = w->challenge.phase;
                 pg_advance(&w->challenge, (uint32_t)dt);
-                if (before == PG_INPUT && w->challenge.phase == PG_WON)
-                {
-                    settle(w, PW_MEMORY);
-                    if (w->memory_wins < UINT16_MAX) w->memory_wins++;
-                    w->cooldown[PW_MEMORY] = w->now + PW_MEMORY_COOLDOWN_MS;
-                }
+                if (before == PG_INPUT && (w->challenge.phase == PG_WON || w->challenge.phase == PG_LOST))
+                    game_result(w, w->challenge.phase == PG_WON);
                 if (w->challenge.phase == PG_OFF) idle(w);
             }
         }
@@ -1040,7 +1066,11 @@ const char *pw_message_text(const pet_world_t *w)
                                   "已有一份外卖",
                                   "还没有可取的外卖",
                                   "看一遍，再按顺序点",
-                                  "收下一枚校园贴纸"};
+                                  "收下一枚校园贴纸",
+                                  "金币不够，玩小游戏赚生活费",
+                                  "买好啦，已摆进宿舍",
+                                  "已摆进宿舍",
+                                  "已收起，随时可以再摆"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }
 const char *pw_life_text(pw_scene_t scene)
@@ -1052,11 +1082,12 @@ const char *pw_need_text(const pet_world_t *w)
 {
     if (w->phase == PW_SLEEP) return "正在休息，点床可以叫醒";
     if (pw_busy(w)) return pw_state_text(w);
+    if (w->food < 20 && w->wallet.coins < pe_price(PE_MEAL)) return "先玩小游戏赚生活费，再买饭";
     if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点座位吃饭" : "肚子饿啦，去食堂吃饭吧";
     if (w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc) == 2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
     if (w->order == PW_ORDER_READY) return "外卖到了，回宿舍取餐";
     if (w->mood < 30) return "想和你贴贴，也想玩一会";
-    if (w->journal_progress == 7 && w->journal_page != UINT32_MAX) return "愿望完成啦，去手账领贴纸";
+    if (w->wallet.coins < pe_price(PE_SNACK)) return "小游戏通关可以赚生活费";
     return "今天状态不错，随心逛逛";
 }

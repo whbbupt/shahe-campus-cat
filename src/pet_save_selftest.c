@@ -172,7 +172,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 7);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 8);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -275,35 +275,24 @@ static bool sound_restore(void)
     CHECK(ps_save(&s, &w) == PS_INVALID);
     return true;
 }
-static bool journal_restore(void)
+static bool economy_restore(void)
 {
-    blank();
-    pet_save_t s;
-    pet_world_t w;
-    pw_init(&w);
-    CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
-    w.journal_progress = 7;
-    CHECK(!ps_visible_saved(&s, &w) && ps_save(&s, &w) == PS_OK);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
+    blank(); pet_save_t s; pet_world_t w;
+    pw_init(&w); CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    w.wallet = (pe_wallet_t){49, 3, 1}; w.memory_wins = 17;
     CHECK(!ps_visible_saved(&s, &w));
-    ram.budget = 63;
-    CHECK(ps_save(&s, &w) == PS_IO_ERROR);
-    ram.budget = -1;
-    CHECK(ps_open(&s, io(), &w) == PS_OK && w.journal_page == 1 &&
-          w.journal_progress == 7 && w.journal_stamps == 0);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK && ps_save(&s, &w) == PS_OK);
-    CHECK(ps_open(&s, io(), &w) == PS_OK && w.journal_page == 2 && w.journal_stamps == 1);
-    CHECK(w.journal_badges == 1 && w.journal_progress == 0 && ps_visible_saved(&s, &w));
-    w.memory_wins = 17;
-    w.cooldown[PW_MEMORY] = PW_MEMORY_COOLDOWN_MS;
-    w.scene = PW_CLASSROOM;
+    ram.budget = 63; CHECK(ps_save(&s, &w) == PS_IO_ERROR); ram.budget = -1;
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.wallet.coins == 30 && !w.wallet.owned);
+    w.wallet = (pe_wallet_t){49, 3, 1}; w.memory_wins = 17;
     CHECK(ps_save(&s, &w) == PS_OK);
-    w.phase = PW_MINIGAME;
-    w.action = PW_MEMORY;
-    pm_start(&w.memory, 4);
-    CHECK(ps_save(&s, &w) == PS_WAIT);
-    CHECK(ps_open(&s, io(), &w) == PS_OK && w.memory_wins == 17 && w.memory.phase == PM_OFF);
-    CHECK(w.phase == PW_IDLE && w.cooldown[PW_MEMORY] == PW_MEMORY_COOLDOWN_MS);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.wallet.coins == 49 && w.wallet.owned == 3 && w.wallet.equipped == 1 && w.memory_wins == 17);
+    w.wallet.coins = 0; CHECK(ps_save(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.wallet.coins == 0 && ps_visible_saved(&s, &w));
+    pe_credit(&w.wallet, 10); CHECK(!ps_visible_saved(&s, &w));
+    CHECK(ps_poll(&s, &w) == PS_WAIT); pw_advance(&w, 3000); CHECK(ps_poll(&s, &w) == PS_OK);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.wallet.coins == 10);
+    w.phase = PW_MINIGAME; CHECK(ps_save(&s, &w) == PS_WAIT);
+    CHECK(ps_open(&s, io(), &w) == PS_OK && w.phase == PW_IDLE && w.memory_wins == 17);
     return true;
 }
 static bool challenges_restore(void)
@@ -337,7 +326,7 @@ static bool challenges_restore(void)
             }
         }
         if (k != 3) CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK);
-        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 7);
+        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 8);
         CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.mood == (k == 3 ? 62 : 63));
         CHECK(restored.memory_wins == (k == 3 ? 0 : 1) && restored.challenge.kind == PG_NONE && restored.phase == PW_IDLE);
         CHECK(restored.cooldown[PW_MEMORY] > 0 && pw_request(&restored, PW_LIFE) == PW_COOLDOWN);
@@ -356,7 +345,7 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"visible-state-save-consistency", visible_status}, {"campus-safe-restore", campus_restore},
         {"takeout-resume-and-atomic-pickup", takeout_resume},
         {"takeout-autosave-phase-key", takeout_autosave},
-        {"journal-atomic-stamp-and-game-restore", journal_restore},
+        {"wallet-furniture-atomic-autosave-no-repeat-gift", economy_restore},
         {"sound-mode-autosave-and-reboot", sound_restore},
         {"challenge-life-no-half-replay-and-shared-cooldown", challenges_restore}};
     bool all = true;

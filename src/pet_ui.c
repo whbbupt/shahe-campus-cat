@@ -18,12 +18,12 @@ enum
     TAG_STATUS = 100,
     TAG_CLOSE,
     TAG_PHONE,
-    TAG_JOURNAL,
+    TAG_SHOP,
     TAG_MEMORY_CLOSE,
-    TAG_COLLECTION,
-    TAG_JOURNAL_BACK
+    TAG_SHOP_FOOD,
+    TAG_SHOP_DECOR
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_JOURNAL, PANEL_COLLECTION };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP };
 static struct
 {
     pet_ui_action_fn action;
@@ -39,11 +39,12 @@ static struct
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
-    lv_obj_t *journal_button, *journal_dialog, *journal_page, *wish[3], *wish_mark[3],
-             *journal_count, *claim, *claim_hint, *badge[3];
+    lv_obj_t *shop_button, *shop_dialog, *shop_balance, *shop_hint, *shop_tab[2];
+    lv_obj_t *shop_name[3], *shop_price[3], *shop_buy[3], *shop_action[3], *furniture[3];
+    unsigned shop_page;
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit, *life_label;
-    lv_obj_t *challenge_track, *challenge_cursor, *collection_dialog, *collection_mark[3];
+    lv_obj_t *challenge_track, *challenge_cursor;
 } ui;
 static bool audio_available = true;
 static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat", 0};
@@ -148,22 +149,22 @@ static void click(lv_event_t *e)
             ui.action((pw_command_t)cmd);
         return;
     }
-    if (cmd == TAG_JOURNAL)
+    if (cmd == TAG_SHOP)
     {
-        ui.panel = ui.panel == PANEL_JOURNAL ? PANEL_NONE : PANEL_JOURNAL;
-        paint();
-        return;
+        ui.panel = ui.panel == PANEL_SHOP ? PANEL_NONE : PANEL_SHOP;
+        paint(); return;
     }
-    if (cmd == TAG_COLLECTION || cmd == TAG_JOURNAL_BACK)
+    if (cmd == TAG_SHOP_FOOD || cmd == TAG_SHOP_DECOR)
     {
-        ui.panel = cmd == TAG_COLLECTION ? PANEL_COLLECTION : PANEL_JOURNAL;
-        paint();
-        return;
+        ui.shop_page = cmd == TAG_SHOP_DECOR ? 1 : 0;
+        paint(); return;
     }
-    if (cmd == PW_JOURNAL_CLAIM && ui.panel == PANEL_JOURNAL)
+    if (ui.panel == PANEL_SHOP && (cmd == PW_EAT || cmd == PW_ORDER ||
+        (cmd >= PW_BUY_SNACK && cmd <= PW_BUY_SHELF)))
     {
-        if (ui.action) ui.action(PW_JOURNAL_CLAIM);
-        return;
+        pw_result_t result = ui.action ? ui.action((pw_command_t)cmd) : PW_INVALID;
+        if (result == PW_OK && (cmd == PW_EAT || cmd == PW_ORDER)) ui.panel = PANEL_NONE;
+        paint(); return;
     }
     if ((cmd == PW_SOUND_NEXT || cmd == PW_MUSIC_TOGGLE ||
          cmd == PW_VOLUME_DOWN || cmd == PW_VOLUME_UP) && ui.panel == PANEL_STATUS)
@@ -418,27 +419,28 @@ static void build_panel(lv_obj_t *screen)
     ui.order_button = button(ui.order_dialog, 18, 163, 240, 44, PW_ORDER, 0xDCE6CB, 10);
     lv_obj_t *order = text(ui.order_button, "确认下单", 0, 0, &pet_font_16, INK);
     lv_obj_center(order);
-    ui.journal_dialog = box(ui.layer, 36, 76, 318, 308, PAPER, 18);
-    text(ui.journal_dialog, "小猫的校园手账", 18, 12, &pet_font_20, INK);
-    lv_obj_t *journal_close = button(ui.journal_dialog, 267, 2, 44, 44, TAG_CLOSE, PAPER, 12);
-    lv_obj_t *journal_x = text(journal_close, "×", 0, 0, &pet_font_20, BLUE);
-    lv_obj_center(journal_x);
-    ui.journal_page = text(ui.journal_dialog, "", 18, 42, &pet_font_16, BLUE);
+    ui.shop_dialog = box(ui.layer, 28, 60, 334, 342, PAPER, 18);
+    text(ui.shop_dialog, "小猫生活商店", 18, 10, &pet_font_20, INK);
+    lv_obj_t *shop_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *shop_x = text(shop_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(shop_x);
+    ui.shop_balance = text(ui.shop_dialog, "", 18, 42, &pet_font_20, 0x967027);
+    const char *tabs[] = {"吃点好的", "布置宿舍"};
+    for (unsigned i = 0; i < 2; i++)
+    {
+        ui.shop_tab[i] = button(ui.shop_dialog, 18 + i * 152, 78, 146, 44,
+            i ? TAG_SHOP_DECOR : TAG_SHOP_FOOD, 0xDCEAF3, 10);
+        lv_obj_t *name = text(ui.shop_tab[i], tabs[i], 0, 0, &pet_font_16, BLUE); lv_obj_center(name);
+    }
     for (unsigned i = 0; i < 3; i++)
     {
-        lv_obj_t *row = box(ui.journal_dialog, 18, 74 + i * 41, 282, 35, 0xF0EAD8, 9);
-        ui.wish_mark[i] = text(row, "", 10, 5, &pet_font_16, BLUE);
-        ui.wish[i] = text(row, "", 39, 5, &pet_font_16, INK);
-        ui.badge[i] = box(ui.journal_dialog, 18 + i * 37, 207, 28, 28, 0xDCD9C8, 14);
-        lv_obj_t *star = text(ui.badge[i], "★", 0, 0, &pet_font_16, INK);
-        lv_obj_center(star);
+        lv_obj_t *row = box(ui.shop_dialog, 18, 132 + i * 62, 298, 58, 0xE6ECDE, 10);
+        ui.shop_name[i] = text(row, "", 10, 5, &pet_font_16, INK);
+        ui.shop_price[i] = text(row, "", 10, 31, &pet_font_16, BLUE);
+        ui.shop_buy[i] = button(row, 192, 7, 96, 44, PW_BUY_SNACK, 0xDCEAF3, 9);
+        ui.shop_action[i] = text(ui.shop_buy[i], "", 0, 0, &pet_font_16, INK);
     }
-    lv_obj_t *collection = button(ui.journal_dialog, 137, 200, 163, 44, TAG_COLLECTION, 0xDCEAF3, 9);
-    ui.journal_count = text(collection, "", 8, 10, &pet_font_16, BLUE);
-    ui.claim_hint = text(ui.journal_dialog, "", 18, 250, &pet_font_16, BLUE);
-    ui.claim = button(ui.journal_dialog, 18, 248, 282, 44, PW_JOURNAL_CLAIM, 0xDCE6CB, 10);
-    lv_obj_t *claim_name = text(ui.claim, "收下贴纸，翻到下一页", 0, 0, &pet_font_16, INK);
-    lv_obj_center(claim_name);
+    ui.shop_hint = text(ui.shop_dialog, "", 18, 320, &pet_font_16, BLUE);
+    lv_obj_set_width(ui.shop_hint, 298); lv_label_set_long_mode(ui.shop_hint, LV_LABEL_LONG_CLIP);
 
     ui.memory_dialog = box(ui.layer, 29, 75, 332, 312, PAPER, 18);
     ui.memory_title = text(ui.memory_dialog, "课堂记忆题", 18, 12, &pet_font_20, INK);
@@ -460,21 +462,6 @@ static void build_panel(lv_obj_t *screen)
     box(ui.challenge_track, 107, 0, 78, 20, 0x88AA92, 10);
     ui.challenge_cursor = box(ui.challenge_track, 0, 0, 5, 20, INK, 2);
     visible(ui.challenge_track, false);
-    ui.collection_dialog = box(ui.layer, 36, 76, 318, 308, PAPER, 18);
-    text(ui.collection_dialog, "校园贴纸收藏", 18, 12, &pet_font_20, INK);
-    lv_obj_t *back = button(ui.collection_dialog, 266, 2, 44, 44, TAG_JOURNAL_BACK, PAPER, 12);
-    lv_obj_t *back_text = text(back, "×", 0, 0, &pet_font_20, BLUE);
-    lv_obj_center(back_text);
-    static const char *badges[] = {"认真生活", "校园探索", "元气满满"};
-    static const char *conditions[] = {"完成第 1、4、7… 页", "完成第 2、5、8… 页", "完成第 3、6、9… 页"};
-    for (unsigned i = 0; i < 3; i++)
-    {
-        lv_obj_t *row = box(ui.collection_dialog, 18, 54 + i * 68, 282, 60, 0xE6ECDE, 10);
-        text(row, badges[i], 12, 6, &pet_font_20, INK);
-        text(row, conditions[i], 12, 34, &pet_font_16, BLUE);
-        ui.collection_mark[i] = text(row, "未解锁", 200, 10, &pet_font_16, BLUE);
-    }
-    text(ui.collection_dialog, "完成三件愿望后，领取并收藏", 18, 270, &pet_font_16, BLUE);
     visible(ui.layer, false);
 }
 static void build_dorm_items(lv_obj_t *screen)
@@ -497,6 +484,30 @@ static void build_dorm_items(lv_obj_t *screen)
     text(bag_tag, "取餐", 5, 0, &pet_font_16, INK);
 }
 
+static void build_furniture(lv_obj_t *screen)
+{
+    /* Window/wall/desktop objects have no foot-space: original navigation stays valid. */
+    ui.furniture[0] = box(screen, 274, 176, 26, 37, PAPER, 0);
+    lv_obj_set_style_bg_opa(ui.furniture[0], LV_OPA_TRANSP, 0);
+    box(ui.furniture[0], 12, 6, 2, 22, 0x537958, 1);
+    box(ui.furniture[0], 2, 6, 13, 9, 0x88AA92, 7);
+    box(ui.furniture[0], 13, 1, 12, 9, 0x6F9478, 6);
+    box(ui.furniture[0], 13, 15, 12, 8, 0x88AA92, 6);
+    box(ui.furniture[0], 4, 25, 20, 12, 0xBF9769, 4);
+    box(ui.furniture[0], 2, 24, 24, 4, 0xD6B28C, 2);
+    ui.furniture[1] = box(screen, 210, 200, 52, 37, 0xA78C69, 3);
+    box(ui.furniture[1], 3, 3, 46, 31, 0xF8F3DF, 1);
+    box(ui.furniture[1], 7, 6, 38, 21, 0xDCEAF3, 1);
+    box(ui.furniture[1], 10, 16, 10, 11, 0x88AA92, 1);
+    box(ui.furniture[1], 23, 12, 17, 15, 0x456B77, 1);
+    box(ui.furniture[1], 29, 8, 6, 4, 0xF8F3DF, 2);
+    ui.furniture[2] = box(screen, 66, 207, 18, 20, PAPER, 0);
+    lv_obj_set_style_bg_opa(ui.furniture[2], LV_OPA_TRANSP, 0);
+    box(ui.furniture[2], 1, 4, 4, 14, 0x88AA92, 1);
+    box(ui.furniture[2], 7, 0, 4, 18, 0xBF9769, 1);
+    box(ui.furniture[2], 13, 2, 4, 16, 0x456B77, 1);
+    box(ui.furniture[2], 0, 18, 18, 2, 0x8F775B, 1);
+}
 void pet_ui_create(pet_ui_action_fn callback)
 {
     /* No UI-owned model or animation timer: recreation cannot duplicate settlement. */
@@ -516,6 +527,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.decor = lv_image_create(screen);
     lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
+    build_furniture(screen);
     ui.tone = box(screen, 0, 0, 390, 450, 0x17344E, 0);
     ui.lamplight = box(screen, 45, 177, 60, 60, 0xFFE6AA, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.lamplight, LV_OPA_TRANSP, 0);
@@ -555,10 +567,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
     build_panel(screen);
-    ui.journal_button = button(screen, 228, 28, 62, 62, TAG_JOURNAL, PAPER, 14);
-    lv_obj_set_style_bg_opa(ui.journal_button, LV_OPA_90, 0);
-    image(ui.journal_button, pw_icons[4], 19, 8);
-    text(ui.journal_button, "手账", 15, 36, &pet_font_16, BLUE);
+    ui.shop_button = button(screen, 228, 28, 62, 62, TAG_SHOP, PAPER, 14);
+    lv_obj_set_style_bg_opa(ui.shop_button, LV_OPA_90, 0);
+    image(ui.shop_button, pw_icons[4], 19, 8);
+    text(ui.shop_button, "商店", 15, 36, &pet_font_16, BLUE);
     ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
     image(ui.status_button, pw_icons[0], 19, 8);
@@ -592,7 +604,7 @@ static const char *campus_area(float x, float y)
 static void paint_order(void)
 {
     const pet_world_t *w = &ui.world;
-    bool can_order = w->scene == PW_DORM && w->order == PW_ORDER_NONE && w->cooldown[PW_TAKEOUT] <= w->now && !pw_busy(w);
+    bool can_order = w->scene == PW_DORM && w->order == PW_ORDER_NONE && w->cooldown[PW_TAKEOUT] <= w->now && !pw_busy(w) && w->wallet.coins >= pe_price(PE_DELIVERY);
     if (w->order == PW_ORDER_DELIVERING)
         set_label_fmt(ui.order_note, "配送中 · 约 %u 秒", (unsigned)((w->order_due - w->now + 999) / 1000));
     else if (w->order == PW_ORDER_READY)
@@ -603,29 +615,50 @@ static void paint_order(void)
     else if (pw_busy(w))
         set_label(ui.order_note, w->phase == PW_SLEEP ? "先点床叫醒小猫" : "等当前动作结束");
     else
-        set_label(ui.order_note, "约 30 秒送达");
+        set_label_fmt(ui.order_note, "%u 金币 · 约30秒送达", pe_price(PE_DELIVERY));
+    if (w->wallet.coins < pe_price(PE_DELIVERY) && w->order == PW_ORDER_NONE)
+        set_label(ui.order_note, "金币不够，先玩小游戏赚生活费");
     set_label(ui.order_save, w->order == PW_ORDER_NONE ? "" : save_notes[save_state]);
     visible(ui.order_save, !can_order);
     visible(ui.order_button, can_order);
 }
 
-static void paint_journal(void)
+static void paint_shop(void)
 {
     const pet_world_t *w = &ui.world;
-    set_label_fmt(ui.journal_page, "第 %u 页 · 三件小愿望", (unsigned)w->journal_page);
+    set_label_fmt(ui.shop_balance, "生活费  %u 金币", w->wallet.coins);
+    for (unsigned i = 0; i < 2; i++)
+        lv_obj_set_style_bg_color(ui.shop_tab[i], lv_color_hex(i == ui.shop_page ? 0xBCD4BC : 0xDCEAF3), 0);
     for (unsigned i = 0; i < 3; i++)
     {
-        bool done = (w->journal_progress & (1U << i)) != 0;
-        set_label(ui.wish[i], pw_wish_text(pw_journal_wish(w, i)));
-        set_label(ui.wish_mark[i], done ? "✓" : "○");
-        lv_obj_set_style_bg_color(ui.badge[i], lv_color_hex(w->journal_badges & (1U << i) ? 0xD5DDA8 : 0xE0DDCE), 0);
+        pe_item_t item = (pe_item_t)(ui.shop_page ? PE_PLANT + i : i);
+        pw_command_t cmd = ui.shop_page ? (pw_command_t)(PW_BUY_PLANT + i)
+            : i == 0 ? PW_EAT : i == 1 ? PW_BUY_SNACK : PW_ORDER;
+        unsigned bit = 1U << i;
+        bool owned = ui.shop_page && (w->wallet.owned & bit);
+        bool placed = owned && (w->wallet.equipped & bit);
+        set_label(ui.shop_name[i], pe_name(item));
+        if (owned) set_label(ui.shop_price[i], placed ? "已摆放 · 永久拥有" : "已购买 · 免费摆放");
+        else set_label_fmt(ui.shop_price[i], "%u 金币 · %s", pe_price(item), ui.shop_page ? "永久拥有" : i == 2 ? "配送30秒" : "现买现吃");
+        const char *label = ui.shop_page ? owned ? placed ? "收起" : "摆上" : "购买" : i == 2 ? "下单" : "享用";
+        bool enabled = w->phase == PW_IDLE;
+        if (!enabled) label = w->phase == PW_SLEEP ? "先叫醒" : "稍等一下";
+        else if (!ui.shop_page && i == 0 && w->scene != PW_CANTEEN) { enabled = false; label = "到食堂吃"; }
+        else if (!ui.shop_page && i == 2 && w->scene != PW_DORM) { enabled = false; label = "回宿舍订"; }
+        else if (!ui.shop_page && i < 2 && w->food == 100) { enabled = false; label = "吃饱啦"; }
+        else if (!ui.shop_page && i == 2 && w->order != PW_ORDER_NONE) { enabled = false; label = "配送中"; }
+        else if ((!ui.shop_page && i == 0 && w->cooldown[PW_EAT] > w->now) ||
+            (!ui.shop_page && i == 2 && w->cooldown[PW_TAKEOUT] > w->now)) { enabled = false; label = "稍后再来"; }
+        else if (!owned && w->wallet.coins < pe_price(item)) { enabled = false; label = "金币不足"; }
+        if (enabled) lv_obj_remove_state(ui.shop_buy[i], LV_STATE_DISABLED);
+        else lv_obj_add_state(ui.shop_buy[i], LV_STATE_DISABLED);
+        lv_obj_set_style_bg_opa(ui.shop_buy[i], enabled ? LV_OPA_COVER : LV_OPA_40, 0);
+        set_label(ui.shop_action[i], label); lv_obj_center(ui.shop_action[i]);
+        lv_obj_remove_event_cb(ui.shop_buy[i], click);
+        lv_obj_add_event_cb(ui.shop_buy[i], click, LV_EVENT_CLICKED, (void *)(uintptr_t)cmd);
     }
-    set_label_fmt(ui.journal_count, "收藏 · %u 枚", w->journal_stamps);
-    bool ready = w->journal_progress == 7 && !pw_busy(w);
-    visible(ui.claim, ready);
-    visible(ui.claim_hint, !ready);
-    set_label(ui.claim_hint, w->journal_progress != 7 ? "按自己的顺序慢慢完成"
-                        : w->phase == PW_SLEEP ? "点床叫醒小猫后收贴纸" : "等当前活动结束再收贴纸");
+    const char *message = pw_message_text(w);
+    set_label(ui.shop_hint, *message ? message : ui.shop_page ? "买后可收起再摆上，不重复花钱" : "通关10金币 · 满5秒失败得2金币");
 }
 static void paint_memory(void)
 {
@@ -656,9 +689,11 @@ static void paint_memory(void)
     if (game->phase == PM_INPUT)
         set_label_fmt(ui.memory_footer, "已经想起 %u / %u 个", game->input_at, game->length);
     else if (game->phase == PM_WON)
-        set_label_fmt(ui.memory_footer, "心情 +%d · 课堂记忆已记下", ui.world.mood_gain);
+        set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
+    else if (game->phase == PM_LOST)
+        set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
     else
-        set_label(ui.memory_footer, game->phase == PM_SHOW ? "看完再点，不用赶时间"
+        set_label(ui.memory_footer, game->phase == PM_SHOW ? "通关赚10金币 · 先记住顺序"
                                                                   : "随时可以重新挑战");
 }
 static void paint_challenge(void)
@@ -670,7 +705,7 @@ static void paint_challenge(void)
     static const char *objects[] = {"水杯", "书本", "钥匙", "耳机"};
     static const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     set_label(ui.memory_title, rhythm ? "健身节奏" : g->kind == PG_FIND ? "宿舍找物" : "食堂配餐");
-    if (won || lost) set_label(ui.memory_note, won ? "完成啦！心情好一点" : "差一点，下次再试");
+    if (won || lost) set_label(ui.memory_note, won ? "通关啦，生活费赚到啦" : "差一点，下次再试");
     else if (rhythm) set_label(ui.memory_note, pg_window(g) ? "绿色时间，点一下！" : "等指针走到绿色");
     else if (g->phase == PG_SHOW) set_label(ui.memory_note, "先记住物品的位置");
     else set_label_fmt(ui.memory_note, "%s：%s", g->kind == PG_FIND ? "找一找" : "订单", 
@@ -691,9 +726,10 @@ static void paint_challenge(void)
         lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(rhythm && pg_window(g) ? 0x88AA92 : 0xDCEAF3), 0);
         lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
     }
-    if (won) set_label_fmt(ui.memory_footer, "心情 %+d · 休息一会再挑战", ui.world.mood_gain);
-    else set_label(ui.memory_footer, lost ? "没有扣分，可以直接退出"
-        : rhythm ? "每拍点一次 · 命中四拍即成功" : g->phase == PG_SHOW ? "五秒后物品会盖住" : "点选答案 · 随时可以退出");
+    if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
+    else if (lost) set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
+    else set_label(ui.memory_footer,
+        rhythm ? "每拍点一次 · 命中四拍即成功" : g->phase == PG_SHOW ? "五秒后物品会盖住" : "点选答案 · 随时可以退出");
 }
 
 static void paint_clock(void)
@@ -756,11 +792,13 @@ static void paint(void)
     visible(ui.campus, campus);
     visible(ui.background, !campus);
     visible(ui.decor, !campus);
+    for (unsigned i = 0; i < 3; i++)
+        visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.blackboard, !campus);
     visible(ui.life_hit, !campus);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
-    visible(ui.journal_button, ui.world.phase != PW_MINIGAME);
+    visible(ui.shop_button, ui.world.phase != PW_MINIGAME);
     visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
@@ -827,14 +865,10 @@ static void paint(void)
     if (memory || ui.panel != PANEL_NONE) lv_obj_move_foreground(ui.layer);
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
     visible(ui.order_dialog, !memory && ui.panel == PANEL_ORDER);
-    visible(ui.journal_dialog, !memory && ui.panel == PANEL_JOURNAL);
-    visible(ui.collection_dialog, !memory && ui.panel == PANEL_COLLECTION);
+    visible(ui.shop_dialog, !memory && ui.panel == PANEL_SHOP);
     visible(ui.memory_dialog, memory);
     if (memory) { if (ui.world.challenge.kind == PG_NONE) paint_memory(); else paint_challenge(); }
-    if (ui.panel == PANEL_COLLECTION)
-        for (unsigned i = 0; i < 3; i++)
-            set_label(ui.collection_mark[i], ui.world.journal_badges & (1U << i) ? "已收藏" : "未解锁");
-    if (ui.panel == PANEL_JOURNAL) paint_journal();
+    if (ui.panel == PANEL_SHOP) paint_shop();
     if (ui.panel == PANEL_ORDER)
         paint_order();
     lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.panel == PANEL_STATUS ? 0xDCEAF3 : PAPER), 0);
@@ -843,7 +877,9 @@ static void paint(void)
     if (ui.world.now < 2300 && !*msg)
         msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";
     bool gains = ui.world.now < ui.world.gain_until;
-    if (gains && ui.world.gain && ui.world.mood_gain)
+    if (ui.world.now < ui.world.coin_until)
+        set_label_fmt(ui.bubble_text, "生活费 +%d 金币", ui.world.coin_gain);
+    else if (gains && ui.world.gain && ui.world.mood_gain)
         set_label_fmt(ui.bubble_text, "饱食 %+d · 心情 %+d", ui.world.gain, ui.world.mood_gain);
     else if (gains && ui.world.gain)
         set_label_fmt(ui.bubble_text, "饱食 %+d", ui.world.gain);
@@ -851,7 +887,7 @@ static void paint(void)
         set_label_fmt(ui.bubble_text, "心情 %+d", ui.world.mood_gain);
     else
         set_label(ui.bubble_text, msg);
-    visible(ui.bubble, gains || *msg);
+    visible(ui.bubble, gains || *msg || ui.world.now < ui.world.coin_until);
 }
 void pet_ui_update(const pet_world_t *world)
 {

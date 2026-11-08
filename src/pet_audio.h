@@ -16,6 +16,8 @@ typedef struct {
     pg_phase_t challenge_phase;
     uint8_t challenge_score;
     uint8_t challenge_round;
+    uint32_t snacks;
+    uint8_t furniture_owned, furniture_equipped;
 } pa_observer_t;
 typedef struct {
     uint32_t music_at, cue_at;

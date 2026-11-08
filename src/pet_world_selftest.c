@@ -512,65 +512,11 @@ static bool expanded_room_bounds(void)
     return true;
 }
 
-static bool journal_life_cycle(void)
+static bool retired_journal(void)
 {
-    pet_world_t w;
-    pw_init(&w);
-    CHECK(w.journal_page == 1 && !w.journal_progress && !w.journal_stamps);
+    pet_world_t w; pw_init(&w); w.journal_progress = 7;
     CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_INVALID);
-    travel(&w, PW_CLASSROOM);
-    CHECK(pw_request(&w, PW_STUDY) == PW_OK && arrive(&w));
-    CHECK(w.journal_progress == 1);
-    pw_advance(&w, 8000);
-    travel(&w, PW_CANTEEN);
-    CHECK(pw_request(&w, PW_EAT) == PW_OK && arrive(&w));
-    CHECK(w.journal_progress == 3);
-    pw_advance(&w, 4000);
-    travel(&w, PW_DORM);
-    CHECK(pw_request(&w, PW_REST) == PW_OK && arrive(&w));
-    pw_advance(&w, 600);
-    CHECK(w.journal_progress == 7);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_ASLEEP);
-    CHECK(pw_request(&w, PW_REST) == PW_OK);
-    pw_advance(&w, 500);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
-    CHECK(w.journal_page == 2 && w.journal_stamps == 1 && w.journal_badges == 1 && !w.journal_progress);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_INVALID && w.journal_stamps == 1);
-    CHECK(pw_journal_wish(&w, 1) == PJ_EXPLORE);
-    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_request(&w, PW_ENTER_GYM) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_request(&w, PW_WORKOUT) == PW_OK && arrive(&w));
-    CHECK(!w.journal_progress);
-    pw_advance(&w, PW_WORKOUT_COOLDOWN_MS);
-    CHECK(w.journal_progress == 1);
-    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_walk_to(&w, 1000, 430) == PW_OK && w.journal_progress == 1);
-    pw_advance(&w, 20000);
-    CHECK(w.phase == PW_IDLE && w.journal_progress == 3);
-    CHECK(pw_request(&w, PW_ENTER_DORM) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_request(&w, PW_CODE) == PW_OK && arrive(&w));
-    pw_advance(&w, 10000);
-    CHECK(w.journal_progress == 7 && pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
-    CHECK(w.journal_page == 3 && w.journal_stamps == 2 && w.journal_badges == 3);
-    travel(&w, PW_CLASSROOM);
-    CHECK(pw_request(&w, PW_STUDY) == PW_OK && arrive(&w));
-    pw_advance(&w, 8000);
-    CHECK(pw_request(&w, PW_TOUCH) == PW_OK && w.journal_progress == 5);
-    pw_advance(&w, 1500);
-    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_request(&w, PW_ENTER_GYM) == PW_OK);
-    pw_advance(&w, 20000);
-    CHECK(pw_request(&w, PW_WORKOUT) == PW_OK && arrive(&w));
-    pw_advance(&w, 8000);
-    CHECK(w.journal_progress == 7);
-    CHECK(pw_request(&w, PW_JOURNAL_CLAIM) == PW_OK);
-    CHECK(w.journal_page == 4 && w.journal_stamps == 3 && w.journal_badges == 7);
-    CHECK(pw_journal_wish(&w, 0) == PJ_STUDY && !w.journal_progress);
+    CHECK(w.wallet.coins == PE_START_COINS && !w.wallet.owned && !w.journal_stamps);
     return true;
 }
 
@@ -692,7 +638,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"indoor-floor-detour-and-retarget", indoor_floor},
                  {"classroom-and-canteen-detours", other_room_detours},
                  {"reset-invalid", reset_invalid},
-                 {"journal-wishes-stamp-and-page", journal_life_cycle},
+                 {"retired-journal-cannot-claim", retired_journal},
                  {"memory-rounds-wrong-cancel-and-once", memory_rounds_and_guards},
                  {"rebalanced-actions-and-sleep-clamp", rebalanced_actions},
                  {"gym-access-workout-and-return", gym_cycle},
@@ -708,5 +654,6 @@ bool pw_selftest(void (*report)(const char *, bool))
     }
     bool campus = pw_campus_selftest(report);
     bool life = pw_life_selftest(report);
-    return all && campus && life;
+    bool economy = pw_economy_selftest(report);
+    return all && campus && life && economy;
 }

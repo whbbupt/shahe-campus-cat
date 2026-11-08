@@ -119,19 +119,18 @@ int main(void)
     step(15000);
     assert(action(PW_REST) == PW_OK);
     step(600);
-    assert(snapshot.journal_progress == 7);
-    assert(action(PW_JOURNAL_CLAIM) == PW_OK && status == PET_SAVE_PENDING);
-    step(14000);
-    reboot();
-    assert(snapshot.journal_page == 2 && snapshot.journal_stamps == 1 && status == PET_SAVE_SAVED);
+    unsigned coins = snapshot.wallet.coins;
+    assert(action(PW_JOURNAL_CLAIM) == PW_INVALID && snapshot.wallet.coins == coins);
+    step(14000); reboot();
+    assert(snapshot.wallet.coins == coins && status == PET_SAVE_SAVED);
     assert(action(PW_GO_CLASSROOM) == PW_OK);
     step(15000);
     assert(action(PW_MEMORY_START) == PW_OK);
     step(6000);
     assert(snapshot.phase == PW_MINIGAME);
     reboot();
-    assert(snapshot.phase == PW_IDLE && snapshot.memory_wins == 0 && snapshot.journal_page == 2);
-    puts("[host:save-app] journal claim and unfinished memory game across actual app reboot PASS");
+    assert(snapshot.phase == PW_IDLE && snapshot.memory_wins == 0 && snapshot.wallet.coins == coins);
+    puts("[host:save-app] wallet and unfinished memory game across actual app reboot PASS");
     ps_io_t io; capacity=8*1024*1024; assert(!ps_flash_io(&io)); reboot(); assert(status==PET_SAVE_UNAVAILABLE);
     assert(action(PW_NONE)==PW_INVALID && status==PET_SAVE_UNAVAILABLE);
     capacity=16*1024*1024; alignment=8192; assert(!ps_flash_io(&io)); alignment=4096; assert(ps_flash_io(&io));
@@ -158,5 +157,34 @@ int main(void)
     step(1000);assert(pet_app_get_clock().automatic);
     rtc_value=0;reboot();assert(!pet_app_get_clock().valid);
     puts("[host:save-app] phone sync, no time jumps, clock not dirty, reboot RTC trust and lost clock PASS");
+    memset(data,255,sizeof(data)); reboot();
+    assert(snapshot.wallet.coins == 30 && !snapshot.wallet.owned);
+    assert(action(PW_GO_CLASSROOM) == PW_OK); step(15000);
+    assert(action(PW_MEMORY_START) == PW_OK); step(6000);
+    for (unsigned round=0; round<3; round++)
+    {
+        if(snapshot.memory.phase == PM_SHOW) step(pm_remaining(&snapshot.memory));
+        assert(snapshot.memory.phase == PM_INPUT);
+        unsigned count=snapshot.memory.length;
+        for(unsigned i=0;i<count;i++) assert(action((pw_command_t)(PW_MEMORY_0+snapshot.memory.sequence[i]))==PW_OK);
+    }
+    assert(snapshot.wallet.coins==40 && snapshot.memory_wins==1);
+    step(1600); assert(action(PW_GO_DORM)==PW_OK); step(15000);
+    assert(action(PW_BUY_PLANT)==PW_OK && snapshot.wallet.coins==0 && status==PET_SAVE_PENDING);
+    assert(snapshot.wallet.owned==1 && snapshot.wallet.equipped==1);
+    step(14000); assert(status==PET_SAVE_SAVED); reboot();
+    assert(snapshot.wallet.coins==0 && snapshot.wallet.owned==1 && snapshot.wallet.equipped==1);
+    assert(action(PW_BUY_PLANT)==PW_OK && !snapshot.wallet.equipped && status==PET_SAVE_PENDING);
+    step(14000); reboot(); assert(!snapshot.wallet.coins && !snapshot.wallet.equipped && snapshot.wallet.owned==1);
+    assert(action(PW_BUY_SNACK)==PW_NO_COINS && status==PET_SAVE_SAVED && !snapshot.wallet.coins);
+    assert(action(PW_GO_CANTEEN)==PW_OK); step(15000); step(60000);
+    assert(action(PW_MEAL_GAME)==PW_OK); step(10000);
+    assert(snapshot.challenge.phase==PG_INPUT);
+    assert(action((pw_command_t)(PW_MEMORY_0+(snapshot.challenge.targets[0]+1)%4))==PW_OK);
+    assert(snapshot.wallet.coins==2 && snapshot.coin_gain==2);
+    assert(action(PW_MEMORY_CANCEL)==PW_OK); step(14000); reboot();
+    assert(snapshot.wallet.coins==2 && snapshot.wallet.owned==1 && !snapshot.wallet.equipped && snapshot.memory_wins==1);
+    puts("[host:save-app] actual earn->buy furniture->zero balance->free store->save/reboot->participation income, no repeated starter grant PASS");
+
     return 0;
 }

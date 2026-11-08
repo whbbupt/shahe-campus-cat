@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "pet_memory.h"
 #include "pet_challenge.h"
+#include "pet_economy.h"
 #include "pet_time.h"
 
 enum
@@ -58,7 +59,11 @@ typedef enum
     PW_MEAL_GAME = 70,
     PW_RHYTHM_GAME,
     PW_FIND_GAME,
-    PW_LIFE
+    PW_LIFE,
+    PW_BUY_SNACK = 80,
+    PW_BUY_PLANT,
+    PW_BUY_PICTURE,
+    PW_BUY_SHELF
 } pw_command_t;
 typedef enum
 {
@@ -80,7 +85,8 @@ typedef enum
     PW_INVALID,
     PW_WRONG_ROOM,
     PW_ORDER_ACTIVE,
-    PW_NO_ORDER
+    PW_NO_ORDER,
+    PW_NO_COINS
 } pw_result_t;
 typedef enum
 {
@@ -124,6 +130,10 @@ typedef struct
     pt_clock_t clock;
     uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack */
     bool action_tired;
+    pe_wallet_t wallet;
+    int coin_gain;
+    uint64_t coin_until;
+    uint32_t snacks;
 } pet_world_t;
 typedef struct
 {
@@ -152,5 +162,6 @@ unsigned pw_campus_door(pw_scene_t scene);
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
 uint32_t pw_duration(pw_command_t action);
 bool pw_selftest(void (*report)(const char *, bool));
+bool pw_economy_selftest(void (*report)(const char *, bool));
 bool pw_life_selftest(void (*report)(const char *, bool));
 #endif

@@ -58,8 +58,9 @@ static pw_result_t command(pw_command_t cmd)
     pet_audio_sync(&world);
     refresh_save_status();
     pet_ui_update(&world);
-    rt_kprintf("[pet] cmd=%u result=%u scene=%u phase=%u food=%u mood=%u\n", (unsigned)cmd, (unsigned)result,
-               (unsigned)world.scene, (unsigned)world.phase, (unsigned)world.food, (unsigned)world.mood);
+    rt_kprintf("[pet] cmd=%u result=%u scene=%u phase=%u food=%u mood=%u coins=%u owned=%u placed=%u\n", (unsigned)cmd, (unsigned)result,
+               (unsigned)world.scene, (unsigned)world.phase, (unsigned)world.food, (unsigned)world.mood,
+               world.wallet.coins, world.wallet.owned, world.wallet.equipped);
     return result;
 }
 static pw_result_t walk_to(float x, float y)
@@ -85,7 +86,7 @@ static void save_report(const char *name, bool ok)
 }
 rt_err_t pet_app_start(void)
 {
-    if (!pt_selftest(report) || !pg_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
+    if (!pt_selftest(report) || !pg_selftest(report) || !pe_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
     {
         rt_kprintf("[pet] selftest FAIL; UI not started\n");
         return -RT_ERROR;

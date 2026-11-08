@@ -84,7 +84,7 @@ static bool needs(void)
     w.food = 20;
     if (strcmp(pw_need_text(&w), "想和你贴贴，也想玩一会")) return false;
     w.mood = 30;
-    if (strcmp(pw_need_text(&w), "愿望完成啦，去手账领贴纸")) return false;
+    if (strcmp(pw_need_text(&w), "今天状态不错，随心逛逛")) return false;
     w.phase = PW_SLEEP;
     return !strcmp(pw_need_text(&w), "正在休息，点床可以叫醒");
 }
