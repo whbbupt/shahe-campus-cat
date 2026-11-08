@@ -46,6 +46,11 @@ def run(command, **kwargs):
     return r.stdout.decode('utf-8', errors='replace')
 
 def build(sources, name, includes=(), defines=(), dependencies=()):
+    if any(x.name in ('pet_world.c','pet_ble_rt_test.c') for x in sources):
+        sources=[*sources, root/'src/pet_time.c']
+    if any(x.name=='pet_app.c' for x in sources):
+        sources=[*sources, root/'src/pet_time_rt.c']
+        includes=[*includes,root/'tests/time_include']
     include_paths = [root/'src', *includes]
     base = (['/nologo', '/std:c11', '/utf-8', '/O1', '/D_CRT_SECURE_NO_WARNINGS'] if msvc
             else ['-std=c11', '-O1', '-Wall', '-Wextra'])
@@ -79,6 +84,8 @@ def build(sources, name, includes=(), defines=(), dependencies=()):
 
 build([root/'src/pet_audio_rt.c', root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_audio_rt_test.c'], 'pet-audio-driver-test', [root/'tests/audio_include'])
 print(run([out/('pet-audio-driver-test.exe' if os.name == 'nt' else 'pet-audio-driver-test'), 'thread-failure'], cwd=out))
+build([root/'src/pet_time.c', root/'src/pet_time_rt.c', root/'tests/pet_time_rt_test.c'], 'pet-time-rtc-test', [root/'tests/save_include', root/'tests/time_include'])
+build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'tests/pet_time_test.c'], 'pet-time-test')
 build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_probe_test.c'], 'pet-ble-probe-test')
 build([root/'src/pet_ble_probe.c', root/'tests/pet_ble_rt_test.c'], 'pet-ble-driver-test', [root/'tests/ble_include'], dependencies=[root/'src/pet_ble.c'])
 for mode in range(1, 5):
@@ -87,6 +94,9 @@ build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_s
 build([root/'src/pet_model.c', root/'src/pet_selftest.c', root/'tests/pet_model_test.c'], 'pet-model-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'tests/pet_world_test.c'], 'pet-world-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'tests/pet_save_test.c'], 'pet-save-test')
+old_save=out/'actual_schema6_pet_save.c'
+old_save.write_bytes(subprocess.check_output(['git','show','a633ec9:src/pet_save.c'],cwd=root))
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old_save, root/'tests/pet_save_v6_refusal_test.c'], 'pet-save-v6-refusal-test')
 build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_model.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'src/pet_save_flash.c', root/'src/pet_app.c', root/'tests/pet_save_app_test.c'], 'pet-save-app-test', [root/'tests/save_include'])
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'

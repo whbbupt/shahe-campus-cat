@@ -2,10 +2,14 @@
 #include "pet_save_flash.h"
 #include "pet_ui.h"
 #include "pet_audio.h"
+#include <rtdevice.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+static uint32_t rtc_value;
+rt_device_t rt_device_find(const char *name) { assert(!strcmp(name,"rtc")); return (void *)1; }
+int rt_device_control(rt_device_t d,int command,void *v) { (void)d; if(command==RT_DEVICE_CTRL_RTC_SET_TIME)rtc_value=*(uint32_t *)v; else *(uint32_t *)v=rtc_value; return RT_EOK; }
 static uint8_t data[PS_AREA_SIZE];
 static rt_tick_t tick;
 static pet_world_t snapshot;
@@ -140,5 +144,17 @@ int main(void)
     assert(phone.food==snapshot.food && phone.mood==snapshot.mood && phone.scene==snapshot.scene &&
         phone.phase==snapshot.phase && phone.volume==snapshot.volume && phone.sound_mode==snapshot.sound_mode);
     puts("[host:save-app] main-thread phone snapshot matches actual application state PASS");
+    memset(data,255,sizeof(data));reboot();
+    uint32_t utc;assert(pt_parse((const uint8_t *)"20261108235959",14,&utc));
+    assert(!pet_app_get_clock().valid);
+    assert(pet_app_sync_time(utc)==PT_OK && pet_app_get_clock().valid);
+    uint64_t elapsed=snapshot.now;
+    assert(pet_app_sync_time(utc-3600)==PT_OK && snapshot.now==elapsed);
+    step(14000);assert(status==PET_SAVE_SAVED);
+    unsigned saved_writes=writes;rtc_value=utc+1;step(14000);
+    assert(writes==saved_writes && status==PET_SAVE_SAVED);
+    reboot();assert(pet_app_get_clock().valid && pet_app_get_clock().utc==utc+1);
+    rtc_value=0;reboot();assert(!pet_app_get_clock().valid);
+    puts("[host:save-app] phone sync, no time jumps, clock not dirty, reboot RTC trust and lost clock PASS");
     return 0;
 }

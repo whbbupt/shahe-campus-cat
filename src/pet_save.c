@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 6U
+#define SCHEMA 7U
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -66,11 +66,12 @@ static unsigned volume(const uint8_t *r)
 {
     return r[4] >= 6 ? (r[15] >> 3) & 15 : sound_mode(r) == 0 ? 0 : 5;
 }
+static bool clock_trusted(const uint8_t *r) { return r[4]>=7 && (r[15]&128)!=0; }
 static bool sleeping(const uint8_t *r) { return (r[15] & 1) != 0; }
 static void visible_key(const uint8_t *r, uint8_t key[15])
 {
     memcpy(key, r + 12, 4);
-    key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1) | (volume(r) << 3));
+    key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1) | (volume(r) << 3) | (clock_trusted(r) ? 128 : 0));
     key[4] = (uint8_t)order_state(r);
     memset(key + 5, 0, 10);
     if (r[4] >= 4)
@@ -81,7 +82,7 @@ static void visible_key(const uint8_t *r, uint8_t key[15])
 static bool valid(const uint8_t *r)
 {
     if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || (r[4] < 5 ? r[15] > 1 : sound_mode(r) > 2) ||
-        (r[4] >= 6 && ((r[15] & 128) || volume(r) > 10)) ||
+        ((r[4] == 6 && (r[15] & 128)) || (r[4] >= 6 && volume(r) > 10)) ||
         r[14] > (r[4] == 1 ? PW_CANTEEN : r[4] == 2 ? PW_CAMPUS : PW_GYM) ||
         (sleeping(r) && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
@@ -114,7 +115,7 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
     return s->enabled && s->has_saved && snapshot_ready(w) &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
            s->saved[14] == (uint8_t)w->scene && sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
-           order_state(s->saved) == w->order &&
+           clock_trusted(s->saved) == w->clock.trusted && order_state(s->saved) == w->order &&
            (s->saved[4] >= 4
                 ? get32(s->saved + 46) == w->journal_page &&
                   get16(s->saved + 50) == w->journal_stamps &&
@@ -136,7 +137,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     r[4] = SCHEMA;
     r[6] = 64;
     put32(r + 8, seq);
-    r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = (uint8_t)((w->phase == PW_SLEEP ? 1 : 0) | (w->sound_mode << 1) | (w->volume << 3));
+    r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = (uint8_t)((w->phase == PW_SLEEP ? 1 : 0) | (w->sound_mode << 1) | (w->volume << 3) | (w->clock.trusted ? 128 : 0));
     put32(r + 16, (uint32_t)w->food_elapsed);
     put32(r + 20, (uint32_t)w->mood_elapsed);
     put32(r + 24, (uint32_t)w->rest_elapsed);
@@ -171,6 +172,7 @@ static void restore(const uint8_t *r, pet_world_t *w)
     w->food = r[12]; w->mood = r[13]; w->scene = (pw_scene_t)r[14];
     w->sound_mode = (uint8_t)sound_mode(r);
     w->volume = (uint8_t)volume(r);
+    w->clock.trusted = clock_trusted(r);
     w->phase = sleeping(r) ? PW_SLEEP : PW_IDLE;
     w->node = w->scene == PW_CAMPUS ? 0 : (sleeping(r) ? 6 : 3);
     pw_point_t p = pw_node(w->scene, (unsigned)w->node);

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "pet_memory.h"
+#include "pet_time.h"
 
 enum
 {
@@ -114,6 +115,9 @@ typedef struct
     uint8_t journal_progress, journal_badges, sound_mode, volume;
     pm_game_t memory;
     int message, gain, mood_gain;
+    pt_clock_t clock;
+    uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack */
+    bool action_tired;
 } pet_world_t;
 typedef struct
 {

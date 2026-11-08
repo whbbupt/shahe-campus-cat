@@ -6,6 +6,7 @@
 #include "pet_save_flash.h"
 #include "pet_audio.h"
 #include "pet_audio_rt.h"
+#include "pet_time_rt.h"
 #include <string.h>
 static pet_world_t world;
 static pet_save_t save;
@@ -34,9 +35,21 @@ static uint32_t sync_clock(void)
     uint32_t ms = pet_clock_elapsed(previous_tick, now, RT_TICK_PER_SECOND, &fraction);
     previous_tick = now;
     pw_advance(&world, ms);
+    pet_time_poll(ms);
+    world.clock=pet_time_snapshot();
     pet_audio_sync(&world);
     return ms;
 }
+pt_result_t pet_app_sync_time(uint32_t utc)
+{
+    sync_clock();
+    pt_result_t result=pet_time_sync(utc);
+    world.clock=pet_time_snapshot();
+    refresh_save_status();
+    pet_ui_update(&world);
+    return result;
+}
+pt_clock_t pet_app_get_clock(void) { return world.clock; }
 static pw_result_t command(pw_command_t cmd)
 {
     sync_clock();
@@ -71,7 +84,7 @@ static void save_report(const char *name, bool ok)
 }
 rt_err_t pet_app_start(void)
 {
-    if (!pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
+    if (!pt_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
     {
         rt_kprintf("[pet] selftest FAIL; UI not started\n");
         return -RT_ERROR;
@@ -82,6 +95,8 @@ rt_err_t pet_app_start(void)
     ps_io_t io;
     ps_result_t loaded = PS_IO_ERROR;
     if (ps_flash_io(&io)) loaded = ps_open(&save, io, &world);
+    pet_time_start(world.clock.trusted);
+    world.clock=pet_time_snapshot();
     pet_audio_start(&world);
     previous_tick = rt_tick_get();
     fraction = display_elapsed = 0;

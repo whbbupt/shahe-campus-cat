@@ -1,5 +1,5 @@
 /* SDK v2.5.1 example/ble/peripheral and peripheral_lab GATT/advertising APIs.
- * Bluetooth never accesses LVGL, pet state, RTC or pet storage. */
+ * SDK callbacks never access LVGL, pet state, RTC or pet storage. */
 #include "pet_ble.h"
 #include "pet_ble_probe.h"
 #include "pet_version.h"
@@ -16,7 +16,7 @@
 #define UUID(n) {0x43,0x45,0x48,0x41,0x48,0x53,0x4d,0x9a,0x25,0x4f,0x73,0x2f,n,0x00,0x7c,0x8a}
 #define SERIAL_UUID_16(x) {(uint8_t)((x)&255),(uint8_t)((x)>>8)}
 enum { ATTR_SERVICE, ATTR_INFO_CHAR, ATTR_INFO, ATTR_PROBE_CHAR, ATTR_PROBE,
-       ATTR_PHONE_CHAR, ATTR_PHONE, ATTR_COUNT };
+       ATTR_PHONE_CHAR, ATTR_PHONE, ATTR_TIME_CHAR, ATTR_TIME, ATTR_COUNT };
 enum { EVENT_ADV_ON=0xf100, EVENT_ADV_OFF, EVENT_PING };
 typedef struct { uint16_t id,length; union { uint32_t align; uint8_t bytes[64]; } data; } event_t;
 static rt_mq_t events;
@@ -31,8 +31,14 @@ static char phone_status[96]="status=pending", phone_read_buffer[96];
 static uint16_t phone_status_length=14;
 static pet_phone_status_t published_status;
 static bool phone_status_ready;
+static char clock_text[96]="state=wait;result=none", clock_read_buffer[96];
+static uint16_t clock_length=22;
+static pt_clock_t published_clock;
+static bool clock_ready, time_busy, time_queued;
+static pet_time_request_t time_request;
+static uint32_t time_generation;
 static uint8_t service_uuid[16]=UUID(0);
-static uint8_t info[]="ShaheCat " PET_FIRMWARE_VERSION " BLE probe; RTC sync not enabled";
+static uint8_t info[]="ShaheCat " PET_FIRMWARE_VERSION " RTC sync=0004; UTC+8; YYYYMMDDhhmmss";
 static sibles_hdl service;
 SIBLES_ADVERTISING_CONTEXT_DECLAR(advertising);
 
@@ -68,6 +74,42 @@ static diagnostic_t snapshot(void)
     diagnostic_t copy=diagnostic;
     rt_hw_interrupt_enable(level);
     return copy;
+}
+void pet_ble_set_clock(const pt_clock_t *clock)
+{
+    if(!clock) return;
+    rt_base_t level=rt_hw_interrupt_disable();
+    bool same=clock_ready && published_clock.utc==clock->utc && published_clock.valid==clock->valid &&
+        published_clock.state==clock->state && published_clock.result==clock->result;
+    rt_hw_interrupt_enable(level);
+    if(same)return;
+    static const char *states[]={"wait","rtc","synced","error"};
+    static const char *results[]={"none","ok","io-error","verify-error"};
+    char value[96];pt_date_t d;int count;
+    if((unsigned)clock->state>PT_ERROR || (unsigned)clock->result>PT_VERIFY_ERROR)return;
+    if(clock->valid && pt_decode(clock->utc,&d))
+        count=rt_snprintf(value,sizeof(value),"time=%04u-%02u-%02u %02u:%02u:%02u;state=%s;result=%s",
+            d.year,d.month,d.day,d.hour,d.minute,d.second,states[clock->state],results[clock->result]);
+    else count=rt_snprintf(value,sizeof(value),"time=unset;state=%s;result=%s",states[clock->state],results[clock->result]);
+    if(count<0 || (unsigned)count>=sizeof(value))return;
+    level=rt_hw_interrupt_disable();
+    published_clock=*clock;clock_ready=true;memcpy(clock_text,value,(size_t)count+1);clock_length=(uint16_t)count;
+    rt_hw_interrupt_enable(level);
+}
+bool pet_ble_take_time_request(pet_time_request_t *request)
+{
+    if(!request)return false;
+    rt_base_t level=rt_hw_interrupt_disable();
+    bool ready=time_queued && callback_connection!=0xff && !queue_fault;
+    if(ready){*request=time_request;time_queued=false;}
+    rt_hw_interrupt_enable(level);
+    return ready;
+}
+void pet_ble_finish_time_request(uint32_t token)
+{
+    rt_base_t level=rt_hw_interrupt_disable();
+    if(time_request.token==token)time_busy=false;
+    rt_hw_interrupt_enable(level);
 }
 void pet_ble_set_phone_status(const pet_phone_status_t *status)
 {
@@ -143,6 +185,9 @@ BLE_GATT_SERVICE_DEFINE_128(attributes) {
     BLE_GATT_CHAR_DECLARE(ATTR_PHONE_CHAR,SERIAL_UUID_16_CHARACTERISTIC,BLE_GATT_PERM_READ_ENABLE),
     BLE_GATT_CHAR_VALUE_DECLARE(ATTR_PHONE,UUID(3),BLE_GATT_PERM_READ_ENABLE,
         BLE_GATT_VALUE_PERM_UUID_128|BLE_GATT_VALUE_PERM_RI_ENABLE,95),
+    BLE_GATT_CHAR_DECLARE(ATTR_TIME_CHAR,SERIAL_UUID_16_CHARACTERISTIC,BLE_GATT_PERM_READ_ENABLE),
+    BLE_GATT_CHAR_VALUE_DECLARE(ATTR_TIME,UUID(4),BLE_GATT_PERM_READ_ENABLE|BLE_GATT_PERM_WRITE_REQ_ENABLE,
+        BLE_GATT_VALUE_PERM_UUID_128|BLE_GATT_VALUE_PERM_RI_ENABLE,95),
 };
 
 static void reset_probe(void) { memcpy(probe_value,"READY",5); probe_length=5; }
@@ -167,13 +212,32 @@ static uint8_t *read_value(uint8_t connection,uint8_t attribute,uint16_t *length
         rt_hw_interrupt_enable(level);
         return (uint8_t *)phone_read_buffer;
     }
+    if(attribute==ATTR_TIME){
+        rt_base_t level=rt_hw_interrupt_disable();
+        if(time_busy){memcpy(clock_read_buffer,"state=pending",14);*length=13;}
+        else {*length=clock_length;memcpy(clock_read_buffer,clock_text,(size_t)*length+1);}
+        rt_hw_interrupt_enable(level);
+        return (uint8_t *)clock_read_buffer;
+    }
     return NULL;
 }
 static uint8_t write_value(uint8_t connection,sibles_set_cbk_t *request)
 {
     uint8_t reply[4];
     if (queue_fault || callback_connection==0xff || connection!=callback_connection) return 0x0e;
-    if (!request || request->idx!=ATTR_PROBE) return 0x03;
+    if (!request) return 0x03;
+    if(request->idx==ATTR_TIME){
+        uint32_t utc;
+        if(request->offset)return 0x07;
+        if(request->len!=14)return 0x0d;
+        if(!pt_parse(request->value,request->len,&utc))return 0x13;
+        rt_base_t level=rt_hw_interrupt_disable();
+        if(time_busy){rt_hw_interrupt_enable(level);return 0x11;}
+        time_request=(pet_time_request_t){utc,++time_generation};time_busy=time_queued=true;
+        rt_hw_interrupt_enable(level);
+        return 0;
+    }
+    if(request->idx!=ATTR_PROBE) return 0x03;
     if (request->offset) return 0x07;
     if (request->len!=4) return 0x0d;
     if (!pet_ble_probe_reply(request->value,request->len,reply)) return 0x13;
@@ -213,7 +277,12 @@ static int stack_event(uint16_t id,uint8_t *data,uint16_t length,uint32_t contex
         if (callback_connection==0xff) { callback_connection=p->conn_idx; reset_probe(); }
     } else {
         ble_gap_disconnected_ind_t *p=(void *)data;
-        if (p->conn_idx==callback_connection) { callback_connection=0xff; reset_probe(); }
+        if (p->conn_idx==callback_connection) {
+            callback_connection=0xff; reset_probe();
+            rt_base_t lock=rt_hw_interrupt_disable();
+            time_queued=time_busy=false;time_request.token=++time_generation;
+            rt_hw_interrupt_enable(lock);
+        }
     }
     if (!enqueue(id,data,needed)) queue_fault=true;
     return 0;

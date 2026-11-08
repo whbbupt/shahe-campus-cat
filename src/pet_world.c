@@ -167,8 +167,12 @@ static void wish_done(pet_world_t *w, pw_wish_t wish)
 static void settle(pet_world_t *w, pw_command_t a)
 {
     int old_food = w->food, old_mood = w->mood;
-    w->food = clamp_value(old_food + food_delta[a]);
-    w->mood = clamp_value(old_mood + mood_delta[a]);
+    int food=food_delta[a], mood=mood_delta[a];
+    if(a==PW_STUDY && w->activity_kind==1){food=-4;mood=5;}
+    if(a==PW_EAT && w->activity_kind==2){food=10;mood=1;}
+    if(w->action_tired && (a==PW_STUDY || a==PW_CODE || a==PW_WORKOUT))mood=mood>2?mood-2:0;
+    w->food = clamp_value(old_food + food);
+    w->mood = clamp_value(old_mood + mood);
     w->settlements[a]++;
     if (a == PW_STUDY || a == PW_MEMORY) wish_done(w, PJ_STUDY);
     if (a == PW_EAT || a == PW_TAKEOUT) wish_done(w, PJ_EAT);
@@ -285,6 +289,9 @@ static void begin(pet_world_t *w, pw_command_t a)
     static const int messages[PW_ACTION_COUNT] = {
         MSG_NONE, MSG_EAT, MSG_TOUCH, MSG_REST, MSG_STUDY, MSG_CODE, MSG_WAKE, MSG_WORKOUT, MSG_TAKEOUT, MSG_MEMORY};
     w->phase = a == PW_MEMORY ? PW_MINIGAME : PW_ACTION;
+    w->activity_kind = w->clock.valid && a==PW_STUDY && !pt_class_time(w->clock.utc) ? 1
+        : w->clock.valid && a==PW_EAT && !pt_meal_time(w->clock.utc) ? 2 : 0;
+    w->action_tired=w->clock.valid && pt_bedtime(w->clock.utc)==2;
     w->action = a;
     w->target = PW_NONE;
     w->purpose = 0;
@@ -906,6 +913,10 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
 }
 const char *pw_state_text(const pet_world_t *w)
 {
+    if(w->phase==PW_IDLE && w->clock.valid && pt_bedtime(w->clock.utc))
+        return pt_bedtime(w->clock.utc)==2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
+    if(w->phase==PW_ACTION && w->action==PW_STUDY && w->activity_kind==1)return "安静自习中";
+    if(w->phase==PW_ACTION && w->action==PW_EAT && w->activity_kind==2)return "吃份暖暖的简餐";
     if (w->phase == PW_MINIGAME)
         return "记忆题中";
     if (w->phase == PW_SLEEP)
@@ -925,6 +936,8 @@ const char *pw_message_text(const pet_world_t *w)
 {
     if (w->now >= w->message_until)
         return "";
+    if(w->message==MSG_STUDY && w->activity_kind==1)return "安静自习中";
+    if(w->message==MSG_EAT && w->activity_kind==2)return "吃份暖暖的简餐";
     static const char *texts[] = {"",
                                   "走过去啦",
                                   "沿路走到门口",

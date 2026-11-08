@@ -1,5 +1,6 @@
 #include "pet_world.h"
 #include <math.h>
+#include <string.h>
 #define CHECK(x)                                                                                             \
     do                                                                                                       \
     {                                                                                                        \
@@ -652,13 +653,29 @@ static bool volume_controls(void)
     CHECK(pw_request(&w, PW_VOLUME_UP) == PW_OK && w.volume == 1 && w.sound_mode == 1);
     return true;
 }
+static bool real_time_routine(void)
+{
+    pet_world_t w;pw_init(&w);uint32_t utc;
+    CHECK(pt_parse((const uint8_t *)"20261108230000",14,&utc));
+    w.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK};
+    CHECK(strstr(pw_state_text(&w),"困")!=NULL);
+    w.scene=PW_CLASSROOM;w.node=6;pw_point_t p=pw_node(PW_CLASSROOM,6);w.x=p.x;w.y=p.y;
+    w.food=w.mood=50;CHECK(pw_request(&w,PW_STUDY)==PW_OK);
+    for(unsigned i=0;i<100 && w.phase!=PW_ACTION;i++)pw_advance(&w,40);
+    CHECK(w.activity_kind==1 && w.action_tired && w.food==46 && w.mood==53);
+    uint64_t end=w.action_end,now=w.now;w.clock.utc-=14*3600U;
+    CHECK(w.now==now && w.action_end==end);pw_advance(&w,12000);
+    CHECK(w.settlements[PW_STUDY]==1 && w.mood==53);
+    return true;
+}
 bool pw_selftest(void (*report)(const char *, bool))
 {
     static const struct
     {
         const char *name;
         bool (*run)(void);
-    } cases[] = {{"volume-bounds-and-music-toggle", volume_controls},
+    } cases[] = {{"real-clock-routine-and-no-repeat", real_time_routine},
+                 {"volume-bounds-and-music-toggle", volume_controls},
                  {"initial-scene", initial},
                  {"arrive-once", deferred},
                  {"retarget-no-snap", retarget},

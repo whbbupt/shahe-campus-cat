@@ -49,12 +49,14 @@ static bool empty_restore(void)
     blank(); pet_save_t s; pet_world_t w; pw_init(&w);
     CHECK(ps_open(&s, io(), &w) == PS_EMPTY && w.food == 70);
     w.food = 63; w.mood = 82; w.scene = PW_CLASSROOM;
+    w.clock.trusted = w.clock.valid = true; w.clock.utc = 1704038400U;
     w.food_elapsed = 12345; w.mood_elapsed = 23456; w.cooldown[PW_STUDY] = 7000;
     CHECK(ps_save(&s, &w) == PS_OK);
     CHECK(ram.bytes[0] == 'C' && ram.bytes[1] == 'A' && ram.bytes[2] == 'T' && ram.bytes[3] == '1');
     CHECK(ram.bytes[12] == 63 && ram.bytes[14] == PW_CLASSROOM);
     pet_world_t restored; CHECK(ps_open(&s, io(), &restored) == PS_OK);
     CHECK(restored.food == 63 && restored.mood == 82 && restored.scene == PW_CLASSROOM);
+    CHECK(restored.clock.trusted && !restored.clock.valid && !restored.clock.utc);
     CHECK(restored.now == 0 && restored.phase == PW_IDLE && restored.action == PW_NONE && restored.target == PW_NONE);
     CHECK(restored.node == 3 && restored.food_elapsed == 12345 && restored.mood_elapsed == 23456);
     CHECK(restored.cooldown[PW_STUDY] == 7000 && restored.settlements[PW_STUDY] == 0);
@@ -170,7 +172,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 6);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 7);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);

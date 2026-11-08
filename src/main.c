@@ -34,6 +34,15 @@ int main(void)
     {
         pet_app_poll();
         pet_ble_poll();
+        pet_time_request_t request;
+        if(pet_ble_take_time_request(&request)) {
+            pet_app_sync_time(request.utc);
+            pt_clock_t clock=pet_app_get_clock();
+            pet_ble_set_clock(&clock);
+            pet_ble_finish_time_request(request.token);
+        }
+        pt_clock_t clock=pet_app_get_clock();
+        pet_ble_set_clock(&clock);
         pet_link_t link;
         pet_ble_get_link(&link);
         pet_ui_set_link(&link);
