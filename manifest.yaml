@@ -225,6 +225,13 @@ physical_verification:
     evidence_path: "evidence/pet/ble_v0.12.4_pingpong_20261107_user_confirmation.txt"
     agent_conclusion: "用户提供5245414459即READY，在写PING再读PONG的明确指导后回复有了读取到了，按上下文和用户实物确认登记双向数据子项通过；没有手机截图或原始PONG字节，不补造。Info、重连及完整并发等仍待结果。"
 
+  - item: "v0.13.0场景流畅度与圆角触达：用户问题反馈"
+    required_action: "体验新增场景解码、状态/手账入口并反馈实际表现。"
+    executed_at: null # 未提供本轮完整操作时间。
+    evidence_received_at: "2026-11-08"
+    evidence_path: "evidence/pet/v013_board_feedback_20261108_user.txt"
+    agent_conclusion: "用户报告卡顿、顶部入口难点及圆角裁切，已作为实际问题登记；缺版本截图/FPS和PSRAM日志，不假定全部新增功能通过。修复按TC-233/234验证。"
+
 test_results:
   - test_id: "TC-001"
     description: "REQ-001 / v0.1.1首次真实启动验证（历史已实测）"
@@ -1010,7 +1017,36 @@ test_results:
     pass: true
     evidence_path: evidence/pet/host_v0.13.0_attempt6_20261108.txt
 
+  - test_id: TC-233
+    description: 缓存/重绘与触达软件
+    expected: 按docs/03的TC-233验证
+    actual: 新增用例已登记，尚未实现/执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-234
+    description: 流畅度和圆角触达实机
+    expected: 按docs/03的TC-234验证
+    actual: 新增用例已登记，尚未实现/执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-235
+    description: 手机只读宠物状态软件
+    expected: 按docs/03的TC-235验证
+    actual: 新增用例已登记，尚未实现/执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-236
+    description: 手机读取宠物状态实机
+    expected: 按docs/03的TC-236验证
+    actual: 新增用例已登记，尚未实现/执行
+    status: planned_not_executed
+    pass: null
+
 known_issues:
+  - "用户反馈v0.13.0有明显卡顿、顶部入口圆角裁切且难点；拟在v0.13.1修复缓存和无效重绘、入口内移及蓝牙信息位置，未经新板测不能声称流畅。"
   - "v0.13.0使用格式6保留64字节与双区，读1–5；旧v0.12.4见新格式会写保护，不等于已实现反向迁移。压缩最大主机单图缓冲351000字节，板端全局峰值/帧率未知。"
   - "整体清单首批v0.13.0已完成容量、蓝牙设备UI和音量；真实场景解码性能、状态显示、听音和音量复位待TC-221/223。现实钟/手机校时、昼夜/睡眠、小游戏及室内成长继续待实现。"
   - "v0.12.3的LCPU镜像遗漏已确认；获用户授权后v0.12.4集成正式加载器和5412字节镜像，TC-219软件通过；TC-214本版启动、广播和iPhone连接已有真实日志；READY有原始十六进制文字、PING/PONG已有用户实物成功确认；手机Info、重连及完整并发使用待结果，不等同RTC已校时。"
