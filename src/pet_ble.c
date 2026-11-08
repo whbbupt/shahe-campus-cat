@@ -176,7 +176,7 @@ static void print_status(const char *reason)
     rt_kprintf("[pet:BLE:STATUS] last_cb=0x%04X last_handled=0x%04X recv=%d adv_events=%u adv_result=%u fault=%u\n",
         (unsigned)d.last_callback,(unsigned)d.last_handled,d.last_receive,
         (unsigned)d.adv_events,(unsigned)d.adv_result,(unsigned)queue_fault);
-    rt_kprintf("[pet:CTS] query stage=%s\n",pet_cts_stage());
+    pet_cts_print_status();
 }
 void pet_ble_poll(void)
 {

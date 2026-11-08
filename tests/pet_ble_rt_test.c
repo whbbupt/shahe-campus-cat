@@ -72,6 +72,7 @@ uint16_t sibles_register_remote_svc(uint8_t c,uint16_t a,uint16_t b,sibles_remot
 void sibles_unregister_remote_svc(uint8_t c,uint16_t a,uint16_t b,sibles_remote_svc_cbk cb) { (void)c;(void)a;(void)b;(void)cb; }
 int8_t sibles_read_remote_value(uint16_t h,uint8_t c,sibles_read_remote_value_req_t *v) { (void)h;(void)c;(void)v;return 0; }
 void connection_manager_create_bond(uint8_t c) { (void)c; }
+uint8_t connection_manager_set_link_security(uint8_t c,uint8_t level) { (void)c;assert(level==LE_SECURITY_LEVEL_SEC_CON_BOND);return CM_STATUS_OK; }
 static void drain(void) { event_t e;while(rt_mq_recv(events,&e,sizeof(e),0)==0)handle(&e); }
 static void connect_peer(uint8_t index) { connection_manager_connect_ind_t c={index};stack_event(CONNECTION_MANAGER_CONNCTED_IND,(uint8_t *)&c,sizeof(c),0);drain(); }
 int main(int argc,char **argv)

@@ -8,7 +8,7 @@
 #include <rthw.h>
 #include <string.h>
 enum { OFF,SEARCH,PAIR,REGISTER,ZONE,TIME_VALUE,QUEUED,FAILED };
-enum { DISCOVERED=1,REGISTERED,READ_VALUE,READ_ERROR,SECURED,PAIR_FAILED,SERVICE_CHANGED };
+enum { DISCOVERED=1,REGISTERED,READ_VALUE,READ_ERROR,SECURED,PAIR_FAILED,SERVICE_CHANGED,SECURITY_RESULT };
 typedef struct {
     uint32_t epoch;
     rt_tick_t received_tick;
@@ -23,6 +23,8 @@ static struct {
     uint16_t remote,start,end,time,zone;
     rt_tick_t phase_tick;
     uint8_t local[2];
+    uint8_t last_status;
+    const char *last_reason; /* Only program-lifetime constant strings. */
 } client={.connection=0xff,.remote=SIBLES_ERROR_REMOTE_HANDLE};
 static message_t messages[8];
 static unsigned head,count;
@@ -34,6 +36,20 @@ const char *pet_cts_stage(void)
     rt_base_t lock=rt_hw_interrupt_disable();unsigned phase=client.phase;rt_hw_interrupt_enable(lock);
     return names[phase];
 }
+void pet_cts_print_status(void)
+{
+    rt_base_t lock=rt_hw_interrupt_disable();
+    unsigned state=client.phase,status=client.last_status,connection=client.connection;
+    bool requested=client.pair_attempted,encrypted=client.encrypted;
+    const char *reason=client.last_reason?client.last_reason:"idle";
+    rt_hw_interrupt_enable(lock);
+    rt_kprintf("[pet:CTS] query stage=%s reason=%s sdk=%u conn=%u requested=%u encrypted=%u\n",
+        names[state],reason,status,connection,(unsigned)requested,(unsigned)encrypted);
+}
+static void sdk_status(uint8_t status)
+{
+    rt_base_t lock=rt_hw_interrupt_disable();client.last_status=status;rt_hw_interrupt_enable(lock);
+}
 unsigned pet_cts_status(void)
 {
     rt_base_t lock=rt_hw_interrupt_disable();unsigned phase=client.phase;rt_hw_interrupt_enable(lock);
@@ -41,7 +57,7 @@ unsigned pet_cts_status(void)
 }
 static void phase(unsigned next,const char *reason)
 {
-    rt_base_t lock=rt_hw_interrupt_disable();client.phase=(uint8_t)next;client.phase_tick=rt_tick_get();rt_hw_interrupt_enable(lock);
+    rt_base_t lock=rt_hw_interrupt_disable();client.phase=(uint8_t)next;client.phase_tick=rt_tick_get();client.last_reason=reason;rt_hw_interrupt_enable(lock);
     rt_kprintf("[pet:CTS] stage=%s reason=%s\n",names[next],reason);
 }
 static void release(void)
@@ -62,7 +78,9 @@ void pet_cts_disconnected(uint8_t connection)
 {
     if(client.connection!=connection)return;
     pet_cts_invalidate(connection);release();
-    rt_base_t lock=rt_hw_interrupt_disable();client.connection=0xff;client.phase=OFF;head=count=0;rt_hw_interrupt_enable(lock);
+    rt_base_t lock=rt_hw_interrupt_disable();client.connection=0xff;client.phase=OFF;
+    client.last_reason="disconnected";client.last_status=0;client.pair_attempted=client.encrypted=false;
+    head=count=0;rt_hw_interrupt_enable(lock);
 }
 static bool live(void)
 {
@@ -71,7 +89,8 @@ static bool live(void)
 static void search(void)
 {
     uint8_t uuid[]={5,0x18};phase(SEARCH,"cts");
-    if(sibles_search_service(client.connection,2,uuid))phase(FAILED,"search-request");
+    int8_t result=sibles_search_service(client.connection,2,uuid);sdk_status((uint8_t)result);
+    if(result)phase(FAILED,"search-request");
 }
 void pet_cts_connected(uint8_t connection)
 {
@@ -86,7 +105,12 @@ static void retry_pair(const char *reason)
     if(!live())return;
     release();
     if(!client.pair_attempted && !client.encrypted){
-        client.pair_attempted=true;phase(PAIR,reason);connection_manager_create_bond(client.connection);
+        client.pair_attempted=true;phase(PAIR,reason);
+        /* SDK: create_bond is master-only; this device remains a GAP peripheral. */
+        uint8_t result=connection_manager_set_link_security(client.connection,LE_SECURITY_LEVEL_SEC_CON_BOND);
+        sdk_status(result);
+        rt_kprintf("[pet:CTS] security-request result=%u\n",(unsigned)result);
+        if(result!=CM_STATUS_OK)phase(FAILED,"security-request-error");
     }else phase(FAILED,reason);
 }
 static bool begin_message(message_t *m,uint8_t connection,uint8_t type)
@@ -135,7 +159,7 @@ void pet_cts_event(uint16_t id,uint8_t *data,uint16_t length)
         sibles_svc_search_rsp_t *r=(void *)data;
         if(r->search_svc_len!=2 || r->search_uuid[0]!=5 || r->search_uuid[1]!=0x18 || !begin_message(&m,r->conn_idx,DISCOVERED))return;
         sibles_svc_remote_svc_t *svc=r->svc;
-        m.status=1;
+        m.status=r->result?r->result:0xff;
         if(!r->result && svc && svc->att_db && svc->char_count>0 && svc->char_count<=16 && svc->hdl_start && svc->hdl_start<svc->hdl_end){
             m.start=svc->hdl_start;m.end=svc->hdl_end;
             const uint8_t *next=svc->att_db;
@@ -158,7 +182,11 @@ void pet_cts_event(uint16_t id,uint8_t *data,uint16_t length)
         unsigned event=r->info==GAPC_PAIRING_SUCCEED?SECURED:r->info==GAPC_PAIRING_FAILED?PAIR_FAILED:0;
         if(event && begin_message(&m,r->conn_idx,(uint8_t)event))push(&m);
     }else if(id==SIBLES_READ_REMOTE_VALUE_ERROR_IND && length>=sizeof(sibles_error_cmp_event_ind_t)){
-        sibles_error_cmp_event_ind_t *r=(void *)data;if(begin_message(&m,r->conn_idx,READ_ERROR))push(&m);
+        sibles_error_cmp_event_ind_t *r=(void *)data;
+        if(begin_message(&m,r->conn_idx,READ_ERROR)){m.status=r->status;push(&m);}
+    }else if(id==BLE_GAP_SECURITY_REQUEST_CNF && length>=sizeof(ble_gap_security_request_cnf_t)){
+        ble_gap_security_request_cnf_t *r=(void *)data;
+        if(begin_message(&m,r->conn_idx,SECURITY_RESULT)){m.status=r->status;push(&m);}
     }else if(id==SIBLES_REMOTE_SVC_CHANGE_IND && length>=sizeof(sibles_remote_svc_change_ind_t)){
         sibles_remote_svc_change_ind_t *r=(void *)data;
         if(begin_message(&m,r->conn_idx,SERVICE_CHANGED)){m.start=r->start_handle;m.end=r->end_handle;push(&m);}
@@ -181,7 +209,12 @@ void pet_cts_poll(void)
             else if(client.phase==SEARCH)client.refresh=true;
         }
         else if(m.type==PAIR_FAILED && client.phase==PAIR)phase(FAILED,"pair-rejected");
+        else if(m.type==SECURITY_RESULT && client.phase==PAIR){
+            sdk_status(m.status);
+            if(m.status)phase(FAILED,"security-request-rejected");
+        }
         else if(m.type==DISCOVERED && client.phase==SEARCH){
+            sdk_status(m.status);
             if(m.status){
                 if(client.refresh && !client.rediscovered){client.refresh=false;client.rediscovered=true;search();}
                 else retry_pair("cts-unavailable");
@@ -192,8 +225,11 @@ void pet_cts_poll(void)
             client.remote=sibles_register_remote_svc(client.connection,m.start,m.end,remote_event);
             if(client.remote==SIBLES_ERROR_REMOTE_HANDLE)phase(FAILED,"remote-slots-full");
         }else if(m.type==REGISTERED && client.phase==REGISTER){
+            sdk_status(m.status);
             if(m.status)retry_pair("register-error");else read_handle(client.zone,ZONE);
-        }else if(m.type==READ_ERROR && (client.phase==ZONE || client.phase==TIME_VALUE))retry_pair("read-error");
+        }else if(m.type==READ_ERROR && (client.phase==ZONE || client.phase==TIME_VALUE)){
+            sdk_status(m.status);retry_pair("read-error");
+        }
         else if(m.type==READ_VALUE && client.phase==ZONE && m.handle==client.zone){
             if(m.length!=2){release();phase(FAILED,"zone-length");continue;}
             memcpy(client.local,m.value,2);read_handle(client.time,TIME_VALUE);

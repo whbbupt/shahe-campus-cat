@@ -13,4 +13,5 @@ void pet_cts_invalidate(uint8_t connection);
 void pet_cts_event(uint16_t id,uint8_t *data,uint16_t length);
 unsigned pet_cts_status(void); /* 0 idle, 1 working, 2 unavailable, 3 sample queued */
 const char *pet_cts_stage(void);
+void pet_cts_print_status(void);
 #endif

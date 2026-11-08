@@ -686,7 +686,7 @@ static void real_clock_previews(void)
             if(i==3)assert(label_with(lv_screen_active(),"有点困，回床上休息吧"));
         }
         press("状态");assert(label_with(lv_screen_active(),"2026-11-08 · 手机校时"));
-        assert(label_with(lv_screen_active(),"v0.14.1"));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
+        assert(label_with(lv_screen_active(),"v0.14.2"));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
         if(!outside){
             tap(189,411);idle(PW_DORM);settled_at(189,411);
             leave(PW_DORM);assert(world.scene==PW_CAMPUS && world.clock.valid);

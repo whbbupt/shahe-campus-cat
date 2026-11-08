@@ -13,6 +13,9 @@
 #define BLE_GAP_BOND_IND 10
 #define SIBLES_READ_REMOTE_VALUE_ERROR_IND 11
 #define SIBLES_REMOTE_SVC_CHANGE_IND 12
+#define BLE_GAP_SECURITY_REQUEST_CNF 13
+#define LE_SECURITY_LEVEL_SEC_CON_BOND 5
+#define CM_STATUS_OK 0
 #define GAPC_PAIRING_SUCCEED 1
 #define GAPC_PAIRING_FAILED 2
 #define SIBLES_ERROR_REMOTE_HANDLE 0xffff
@@ -76,6 +79,7 @@ typedef struct { uint8_t conn_idx,status; } sibles_register_remote_svc_rsp_t;
 typedef struct { uint8_t conn_idx;uint16_t handle,offset,length;uint8_t *value; } sibles_read_remote_value_rsp_t;
 typedef struct { int read_type;uint16_t handle,offset,length; } sibles_read_remote_value_req_t;
 typedef struct { uint8_t conn_idx,status; } sibles_error_cmp_event_ind_t;
+typedef struct { uint8_t conn_idx,status; } ble_gap_security_request_cnf_t;
 typedef struct { uint8_t conn_idx;uint16_t start_handle,end_handle; } sibles_remote_svc_change_ind_t;
 typedef int (*sibles_remote_svc_cbk)(uint16_t,uint8_t *,uint16_t);
 int8_t sibles_search_service(uint8_t,uint8_t,uint8_t *);
@@ -83,4 +87,5 @@ uint16_t sibles_register_remote_svc(uint8_t,uint16_t,uint16_t,sibles_remote_svc_
 void sibles_unregister_remote_svc(uint8_t,uint16_t,uint16_t,sibles_remote_svc_cbk);
 int8_t sibles_read_remote_value(uint16_t,uint8_t,sibles_read_remote_value_req_t *);
 void connection_manager_create_bond(uint8_t);
+uint8_t connection_manager_set_link_security(uint8_t,uint8_t);
 #endif

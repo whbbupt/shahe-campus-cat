@@ -2,25 +2,34 @@
 #include "../src/pet_cts.c"
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 static rt_tick_t tick;
 static rt_base_t irq;
 static unsigned searches,bonds,registers,reads,unregisters,submits,malformed;
 static uint16_t last_read;
 static bool search_error,read_error,register_error,reject_submit;
+static uint8_t security_error;
 static uint32_t submitted,received;
 static sibles_remote_svc_cbk callback;
+static char printed[32768];
+static size_t printed_length;
 rt_tick_t rt_tick_get(void){return tick;}
 rt_tick_t rt_tick_from_millisecond(int ms){return (rt_tick_t)ms;}
 rt_base_t rt_hw_interrupt_disable(void){return irq++;}
 void rt_hw_interrupt_enable(rt_base_t old){assert(irq==old+1);irq=old;}
-int rt_kprintf(const char *fmt,...){(void)fmt;assert(!irq);return 0;}
+int rt_kprintf(const char *fmt,...){
+    assert(!irq);va_list args;va_start(args,fmt);
+    int n=vsnprintf(printed+printed_length,sizeof(printed)-printed_length,fmt,args);va_end(args);
+    assert(n>=0 && (size_t)n<sizeof(printed)-printed_length);printed_length+=(size_t)n;return n;
+}
 int8_t sibles_search_service(uint8_t c,uint8_t n,uint8_t *u){assert(c==0 && n==2 && u[0]==5 && u[1]==0x18);searches++;return search_error?1:0;}
-void connection_manager_create_bond(uint8_t c){assert(c==0);bonds++;}
+void connection_manager_create_bond(uint8_t c){(void)c;assert(!"GAP peripheral must use security request, not central-only bond");}
+uint8_t connection_manager_set_link_security(uint8_t c,uint8_t level){assert(!irq && c==0 && level==LE_SECURITY_LEVEL_SEC_CON_BOND);bonds++;return security_error;}
 uint16_t sibles_register_remote_svc(uint8_t c,uint16_t start,uint16_t end,sibles_remote_svc_cbk cb){assert(!irq && c==0 && start==10 && end==30);callback=cb;registers++;return register_error?0xffff:0;}
 void sibles_unregister_remote_svc(uint8_t c,uint16_t start,uint16_t end,sibles_remote_svc_cbk cb){assert(!irq && c==0 && start==10 && end==30 && cb==callback);unregisters++;}
 int8_t sibles_read_remote_value(uint16_t remote,uint8_t c,sibles_read_remote_value_req_t *v){assert(!irq && remote==0 && c==0 && v->read_type==SIBLES_READ && !v->offset && !v->length);reads++;last_read=v->handle;return read_error?1:0;}
 static bool submit(uint32_t utc,uint32_t observed){assert(!irq);submits++;submitted=utc;received=observed;return !reject_submit;}
-static void reset(void){pet_cts_disconnected(0);tick=0;searches=bonds=registers=reads=unregisters=submits=0;search_error=read_error=register_error=reject_submit=false;malformed=0;pet_cts_init(submit);pet_cts_connected(0);}
+static void reset(void){pet_cts_disconnected(0);printed_length=0;printed[0]=0;tick=0;searches=bonds=registers=reads=unregisters=submits=0;search_error=read_error=register_error=reject_submit=false;security_error=0;malformed=0;pet_cts_init(submit);pet_cts_connected(0);}
 static void discover(bool found){
     union { uint32_t align;uint8_t bytes[2*sizeof(sibles_svc_search_char_t)]; } chars={0};
     sibles_svc_search_char_t *c=(void *)chars.bytes;
@@ -78,5 +87,22 @@ int main(void){
     reset();discover(true);pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==2&&unregisters==1);
     ready();changed.start_handle=40;changed.end_handle=60;pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==1&&!unregisters);
     value(14,stamp,10);pet_cts_poll();assert(pet_cts_status()==3&&submits==1);
+    reset();security_error=66;discover(false);assert(pet_cts_status()==2&&bonds==1&&!submits);
+    unsigned old_searches=searches,old_bonds=bonds,old_reads=reads;
+    pet_cts_print_status();pet_cts_print_status();
+    assert(strstr(printed,"query stage=unavailable reason=security-request-error sdk=66"));
+    assert(searches==old_searches && bonds==old_bonds && reads==old_reads);
+    reset();discover(false);ble_gap_security_request_cnf_t confirmation={1,66};
+    pet_cts_event(BLE_GAP_SECURITY_REQUEST_CNF,(uint8_t *)&confirmation,sizeof(confirmation));pet_cts_poll();assert(pet_cts_status()==1);
+    confirmation.conn_idx=0;confirmation.status=0;
+    pet_cts_event(BLE_GAP_SECURITY_REQUEST_CNF,(uint8_t *)&confirmation,sizeof(confirmation));pet_cts_poll();assert(pet_cts_status()==1&&searches==1&&!submits);
+    confirmation.status=66;pet_cts_event(BLE_GAP_SECURITY_REQUEST_CNF,(uint8_t *)&confirmation,sizeof(confirmation));pet_cts_poll();
+    assert(tick==0 && pet_cts_status()==2 && bonds==1);
+    pet_cts_print_status();assert(strstr(printed,"reason=security-request-rejected sdk=66"));
+    confirmation.status=0;pet_cts_event(BLE_GAP_SECURITY_REQUEST_CNF,(uint8_t *)&confirmation,sizeof(confirmation));pet_cts_poll();assert(pet_cts_status()==2&&searches==1&&bonds==1);
+    reset();pet_cts_print_status();assert(!strstr(printed,"security-request-rejected") && strstr(printed,"query stage=discover reason=cts sdk=0"));
+    discover(false);secure();assert(searches==2);confirmation.status=66;
+    pet_cts_event(BLE_GAP_SECURITY_REQUEST_CNF,(uint8_t *)&confirmation,sizeof(confirmation));pet_cts_poll();assert(pet_cts_status()==1&&searches==2);
+    puts("[host:cts] peripheral-only security request, confirmation failures, stale events and persistent read-only diagnostics PASS");
     puts("[host:cts] actual SDK adapter: timezone/DST, pointer copies, zero remote handle, pairing once, timeout, errors, reconnect and overflow PASS");return 0;
 }
