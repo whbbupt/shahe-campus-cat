@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.14.1 CTS自动校时软件/构建通过，TC-240与原时间保时等物理项待测"
+  milestone: "v0.14.2外设配对接口修正软件/构建通过，旧TC240实物失败保留，新TC243待实机"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -1115,25 +1115,28 @@ test_results:
   - test_id: TC-241
     description: 外设配对角色与确认
     expected: 按docs/03的TC-241验证
-    actual: 实现前登记
-    status: planned_not_executed
-    pass: null
+    actual: 角色约束先在旧实现真实FAIL；修正后角色/确认/诊断及原全部回归与目标构建通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.2_attempt1_20261108.txt
 
   - test_id: TC-242
     description: 持久诊断及原回归
     expected: 按docs/03的TC-242验证
-    actual: 实现前登记
-    status: planned_not_executed
-    pass: null
+    actual: 角色约束先在旧实现真实FAIL；修正后角色/确认/诊断及原全部回归与目标构建通过，见docs/04
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.2_attempt1_20261108.txt
 
   - test_id: TC-243
     description: 新角色修复实机
     expected: 按docs/03的TC-243验证
-    actual: 实现前登记
-    status: planned_not_executed
+    actual: v0.14.2已实现并构建，待新版本iPhone配对/CTS/RTC及持久诊断实物证据
+    status: pending_physical
     pass: null
 
 known_issues:
+  - "v0.14.1外设误调中心配对API已被实机op10 ret66和SDK角色限制确认；v0.14.2软件已修正/构建，新TC243待真实iPhone验证，旧失败不删除。"
   - "v0.14.1首次用户实物反馈：连接成功后自动校时未完成，TC-240未通过；原因待CTS/TIME阶段日志和配对反馈，不通过猜测修改或抹掉已有软件结果。"
   - "v0.14.1原生CTS自动校时只完成软件/构建，TC-240待本机iPhone配对及自动读回证据；不保证每个手机/系统均暴露CTS，0004备用保留。自动重连另属范围，原RTC保时/精度和板端FPS缺口保留。"
   - "v0.14.0现实钟/手动校时/夜景和晚间作息仅软件与构建通过，TC-210/225待新板端；RTC准确度/完整断电保时及新色层帧率未知，不能把已连接当自动手机同步。格式7旧6会写保护。"
