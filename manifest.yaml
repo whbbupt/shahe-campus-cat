@@ -1112,6 +1112,27 @@ test_results:
     pass: false
     evidence_path: evidence/pet/cts_auto_failure_20261108_user.txt
 
+  - test_id: TC-241
+    description: 外设配对角色与确认
+    expected: 按docs/03的TC-241验证
+    actual: 实现前登记
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-242
+    description: 持久诊断及原回归
+    expected: 按docs/03的TC-242验证
+    actual: 实现前登记
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-243
+    description: 新角色修复实机
+    expected: 按docs/03的TC-243验证
+    actual: 实现前登记
+    status: planned_not_executed
+    pass: null
+
 known_issues:
   - "v0.14.1首次用户实物反馈：连接成功后自动校时未完成，TC-240未通过；原因待CTS/TIME阶段日志和配对反馈，不通过猜测修改或抹掉已有软件结果。"
   - "v0.14.1原生CTS自动校时只完成软件/构建，TC-240待本机iPhone配对及自动读回证据；不保证每个手机/系统均暴露CTS，0004备用保留。自动重连另属范围，原RTC保时/精度和板端FPS缺口保留。"
