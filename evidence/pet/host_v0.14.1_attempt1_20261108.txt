@@ -1,0 +1,18 @@
+[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume and failures PASS (12 cases)
+
+
+[host:audio-driver] thread creation failure remains unavailable across toggles PASS
+
+
+[host:rtc] SDK GET/SET adapter, trust, throttle, rollover, readback, errors and retry PASS
+
+
+[host:time] civil/UTC+8, protocol, 1440 minute boundaries, activity lock, tired gain and optional sleep PASS
+
+
+pet_cts_test.c
+
+D:\project\sifli\course_starter\tests\pet_cts_test.c(25): error C2233: 'chars': arrays of objects containing zero-size arrays are illegal
+
+
+
