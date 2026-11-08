@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "iPhone原生CTS连接后自动校时，保留0004备用"
+      alternatives_considered: "设备读取原生CTS；独立iOS App自动写0004；继续手工编码"
+      rationale: "用户不希望手写时间，同意优先利用系统服务，省去单独手机工程；实际兼容性需板测"
+      decided_by: "用户明确回复可以；ADR-0016"
     - decision: "现实24小时作息，手机主动发送时间校准设备RTC"
       alternatives_considered: "现实时间作息并手机校时；30分钟游戏一天并另显示现实钟；先不改时间只做蓝牙和音量"
       rationale: "iPhone数据通道验证后用户明确选择现实作息；日历与业务运行时长分离，离线不追罚"
@@ -1058,6 +1062,34 @@ test_results:
     description: 手机读取宠物状态实机
     expected: 按docs/03的TC-236验证
     actual: 新增用例已登记，尚未实现/执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-237
+    description: CTS日期时区解析
+    expected: 按docs/03的TC-237验证
+    actual: 实现前登记，尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-238
+    description: SDK自动校时生命周期
+    expected: 按docs/03的TC-238验证
+    actual: 实现前登记，尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-239
+    description: 自动主线程校时与原回归
+    expected: 按docs/03的TC-239验证
+    actual: 实现前登记，尚未执行
+    status: planned_not_executed
+    pass: null
+
+  - test_id: TC-240
+    description: iPhone自动校时实机
+    expected: 按docs/03的TC-240验证
+    actual: 实现前登记，尚未执行
     status: planned_not_executed
     pass: null
 
