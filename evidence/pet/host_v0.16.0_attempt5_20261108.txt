@@ -1,0 +1,239 @@
+[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume and failures PASS (12 cases)
+
+
+[host:audio-driver] thread creation failure remains unavailable across toggles PASS
+
+
+[host:challenge] meal-challenge PASS
+
+[host:challenge] rhythm-challenge PASS
+
+[host:challenge] find-challenge PASS
+
+[host:challenge] 32 seeds, permutation, reveal, wrong/illegal/repeat, timeout partition, exact rhythm window and four-hit threshold PASS
+
+
+[host:rtc] SDK GET/SET adapter, trust, throttle, rollover, readback, errors and retry PASS
+
+
+[host:time] civil/UTC+8, protocol, 1440 minute boundaries, activity lock, tired gain and optional sleep PASS
+
+
+[host:cts] peripheral-only security request, confirmation failures, stale events and persistent read-only diagnostics PASS
+
+[host:cts] actual SDK adapter: timezone/DST, pointer copies, zero remote handle, pairing once, timeout, errors, reconnect and overflow PASS
+
+
+[host:ble-probe] shared selftest, PING, length/null/binary rejection and output guards PASS; no physical BLE verdict
+
+
+[host:ble-driver] production callbacks: init failures, identity, connect/read/write/reconnect, invalid offset/peer/data, queue fault and allocation failures PASS; no physical BLE verdict
+
+
+[host:ble-worker] mode=1 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=2 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=3 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=4 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:audio] pcm-loop-modes-duck-and-four-notes PASS
+
+[host:audio] world-events-once-no-replay PASS
+
+[host:audio] pure PCM and event policy PASS; no physical sound verdict
+
+
+[host:pet] feed-clamp-spam-cooldown PASS
+
+[host:pet] touch-clamp-cooldown PASS
+
+[host:pet] elapsed-partition-large-gap PASS
+
+[host:pet] rest-reject-resume PASS
+
+[host:pet] view-priority PASS
+
+[host:pet] clock-wrap-fraction PASS
+
+[host:pet] invalid-event-reset PASS
+
+[host:pet] campus-travel-guards PASS
+
+[host:pet] campus-study-cost-cooldown PASS
+
+[host:pet] campus-action-routing-reset PASS
+
+[host:pet] all PASS; board not tested
+
+
+[host:world] real-clock-routine-and-no-repeat PASS
+
+[host:world] volume-bounds-and-music-toggle PASS
+
+[host:world] initial-scene PASS
+
+[host:world] arrive-once PASS
+
+[host:world] retarget-no-snap PASS
+
+[host:world] arrival-eligibility PASS
+
+[host:world] busy-no-queue PASS
+
+[host:world] cooldown-from-finish PASS
+
+[host:world] capped-meal PASS
+
+[host:world] full-mood-study PASS
+
+[host:world] sleep-wake-support PASS
+
+[host:world] touch-cancels-intent PASS
+
+[host:world] elapsed-and-long-gap PASS
+
+[host:world] jump-and-seat PASS
+
+[host:world] eight-directions PASS
+
+[host:world] indoor-floor-detour-and-retarget PASS
+
+[host:world] classroom-and-canteen-detours PASS
+
+[host:world] reset-invalid PASS
+
+[host:world] retired-journal-cannot-claim PASS
+
+[host:world] memory-rounds-wrong-cancel-and-once PASS
+
+[host:world] rebalanced-actions-and-sleep-clamp PASS
+
+[host:world] gym-access-workout-and-return PASS
+
+[host:world] takeout-delivery-guards-and-once PASS
+
+[host:world] four-room-decor-and-expanded-floor PASS
+
+[host:world] campus-point-retarget-road PASS
+
+[host:world] campus-three-building-doors PASS
+
+[host:world] campus-guards-no-wander PASS
+
+[host:world] campus-clock-camera PASS
+
+[host:world] campus-all-road-endpoints PASS
+
+[host:world] three-games-once-shared-cooldown-cancel PASS
+
+[host:world] four-life-corners-path-deferred-retarget PASS
+
+[host:world] need-hints-real-state-priority PASS
+
+[host:world] zero-coins-zero-food-can-earn-and-buy-meal PASS
+
+[host:world] coin-once-cancel-cap-and-4999-5000-boundary PASS
+
+[host:world] paid-food-arrival-cancel-and-owned-free-toggle PASS
+
+[host:world] all PASS
+
+
+[host:save] format-restore-cooldowns PASS
+
+[host:save] sleep-elapsed-wake PASS
+
+[host:save] all-65-write-cut-points PASS
+
+[host:save] crc-fallback PASS
+
+[host:save] rotation-partial-erase PASS
+
+[host:save] short-io-no-success PASS
+
+[host:save] no-unfinished-action-replay PASS
+
+[host:save] autosave-throttle-checkpoint-retry PASS
+
+[host:save] visible-state-save-consistency PASS
+
+[host:save] campus-safe-restore PASS
+
+[host:save] takeout-resume-and-atomic-pickup PASS
+
+[host:save] takeout-autosave-phase-key PASS
+
+[host:save] wallet-furniture-atomic-autosave-no-repeat-gift PASS
+
+[host:save] sound-mode-autosave-and-reboot PASS
+
+[host:save] challenge-life-no-half-replay-and-shared-cooldown PASS
+
+[host:save] committed-but-readback-failed reconciliation PASS
+
+[host:save] unknown-schema-write-protection PASS
+
+[host:save] sequence-wrap PASS
+
+[host:save] semantic-range-validation PASS
+
+[host:save] legacy v5 sound migration and v6 volume PASS
+
+[host:save] schema-v1-v2-v3-v4-to-v8-preserves-life-and-initializes-wallet PASS
+
+[host:save] RTC trust flag, unchanged clock not dirty, and v6 migration PASS
+
+[host:save] all PASS (RAM NOR simulation; not physical flash)
+
+
+[host:save-old7] actual df6e0db source produces schema7 life/order/RTC/journal fixture PASS
+
+
+[host:economy-save] real schema7 migration, no repeated starter grant, invalid wallet rejection,65 transaction cut points PASS
+
+
+[host:save-old7] actual df6e0db schema7 refuses schema8 with zero writes/erase PASS
+
+
+[host:save-old6] actual a633ec9 schema6 refuses schema8, zero writes/erase PASS
+
+
+[host:save-app] immediate pending, mid-action reboot, travel/wake and rejected-no-change feedback PASS
+
+[host:save-app] real app/driver callbacks: autosave, scenes, meals, sleep/wake, reboot, failure/retry PASS
+
+[host:save-app] actual app order countdown, ready and pickup across reboot PASS
+
+[host:save-app] wallet and unfinished memory game across actual app reboot PASS
+
+[host:save-app] capacity, erase-granularity, region bounds and truthful fallback PASS; no physical verdict
+
+[host:save-app] main-thread phone snapshot matches actual application state PASS
+
+[host:save-app] phone sync, no time jumps, clock not dirty, reboot RTC trust and lost clock PASS
+
+
+[host:assets] 46 production decoders x10, released each time; peak image allocation=351000 bytes PASS
+
+[host:render-profile] scene=0 frames=50 large_decodes=0 pixels=199400 peak=359040
+
+[host:render-profile] scene=1 frames=50 large_decodes=0 pixels=199400 peak=1532415
+
+[host:render-profile] scene=2 frames=50 large_decodes=3 pixels=8775000 peak=2017365
+
+[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS
+
+[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS
+
+[host:shahe-ui] three challenges, coin rewards, four life corners, shop8 ownership states, purchases/free toggles and visible3 furniture PASS
+
+[host:shahe-ui] native journal, memory rounds, stamps, life route, glyphs and recreation PASS
+
+
+Actual LVGL software previews: D:\project\sifli\course_starter\build\pet-host

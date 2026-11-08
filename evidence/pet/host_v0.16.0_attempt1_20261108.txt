@@ -1,0 +1,48 @@
+[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume and failures PASS (12 cases)
+
+
+[host:audio-driver] thread creation failure remains unavailable across toggles PASS
+
+
+[host:challenge] meal-challenge PASS
+
+[host:challenge] rhythm-challenge PASS
+
+[host:challenge] find-challenge PASS
+
+[host:challenge] 32 seeds, permutation, reveal, wrong/illegal/repeat, timeout partition, exact rhythm window and four-hit threshold PASS
+
+
+[host:rtc] SDK GET/SET adapter, trust, throttle, rollover, readback, errors and retry PASS
+
+
+[host:time] civil/UTC+8, protocol, 1440 minute boundaries, activity lock, tired gain and optional sleep PASS
+
+
+[host:cts] peripheral-only security request, confirmation failures, stale events and persistent read-only diagnostics PASS
+
+[host:cts] actual SDK adapter: timezone/DST, pointer copies, zero remote handle, pairing once, timeout, errors, reconnect and overflow PASS
+
+
+[host:ble-probe] shared selftest, PING, length/null/binary rejection and output guards PASS; no physical BLE verdict
+
+
+[host:ble-driver] production callbacks: init failures, identity, connect/read/write/reconnect, invalid offset/peer/data, queue fault and allocation failures PASS; no physical BLE verdict
+
+
+[host:ble-worker] mode=1 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=2 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=3 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+[host:ble-worker] mode=4 production loop, event flow, independent 15s watchdog and read-only query PASS; no radio verdict
+
+
+
+Assertion failed: pa_selftest(report), file D:\project\sifli\course_starter\tests\pet_audio_test.c, line 10
+
+

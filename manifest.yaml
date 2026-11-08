@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.15.0计划内功能软件完成，待统一实机验收后GitHub上传及同学交接；v0.14.2配对校时确认保留"
+  milestone: "v0.16.0金币生活费主循环软件完成，TC-249完整实机待测；用户暂缓上传提交与同学交接"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "小游戏赚金币购买食物与固定位置宿舍布置，替代手账主目标"
+      alternatives_considered: "固定位置永久拥有并免费切换；自由拖拽布置需动态避障和编辑流程"
+      rationale: "用户认为手账用途有限，要求赚生活费；先建立赚钱消费保存闭环"
+      decided_by: "用户明确授权更换，并选择固定位置换款式；ADR-0017"
     - decision: "iPhone原生CTS连接后自动校时，保留0004备用"
       alternatives_considered: "设备读取原生CTS；独立iOS App自动写0004；继续手工编码"
       rationale: "用户不希望手写时间，同意优先利用系统服务，省去单独手机工程；实际兼容性需板测"
@@ -117,7 +121,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.15.0_metadata_20261108.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.16.0_metadata_20261108.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -1145,7 +1149,55 @@ test_results:
     pass: null
     evidence_path: evidence/pet/cts_v0142_success_20261108_user.txt
 
+  - test_id: TC-244
+    description: 金币奖励与钱包边界
+    expected: 按docs/03中REQ-208的TC-244判据
+    actual: v0.16.0软件和目标构建通过，具体覆盖与失败见docs/04；不代替板端
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.0_final_20261108.txt
+
+  - test_id: TC-245
+    description: 食物收费与事务资格
+    expected: 按docs/03中REQ-209的TC-245判据
+    actual: v0.16.0软件和目标构建通过，具体覆盖与失败见docs/04；不代替板端
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.0_final_20261108.txt
+
+  - test_id: TC-246
+    description: 商店与三家具生产界面
+    expected: 按docs/03中REQ-210的TC-246判据
+    actual: v0.16.0软件和目标构建通过，具体覆盖与失败见docs/04；不代替板端
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.0_final_20261108.txt
+
+  - test_id: TC-247
+    description: 金币家具存档迁移与原子性
+    expected: 按docs/03中REQ-211的TC-247判据
+    actual: v0.16.0软件和目标构建通过，具体覆盖与失败见docs/04；不代替板端
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.0_final_20261108.txt
+
+  - test_id: TC-248
+    description: 目标构建与原系统回归
+    expected: 按docs/03中REQ-208 REQ-209 REQ-210 REQ-211的TC-248判据
+    actual: v0.16.0软件和目标构建通过，具体覆盖与失败见docs/04；不代替板端
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.0_final_20261108.txt
+
+  - test_id: TC-249
+    description: 金币完整闭环实机
+    expected: 按docs/03中REQ-208 REQ-209 REQ-210 REQ-211的TC-249判据
+    actual: v0.16.0待真实赚币、消费、布置和复位恢复证据，尚未执行
+    status: pending_physical
+    pass: null
+
 known_issues:
+  - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"
   - "v0.15.0三游戏/四生活角落/收藏提示已软件与构建通过；TC-229/231待最终集中实机。存档格式7不变，共享60秒奖励冷却；验收后才上传GitHub及交接同学。"
   - "当前v0.14.2配对/自动校时时间正确已获用户本人实机确认，见cts_v0142_success_20261108_user.txt；独立新日志/截图、完整操作时间及断开走时/重连/复位/全断电保时尚缺，不撤销成功也不扩大范围。"
   - "v0.14.1外设误调中心配对API已被实机op10 ret66和SDK角色限制确认；v0.14.2修复后配对与正确时间已获用户实物确认，TC243完整原始采集仍待，旧失败不删除。"
