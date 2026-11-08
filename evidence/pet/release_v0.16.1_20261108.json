@@ -1,0 +1,19 @@
+{
+  "recorded_on": "2026-11-08",
+  "version": "0.16.1",
+  "source_commit": "ef8ccbb37f9593b503d005d12c66dee001306228",
+  "package": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-v0161-20261108\\沙河校园小猫-v0.16.1-每日签到待验收-20261108.zip",
+  "zip_bytes": 15486228,
+  "zip_sha256": "7AFECFA61D73EAE742A4FB12EAF5767A338B037205656CE072C98B094F8698ED",
+  "payload_files": 86,
+  "zip_files": 87,
+  "zip_crc": "PASS",
+  "payload_sha256": "PASS",
+  "build_inputs": 95,
+  "validation_inputs": 40,
+  "artifacts": 22,
+  "main_bin_sha256": "7B3140307DA363F1F4AF9423ABDA9DED3FA188E976C51486BD32F9F7D11E3821",
+  "save_schema": 9,
+  "physical_acceptance": "TC254 and full TC249 pending; no new board evidence",
+  "external_submission": "Deferred; no remote/push/platform submission/handoff"
+}
