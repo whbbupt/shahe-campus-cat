@@ -11,5 +11,5 @@ int main(void){
     pet_save_t s;pet_world_t w;pw_init(&w);ps_io_t io={NULL,rd,wr,er};
     assert(ps_open(&s,io,&w)==PS_VERSION&&!s.enabled&&writes==0);
     assert(ps_save(&s,&w)==PS_IO_ERROR&&writes==0);
-    puts("[host:save-old6] actual a633ec9 schema6 refuses schema9, zero writes/erase PASS");return 0;
+    puts("[host:save-old6] actual a633ec9 schema6 refuses schema10, zero writes/erase PASS");return 0;
 }
