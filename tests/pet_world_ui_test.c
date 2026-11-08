@@ -182,12 +182,17 @@ static void controls_fit(lv_obj_t *p, bool hidden)
     {
         lv_area_t a;
         lv_obj_get_coords(p, &a);
-        bool map_child = false;
+        bool map_child = false, scroll_child = false;
         for (lv_obj_t *q = p; q; q = lv_obj_get_parent(q))
-            if (lv_obj_get_width(q) == PW_CAMPUS_WIDTH)
-                map_child = true;
+        {
+            if (lv_obj_get_width(q) == PW_CAMPUS_WIDTH) map_child = true;
+            if (lv_obj_has_flag(q, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_get_width(q)==322 && lv_obj_get_height(q)==250) scroll_child = true;
+        }
         if (!map_child)
-            assert(a.x1 >= 0 && a.y1 >= 0 && a.x2 < 390 && a.y2 < 450);
+        {
+            assert(a.x1 >= 0 && a.x2 < 390);
+            if (!scroll_child) assert(a.y1 >= 0 && a.y2 < 450);
+        }
         assert(lv_obj_get_width(p) >= 44 && lv_obj_get_height(p) >= 44);
     }
     for (unsigned i = 0; i < lv_obj_get_child_count(p); i++)
@@ -493,7 +498,7 @@ static void shop_while_asleep(void)
 {
     assert(world.phase == PW_SLEEP);
     unsigned coins = world.wallet.coins;
-    press("商店"); assert(label_with(lv_screen_active(), "小猫生活商店"));
+    press("布置"); assert(label_with(lv_screen_active(), "布置宿舍"));
     assert(label_with(lv_screen_active(), "先叫醒"));
     screenshot("shahe-shop-asleep.ppm"); press("×");
     tap(100,126); step(600); assert(world.phase == PW_IDLE && world.wallet.coins == coins);
@@ -533,7 +538,7 @@ static void campus_round_trip(void)
     assert(world.settlements[PW_STUDY] == 0);
     until_action(PW_STUDY);
     step(550);
-    assert(label_with(lv_screen_active(), "饱食 -7 · 心情 +7"));
+    assert(label_with(lv_screen_active(), "饱食 -7 · 心情 +4"));
     screenshot("shahe-classroom-study.ppm");
     tap(88, 256);
     assert(result == PW_BUSY && world.settlements[PW_STUDY] == 1);
@@ -556,7 +561,11 @@ static void campus_round_trip(void)
     settled_at(261, 396);
     tap(87, 252);
     assert(world.settlements[PW_EAT] == 0);
-    until_action(PW_EAT);
+    for(unsigned i=0;i<1000 && world.phase==PW_WALK;i++) step(20);
+    assert(world.phase==PW_SEATED && world.settlements[PW_EAT]==0); step(550);
+    screenshot("shahe-canteen-seated-menu.ppm");
+    press("确认用餐 · 6金币");
+    assert(world.phase==PW_ACTION);
     step(550);
     assert(label_with(lv_screen_active(), "饱食 +20"));
     screenshot("shahe-canteen-meal.ppm");
@@ -579,7 +588,7 @@ static void campus_round_trip(void)
     screenshot("shahe-gym-workout.ppm");
     step((uint32_t)(world.action_end - world.now));
     assert(world.settlements[PW_WORKOUT] == 1);
-    assert(label_with(lv_screen_active(), "饱食 -6 · 心情 +12"));
+    assert(label_with(lv_screen_active(), "饱食 -6 · 心情 +6"));
     screenshot("shahe-gym-gains.ppm");
     leave(PW_GYM);
     road(695, 690);
@@ -596,7 +605,7 @@ static void dorm_takeout(void)
     press("外卖");
     assert(label_with(lv_screen_active(), "宿舍外卖"));
     screenshot("shahe-takeout-menu.ppm");
-    press("确认下单");
+    press("确认下单 · 8金币");
     assert(world.order == PW_ORDER_DELIVERING);
     pet_ui_set_save_status(PET_SAVE_PENDING);
     assert(!label_with(lv_screen_active(), "取餐"));
@@ -613,7 +622,7 @@ static void dorm_takeout(void)
     assert(world.food == food && world.order == PW_ORDER_READY);
     step((uint32_t)(world.action_end - world.now));
     assert(world.food == food + 12 && world.order == PW_ORDER_NONE && world.settlements[PW_TAKEOUT] == 1);
-    assert(label_with(lv_screen_active(), "饱食 +12"));
+    assert(label_with(lv_screen_active(), "饱食 +12 · 心情 +1"));
     screenshot("shahe-takeout-gains.ppm");
     tap(100, 126);
     until_action(PW_REST);
@@ -684,6 +693,10 @@ static void real_clock_previews(void)
         assert(label_with(lv_screen_active(),"v" PET_FIRMWARE_VERSION));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
         if(!outside){
             tap(189,411);idle(PW_DORM);settled_at(189,411);
+            press("出门");assert(result==PW_CURFEW && world.scene==PW_DORM);
+            assert(label_with(lv_screen_active(),"宿舍宵禁"));screenshot("shahe-curfew-popup.ppm");
+            press("留在宿舍");step(500);assert(!label_with(lv_screen_active(),"宿舍宵禁"));
+            assert(pt_parse((const uint8_t *)"20261108060000",14,&world.clock.utc));pet_ui_update(&world);
             leave(PW_DORM);assert(world.scene==PW_CAMPUS && world.clock.valid);
         }
     }
@@ -770,7 +783,7 @@ static void new_life_and_challenges(void)
     {
         reset(); world.wallet = (pe_wallet_t){300, (uint8_t)mask, (uint8_t)mask};
         pet_ui_update(&world); step(40);
-        press("商店"); press("布置宿舍");
+        press("布置");
         assert(label_with(lv_screen_active(), "窗台盆栽"));
         assert(label_with(lv_screen_active(), "校园挂画"));
         assert(label_with(lv_screen_active(), "桌面书架"));
@@ -781,7 +794,7 @@ static void new_life_and_challenges(void)
     const unsigned pixels[][2] = {{286,207},{211,201},{67,225}};
     unsigned char old_pixel[3][3]; lv_refr_now(NULL);
     for (unsigned i=0; i<3; i++) memcpy(old_pixel[i], frame[pixels[i][1]][pixels[i][0]], 3);
-    press("商店"); press("布置宿舍");
+    press("布置");
     const char *names[] = {"窗台盆栽", "校园挂画", "桌面书架"};
     for (unsigned i=0; i<3; i++)
     {
@@ -795,25 +808,22 @@ static void new_life_and_challenges(void)
     assert(world.wallet.coins == 20 && world.wallet.owned == 7 && world.wallet.equipped == 7);
     screenshot("shahe-shop-purchased.ppm"); press("×"); screenshot("shahe-room-furnished.ppm");
     for (unsigned i=0; i<3; i++) assert(memcmp(old_pixel[i], frame[pixels[i][1]][pixels[i][0]],3));
-    press("商店"); press("布置宿舍");
+    press("布置");
     for (unsigned i=0; i<3; i++) press("收起");
     assert(world.wallet.coins == 20 && world.wallet.owned == 7 && world.wallet.equipped == 0);
     screenshot("shahe-shop-stored.ppm");
     for (unsigned i=0; i<3; i++) press("摆上");
     assert(world.wallet.coins == 20 && world.wallet.equipped == 7);
-    press("吃点好的");
-    world.wallet.coins = 0; pet_ui_update(&world);
-    assert(label_with(lv_screen_active(), "金币不足")); screenshot("shahe-shop-poor.ppm");
-    world.wallet.coins = 10; world.food = 95; pet_ui_update(&world);
-    press("享用"); assert(world.wallet.coins == 7 && world.food == 100);
-    assert(label_with(lv_screen_active(), "吃饱啦")); screenshot("shahe-shop-full.ppm"); press("×");
-    puts("[host:shahe-ui] three challenges, coin rewards, four life corners, shop8 ownership states, purchases/free toggles and visible3 furniture PASS");
+    press("×");
+    world.wallet=(pe_wallet_t){0,0,0}; pet_ui_update(&world); press("布置");
+    assert(label_with(lv_screen_active(), "金币不足")); screenshot("shahe-decor-poor.ppm"); press("×");
+    puts("[host:shahe-ui] three challenges, coin rewards, four life corners, decor8 ownership states, purchases/free toggles and visible3 furniture PASS");
 
 }
 
 static void daily_checkin_ui(void)
 {
-    reset(); press("商店"); assert(label_with(lv_screen_active(),"先校时"));
+    reset(); press("状态"); assert(label_with(lv_screen_active(),"先校时"));
     press("先校时"); assert(world.wallet.coins==30&&!world.checkin_day);
     screenshot("shahe-checkin-unset.ppm");
     pt_date_t date={2026,11,8,23,59,59};uint32_t utc;assert(pt_encode(&date,&utc));
@@ -832,6 +842,41 @@ static void daily_checkin_ui(void)
     assert(world.wallet.coins==9999&&world.coin_gain==2&&label_with(lv_screen_active(),"今日已领"));
     press("×");
     puts("[host:daily-ui] real pointer wait/trusted/claim/disabled repeat/Beijing midnight/rollback/full/actual cap PASS");
+}
+
+static void swipe_up(void)
+{
+    pointer.x=180;pointer.y=315;pointer_state=LV_INDEV_STATE_PRESSED;step(40);
+    for(int y=300;y>=130;y-=10){pointer.y=y;step(20);}
+    pointer_state=LV_INDEV_STATE_RELEASED;step(40);step(400);
+}
+static void scroll_menus_and_curfew(void)
+{
+    reset();world.scene=PW_CANTEEN;world.wallet.coins=100;world.food=40;
+    pw_point_t p=pw_node(PW_CANTEEN,3);world.x=p.x;world.y=p.y;pet_ui_update(&world);
+    tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
+    assert(world.phase==PW_SEATED && world.wallet.coins==100 && world.food==40);step(550);
+    assert(label_with(lv_screen_active(),"坐下慢慢选餐"));screenshot("shahe-meal-menu-top.ppm");
+    tap(60,220);assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
+    swipe_up();swipe_up();
+    lv_obj_t *last=control("红豆小点心");lv_area_t a;lv_obj_get_coords(last,&a);
+    assert(a.y1>=96 && a.y2<346);screenshot("shahe-meal-menu-bottom.ppm");
+    press("红豆小点心");assert(world.wallet.coins==100 && world.food==40);
+    press("确认用餐 · 3金币");assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
+    step(6500);tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
+    assert(world.phase==PW_SEATED);step(550);press("×");assert(world.phase==PW_IDLE && world.wallet.coins==97);
+    reset();world.wallet.coins=100;world.food=40;pet_ui_update(&world);press("外卖");
+    swipe_up();swipe_up();press("暖胃小米粥");screenshot("shahe-takeout-menu-bottom.ppm");
+    press("确认下单 · 5金币");assert(world.wallet.coins==95 && world.order_choice==6);
+    press("外卖");assert(label_with(lv_screen_active(),"宿舍外卖"));screenshot("shahe-takeout-congee-tracking.ppm");press("×");
+    reset();uint32_t utc;assert(pt_parse((const uint8_t *)"20261109230000",14,&utc));world.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK};pet_ui_update(&world);
+    press("出门");assert(result==PW_CURFEW && world.scene==PW_DORM);press("留在宿舍");
+    tap(100,126);until_action(PW_REST);step(700);assert(world.phase==PW_SLEEP);
+    tap(100,126);step(600);assert(world.phase==PW_IDLE);
+    press("出门");assert(result==PW_CURFEW);screenshot("shahe-curfew-after-wake.ppm");press("留在宿舍");
+    world.wallet=(pe_wallet_t){200,7,7};pet_ui_update(&world);screenshot("shahe-dorm-furnished-night.ppm");
+    assert(!label_with(lv_screen_active(),"商店"));
+    puts("[host:menu-ui] native pointer two scrolls to sixth meals, no charge on selection/cancel, seated confirmation, delivery kind, curfew/wake/close PASS");
 }
 
 int main(int argc, char **argv)
@@ -855,14 +900,9 @@ int main(int argc, char **argv)
     assert(lv_obj_get_width(entry)==62 && lv_obj_get_height(entry)==62);
     tap(entry_area.x1+4,(entry_area.y1+entry_area.y2)/2);
     assert(label_with(lv_screen_active(),"小猫状态"));press("×");
-    entry=control("商店");lv_obj_get_coords(entry,&entry_area);
-    assert(entry_area.x1==228 && entry_area.y1==28 && lv_obj_get_width(entry)==62);
-    tap(entry_area.x2-4,(entry_area.y1+entry_area.y2)/2);
-    assert(label_with(lv_screen_active(),"小猫生活商店"));press("×");
-    assert(!label_with(lv_screen_active(),"蓝牙启动中"));
-    press("商店");
-    screenshot("shahe-shop-first.ppm");
-    press("×");
+    tap(282,59); assert(!label_with(lv_screen_active(), "布置宿舍"));
+    assert(!label_with(lv_screen_active(), "商店"));
+    press("布置"); screenshot("shahe-decor-first.ppm"); press("×");
     press("状态");
     assert(world.sound_mode == 2 && world.volume == 5);
     screenshot("shahe-audio-music.ppm");
@@ -910,12 +950,13 @@ int main(int argc, char **argv)
     real_clock_previews();
     new_life_and_challenges();
     daily_checkin_ui();
+    scroll_menus_and_curfew();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
     {
         reset();
         assert(timers() == expected_timers);
     }
-    puts("[host:shahe-ui] shop, memory rounds, paid life route, glyphs and recreation PASS");
+    puts("[host:shahe-ui] decor, memory rounds, paid life route, glyphs and recreation PASS");
     return 0;
 }

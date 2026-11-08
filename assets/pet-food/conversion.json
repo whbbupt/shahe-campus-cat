@@ -1,0 +1,15 @@
+{
+  "source": "meal-atlas-source.png",
+  "source_sha256": "0af47c55ff8172003f4d827d00d477147582ff917603fe097f30bebe4aa05fab",
+  "generation": "OpenAI built-in imagegen, 2026-11-09",
+  "grid": [
+    3,
+    4
+  ],
+  "tile_size": [
+    64,
+    64
+  ],
+  "rgb565_bytes": 98304,
+  "ordering": "cafeteria six, then delivery six, row-major"
+}

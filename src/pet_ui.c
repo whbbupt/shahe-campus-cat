@@ -5,6 +5,7 @@
 #include "pet_world_assets.h"
 #include "pet_shahe_assets.h"
 #include "pet_world_font.h"
+#include "pet_food_assets.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -15,15 +16,17 @@
 #define PAPER 0xF8F3DF
 enum
 {
-    TAG_STATUS = 100,
+    TAG_STATUS = 300,
     TAG_CLOSE,
     TAG_PHONE,
     TAG_SHOP,
     TAG_MEMORY_CLOSE,
     TAG_SHOP_FOOD,
-    TAG_SHOP_DECOR
+    TAG_SHOP_DECOR,
+    TAG_CONFIRM,
+    TAG_FOOD_FIRST = 320
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW };
 static struct
 {
     pet_ui_action_fn action;
@@ -42,6 +45,12 @@ static struct
     lv_obj_t *shop_button, *shop_dialog, *shop_balance, *shop_hint, *checkin, *checkin_label, *shop_tab[2];
     lv_obj_t *shop_name[3], *shop_price[3], *shop_buy[3], *shop_action[3], *furniture[3];
     unsigned shop_page;
+    bool delivery;
+    unsigned selected;
+    lv_obj_t *wallet_text, *status_coins, *decor_entry, *curfew_dialog;
+    lv_obj_t *menu_title, *menu_list, *menu_confirm_text, *menu_tracking;
+    lv_obj_t *menu_row[PE_MENU_COUNT], *menu_price[PE_MENU_COUNT];
+    lv_obj_t *menu_name[PE_MENU_COUNT], *menu_image[PE_MENU_COUNT];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit, *life_label;
     lv_obj_t *challenge_track, *challenge_cursor;
@@ -151,21 +160,21 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_SHOP)
     {
-        ui.panel = ui.panel == PANEL_SHOP ? PANEL_NONE : PANEL_SHOP;
+        if (ui.world.scene == PW_DORM) ui.panel = PANEL_SHOP;
         paint(); return;
     }
-    if (cmd == TAG_SHOP_FOOD || cmd == TAG_SHOP_DECOR)
+    if (cmd >= TAG_FOOD_FIRST && cmd < TAG_FOOD_FIRST + PE_MENU_COUNT)
+    { ui.selected = (unsigned)(cmd - TAG_FOOD_FIRST); paint(); return; }
+    if (cmd == TAG_CONFIRM && ui.panel == PANEL_ORDER)
     {
-        ui.shop_page = cmd == TAG_SHOP_DECOR ? 1 : 0;
+        pw_command_t choice = (pw_command_t)((ui.delivery ? PW_DELIVERY_FIRST : PW_MEAL_FIRST) + ui.selected);
+        if (ui.action && ui.action(choice) == PW_OK) ui.panel = PANEL_NONE;
         paint(); return;
     }
-    if (ui.panel == PANEL_SHOP && (cmd == PW_DAILY_CHECKIN || cmd == PW_EAT || cmd == PW_ORDER ||
-        (cmd >= PW_BUY_SNACK && cmd <= PW_BUY_SHELF)))
-    {
-        pw_result_t result = ui.action ? ui.action((pw_command_t)cmd) : PW_INVALID;
-        if (result == PW_OK && (cmd == PW_EAT || cmd == PW_ORDER)) ui.panel = PANEL_NONE;
-        paint(); return;
-    }
+    if (cmd == PW_DAILY_CHECKIN && ui.panel == PANEL_STATUS)
+    { if (ui.action) ui.action(PW_DAILY_CHECKIN); paint(); return; }
+    if (ui.panel == PANEL_SHOP && cmd >= PW_BUY_PLANT && cmd <= PW_BUY_SHELF)
+    { if (ui.action) ui.action((pw_command_t)cmd); paint(); return; }
     if ((cmd == PW_SOUND_NEXT || cmd == PW_MUSIC_TOGGLE ||
          cmd == PW_VOLUME_DOWN || cmd == PW_VOLUME_UP) && ui.panel == PANEL_STATUS)
     {
@@ -180,13 +189,17 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_CLOSE)
     {
+        if (ui.panel == PANEL_ORDER && !ui.delivery && ui.world.phase == PW_SEATED && ui.action)
+            ui.action(PW_MEAL_LEAVE);
         ui.panel = PANEL_NONE;
         paint();
         return;
     }
     if (cmd == TAG_PHONE)
     {
+        ui.delivery = true; ui.selected = 0;
         ui.panel = PANEL_ORDER;
+        lv_obj_scroll_to_y(ui.menu_list, 0, LV_ANIM_OFF);
         paint();
         return;
     }
@@ -200,7 +213,7 @@ static void click(lv_event_t *e)
         return;
     }
     if (!ui.panel && ui.action)
-        ui.action((pw_command_t)cmd);
+        ui.action(cmd == PW_EAT ? PW_SIT_MEAL : (pw_command_t)cmd);
 }
 static lv_obj_t *button(lv_obj_t *parent, int x, int y, int w, int h, int tag, uint32_t color, int radius)
 {
@@ -395,54 +408,66 @@ static void build_panel(lv_obj_t *screen)
     ui.save_note = text(status, save_notes[save_state], 0, 128, &pet_font_16, 0x62736B);
     ui.link_detail = text(dialog, "", 18, 211, &pet_font_16, BLUE);
     ui.link_name = text(dialog, "", 18, 233, &pet_font_16, 0x62736B);
-    lv_obj_t *less = button(dialog, 18, 267, 48, 48, PW_VOLUME_DOWN, 0xDCEAF3, 10);
+    lv_obj_t *less = button(dialog, 18, 299, 48, 44, PW_VOLUME_DOWN, 0xDCEAF3, 10);
     lv_obj_t *less_text = text(less, "−", 0, 0, &pet_font_20, INK);
     lv_obj_center(less_text);
-    ui.volume_text = text(dialog, "", 78, 281, &pet_font_16, INK);
-    lv_obj_t *more = button(dialog, 238, 267, 48, 48, PW_VOLUME_UP, 0xDCEAF3, 10);
+    ui.volume_text = text(dialog, "", 78, 311, &pet_font_16, INK);
+    lv_obj_t *more = button(dialog, 238, 299, 48, 44, PW_VOLUME_UP, 0xDCEAF3, 10);
     lv_obj_t *more_text = text(more, "+", 0, 0, &pet_font_20, INK);
     lv_obj_center(more_text);
-    lv_obj_t *sound = button(dialog, 18, 327, 268, 44, PW_MUSIC_TOGGLE, 0xDCE6CB, 10);
+    lv_obj_t *sound = button(dialog, 18, 353, 268, 44, PW_MUSIC_TOGGLE, 0xDCE6CB, 10);
     ui.audio_label = text(sound, "", 0, 0, &pet_font_16, INK);
     lv_obj_center(ui.audio_label);
-    ui.audio_note = text(dialog, "", 18, 383, &pet_font_16, BLUE);
-    ui.order_dialog = box(ui.layer, 57, 113, 276, 224, PAPER, 18);
-    text(ui.order_dialog, "宿舍外卖", 18, 13, &pet_font_20, INK);
-    lv_obj_t *order_close = button(ui.order_dialog, 226, 2, 44, 44, TAG_CLOSE, PAPER, 12);
-    lv_obj_t *order_x = text(order_close, "×", 0, 0, &pet_font_20, BLUE);
-    lv_obj_center(order_x);
-    box(ui.order_dialog, 18, 51, 240, 1, 0xD8CFB8, 0);
-    text(ui.order_dialog, "暖饭便当", 18, 62, &pet_font_20, INK);
-    text(ui.order_dialog, "送到宿舍门旁 · 饱食 +12", 18, 93, &pet_font_16, BLUE);
-    ui.order_note = text(ui.order_dialog, "", 18, 125, &pet_font_16, INK);
-    ui.order_save = text(ui.order_dialog, "", 18, 163, &pet_font_16, BLUE);
-    ui.order_button = button(ui.order_dialog, 18, 163, 240, 44, PW_ORDER, 0xDCE6CB, 10);
-    lv_obj_t *order = text(ui.order_button, "确认下单", 0, 0, &pet_font_16, INK);
-    lv_obj_center(order);
-    ui.shop_dialog = box(ui.layer, 28, 40, 334, 374, PAPER, 18);
-    text(ui.shop_dialog, "小猫生活商店", 18, 10, &pet_font_20, INK);
-    lv_obj_t *shop_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
-    lv_obj_t *shop_x = text(shop_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(shop_x);
-    ui.shop_balance = text(ui.shop_dialog, "", 18, 53, &pet_font_20, 0x967027);
-    ui.checkin = button(ui.shop_dialog, 196, 48, 120, 44, PW_DAILY_CHECKIN, 0xE9D8A8, 10);
+    ui.audio_note = text(dialog, "", 18, 397, &pet_font_16, BLUE);
+    ui.status_coins = text(dialog, "", 18, 252, &pet_font_16, INK);
+    ui.checkin = button(dialog, 176, 247, 110, 44, PW_DAILY_CHECKIN, 0xE9D8A8, 10);
     ui.checkin_label = text(ui.checkin, "", 0, 0, &pet_font_16, INK);
-    const char *tabs[] = {"吃点好的", "布置宿舍"};
-    for (unsigned i = 0; i < 2; i++)
+    /* One shared in-scene menu, with independently checked model commands. */
+    ui.order_dialog = box(ui.layer, 22, 18, 346, 414, PAPER, 18);
+    ui.menu_title = text(ui.order_dialog, "", 18, 12, &pet_font_20, INK);
+    lv_obj_t *menu_close = button(ui.order_dialog, 294, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *menu_x = text(menu_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(menu_x);
+    ui.order_note = text(ui.order_dialog, "", 18, 48, &pet_font_16, BLUE);
+    ui.menu_list = box(ui.order_dialog, 12, 78, 322, 250, PAPER, 0);
+    lv_obj_add_flag(ui.menu_list, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scroll_dir(ui.menu_list, LV_DIR_VER);
+    lv_obj_set_scrollbar_mode(ui.menu_list, LV_SCROLLBAR_MODE_AUTO);
+    for (unsigned i = 0; i < PE_MENU_COUNT; i++)
     {
-        ui.shop_tab[i] = button(ui.shop_dialog, 18 + i * 152, 100, 146, 44,
-            i ? TAG_SHOP_DECOR : TAG_SHOP_FOOD, 0xDCEAF3, 10);
-        lv_obj_t *name = text(ui.shop_tab[i], tabs[i], 0, 0, &pet_font_16, BLUE); lv_obj_center(name);
+        ui.menu_row[i] = button(ui.menu_list, 2, i * 86, 310, 80, TAG_FOOD_FIRST + i, 0xE6ECDE, 10);
+        lv_obj_t *clip = box(ui.menu_row[i], 8, 8, 64, 64, PAPER, 7);
+        ui.menu_image[i] = lv_image_create(clip);
+        lv_image_set_src(ui.menu_image[i], &pet_food_atlas);
+        lv_obj_remove_flag(ui.menu_image[i], LV_OBJ_FLAG_CLICKABLE);
+        ui.menu_name[i] = text(ui.menu_row[i], "", 80, 10, &pet_font_16, INK);
+        ui.menu_price[i] = text(ui.menu_row[i], "", 80, 36, &pet_font_16, BLUE);
     }
+    ui.menu_tracking = text(ui.order_dialog, "", 22, 128, &pet_font_20, INK);
+    lv_obj_set_width(ui.menu_tracking, 302);
+    ui.order_save = text(ui.order_dialog, "", 18, 342, &pet_font_16, BLUE);
+    ui.order_button = button(ui.order_dialog, 18, 362, 310, 44, TAG_CONFIRM, 0xBCD4BC, 10);
+    ui.menu_confirm_text = text(ui.order_button, "", 0, 0, &pet_font_16, INK);
+    ui.shop_dialog = box(ui.layer, 28, 40, 334, 374, PAPER, 18);
+    text(ui.shop_dialog, "布置宿舍", 18, 10, &pet_font_20, INK);
+    lv_obj_t *decor_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *decor_x = text(decor_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(decor_x);
+    ui.shop_balance = text(ui.shop_dialog, "", 18, 60, &pet_font_20, 0x967027);
     for (unsigned i = 0; i < 3; i++)
     {
-        lv_obj_t *row = box(ui.shop_dialog, 18, 154 + i * 62, 298, 58, 0xE6ECDE, 10);
-        ui.shop_name[i] = text(row, "", 10, 5, &pet_font_16, INK);
-        ui.shop_price[i] = text(row, "", 10, 31, &pet_font_16, BLUE);
-        ui.shop_buy[i] = button(row, 192, 7, 96, 44, PW_BUY_SNACK, 0xDCEAF3, 9);
+        lv_obj_t *row = box(ui.shop_dialog, 18, 112 + i * 72, 298, 68, 0xE6ECDE, 10);
+        ui.shop_name[i] = text(row, "", 10, 7, &pet_font_16, INK);
+        ui.shop_price[i] = text(row, "", 10, 36, &pet_font_16, BLUE);
+        ui.shop_buy[i] = button(row, 192, 12, 96, 44, PW_BUY_PLANT + i, 0xDCEAF3, 9);
         ui.shop_action[i] = text(ui.shop_buy[i], "", 0, 0, &pet_font_16, INK);
     }
-    ui.shop_hint = text(ui.shop_dialog, "", 18, 346, &pet_font_16, BLUE);
+    ui.shop_hint = text(ui.shop_dialog, "", 18, 342, &pet_font_16, BLUE);
     lv_obj_set_width(ui.shop_hint, 298); lv_label_set_long_mode(ui.shop_hint, LV_LABEL_LONG_CLIP);
+    ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
+    text(ui.curfew_dialog, "宿舍宵禁", 22, 20, &pet_font_20, INK);
+    text(ui.curfew_dialog, "23:00至06:00，宿舍门已关闭。", 22, 65, &pet_font_16, BLUE);
+    text(ui.curfew_dialog, "可以在屋里活动，\n早上6点再出门。", 22, 98, &pet_font_16, INK);
+    lv_obj_t *stay = button(ui.curfew_dialog, 22, 167, 270, 48, TAG_CLOSE, 0xBCD4BC, 10);
+    lv_obj_t *stay_text = text(stay, "留在宿舍", 0, 0, &pet_font_16, INK); lv_obj_center(stay_text);
 
     ui.memory_dialog = box(ui.layer, 29, 75, 332, 312, PAPER, 18);
     ui.memory_title = text(ui.memory_dialog, "课堂记忆题", 18, 12, &pet_font_20, INK);
@@ -468,6 +493,11 @@ static void build_panel(lv_obj_t *screen)
 }
 static void build_dorm_items(lv_obj_t *screen)
 {
+    ui.decor_entry = button(screen, 203, 279, 70, 58, TAG_SHOP, PAPER, 8);
+    lv_obj_set_style_bg_opa(ui.decor_entry, LV_OPA_TRANSP, 0);
+    lv_obj_t *decor_tag = box(ui.decor_entry, 14, 30, 44, 26, PAPER, 6);
+    text(decor_tag, "布置", 6, 1, &pet_font_16, INK);
+
     ui.phone = button(screen, 118, 191, 44, 61, TAG_PHONE, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.phone, LV_OPA_TRANSP, 0);
     box(ui.phone, 13, 9, 17, 25, 0x34596A, 4);
@@ -497,18 +527,24 @@ static void build_furniture(lv_obj_t *screen)
     box(ui.furniture[0], 13, 15, 12, 8, 0x88AA92, 6);
     box(ui.furniture[0], 4, 25, 20, 12, 0xBF9769, 4);
     box(ui.furniture[0], 2, 24, 24, 4, 0xD6B28C, 2);
+    box(ui.furniture[0], 5, 4, 10, 6, 0xA6BF9B, 5);
+    box(ui.furniture[0], 16, 12, 8, 5, 0x537958, 4);
+    box(ui.furniture[0], 7, 28, 3, 7, 0xD6B28C, 1);
     ui.furniture[1] = box(screen, 210, 200, 52, 37, 0xA78C69, 3);
     box(ui.furniture[1], 3, 3, 46, 31, 0xF8F3DF, 1);
     box(ui.furniture[1], 7, 6, 38, 21, 0xDCEAF3, 1);
     box(ui.furniture[1], 10, 16, 10, 11, 0x88AA92, 1);
     box(ui.furniture[1], 23, 12, 17, 15, 0x456B77, 1);
     box(ui.furniture[1], 29, 8, 6, 4, 0xF8F3DF, 2);
-    ui.furniture[2] = box(screen, 66, 207, 18, 20, PAPER, 0);
+    ui.furniture[2] = box(screen, 41, 193, 34, 37, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.furniture[2], LV_OPA_TRANSP, 0);
-    box(ui.furniture[2], 1, 4, 4, 14, 0x88AA92, 1);
-    box(ui.furniture[2], 7, 0, 4, 18, 0xBF9769, 1);
-    box(ui.furniture[2], 13, 2, 4, 16, 0x456B77, 1);
-    box(ui.furniture[2], 0, 18, 18, 2, 0x8F775B, 1);
+    box(ui.furniture[2], 0, 0, 3, 36, 0x8F775B, 1);
+    box(ui.furniture[2], 31, 0, 3, 36, 0x8F775B, 1);
+    box(ui.furniture[2], 1, 0, 32, 3, 0xBF9769, 1);
+    box(ui.furniture[2], 5, 11, 6, 22, 0x88AA92, 1);
+    box(ui.furniture[2], 13, 7, 6, 26, 0xBF9769, 1);
+    box(ui.furniture[2], 21, 9, 7, 24, 0x456B77, 1);
+    box(ui.furniture[2], 0, 33, 34, 4, 0x8F775B, 1);
 }
 void pet_ui_create(pet_ui_action_fn callback)
 {
@@ -569,14 +605,15 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
     build_panel(screen);
-    ui.shop_button = button(screen, 228, 28, 62, 62, TAG_SHOP, PAPER, 14);
+    ui.shop_button = box(screen, 228, 28, 62, 62, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.shop_button, LV_OPA_90, 0);
     lv_obj_t *coin = box(ui.shop_button, 20, 7, 22, 22, 0xD7B86E, 11);
     lv_obj_set_style_border_width(coin, 1, 0);
     lv_obj_set_style_border_color(coin, lv_color_hex(0x967027), 0);
     lv_obj_t *coin_mark = text(coin, "币", 0, 0, &pet_font_16, INK);
     lv_obj_center(coin_mark);
-    text(ui.shop_button, "商店", 15, 36, &pet_font_16, BLUE);
+    ui.wallet_text = text(ui.shop_button, "", 0, 36, &pet_font_16, BLUE);
+    lv_obj_set_width(ui.wallet_text, 62); lv_obj_set_style_text_align(ui.wallet_text, LV_TEXT_ALIGN_CENTER, 0);
     ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
     image(ui.status_button, pw_icons[0], 19, 8);
@@ -607,71 +644,75 @@ static const char *campus_area(float x, float y)
     return y > 775 ? "国脉路南段" : "鸿雁路一带";
 }
 
+static void paint_checkin(void)
+{
+    const pet_world_t *w = &ui.world;
+    pw_checkin_t state = pw_checkin_status(w);
+    const char *label = state == PW_CHECKIN_WAIT_TIME ? "先校时" : state == PW_CHECKIN_DONE ? "今日已领"
+        : state == PW_CHECKIN_FUTURE ? "校准日期" : state == PW_CHECKIN_FULL ? "余额已满"
+        : w->phase != PW_IDLE ? "稍后签到" : "签到 +6";
+    set_label(ui.checkin_label, label); lv_obj_center(ui.checkin_label);
+    bool enabled = state == PW_CHECKIN_READY && w->phase == PW_IDLE;
+    if (enabled) lv_obj_remove_state(ui.checkin, LV_STATE_DISABLED); else lv_obj_add_state(ui.checkin, LV_STATE_DISABLED);
+    set_label_fmt(ui.status_coins, "生活费 %u 金币", w->wallet.coins);
+}
 static void paint_order(void)
 {
     const pet_world_t *w = &ui.world;
-    bool can_order = w->scene == PW_DORM && w->order == PW_ORDER_NONE && w->cooldown[PW_TAKEOUT] <= w->now && !pw_busy(w) && w->wallet.coins >= pe_price(PE_DELIVERY);
-    if (w->order == PW_ORDER_DELIVERING)
-        set_label_fmt(ui.order_note, "配送中 · 约 %u 秒", (unsigned)((w->order_due - w->now + 999) / 1000));
-    else if (w->order == PW_ORDER_READY)
-        set_label(ui.order_note, "已送到 · 点门旁纸袋");
-    else if (w->cooldown[PW_TAKEOUT] > w->now)
-        set_label_fmt(ui.order_note, "约 %u 秒后可再下单",
-                              (unsigned)((w->cooldown[PW_TAKEOUT] - w->now + 999) / 1000));
-    else if (pw_busy(w))
-        set_label(ui.order_note, w->phase == PW_SLEEP ? "先点床叫醒小猫" : "等当前动作结束");
-    else
-        set_label_fmt(ui.order_note, "%u 金币 · 约30秒送达", pe_price(PE_DELIVERY));
-    if (w->wallet.coins < pe_price(PE_DELIVERY) && w->order == PW_ORDER_NONE)
-        set_label(ui.order_note, "金币不够，先玩小游戏赚生活费");
-    set_label(ui.order_save, w->order == PW_ORDER_NONE ? "" : save_notes[save_state]);
-    visible(ui.order_save, !can_order);
-    visible(ui.order_button, can_order);
+    bool active = ui.delivery && w->order != PW_ORDER_NONE;
+    const pe_food_t *dish = pe_menu(ui.delivery, ui.selected);
+    set_label(ui.menu_title, ui.delivery ? "宿舍外卖" : "坐下慢慢选餐");
+    set_label_fmt(ui.order_note, "生活费 %u 金币 · 向上滑动看更多", w->wallet.coins);
+    visible(ui.menu_list, !active); visible(ui.menu_tracking, active);
+    if (active)
+    {
+        const pe_food_t *order = pe_order(w->order_choice);
+        if (w->order == PW_ORDER_DELIVERING)
+            set_label_fmt(ui.menu_tracking, "%s\n配送中 · 约 %u 秒\n送到宿舍门旁", order->name, (unsigned)((w->order_due - w->now + 999) / 1000));
+        else set_label_fmt(ui.menu_tracking, "%s\n已经送到\n点门旁纸袋取餐", order->name);
+    }
+    for (unsigned i=0; i<PE_MENU_COUNT; i++)
+    {
+        const pe_food_t *food = pe_menu(ui.delivery, i);
+        /* Names are separate labels so accessibility and hit testing see them. */
+        set_label(ui.menu_name[i], food->name);
+        unsigned tile = i + (ui.delivery ? PE_MENU_COUNT : 0);
+        lv_obj_set_pos(ui.menu_image[i], -(int)(tile % 3) * 64, -(int)(tile / 3) * 64);
+        set_label_fmt(ui.menu_price[i], "%u币 · 饱食+%u 心情+%u", food->price, food->food, food->mood);
+        lv_obj_set_style_bg_color(ui.menu_row[i], lv_color_hex(i==ui.selected ? 0xBCD4BC : 0xE6ECDE), 0);
+    }
+    bool enabled = !active && w->food < 100 && w->wallet.coins >= dish->price &&
+        (ui.delivery ? w->scene == PW_DORM && w->phase == PW_IDLE && w->cooldown[PW_TAKEOUT] <= w->now
+                     : w->scene == PW_CANTEEN && w->phase == PW_SEATED && w->cooldown[PW_EAT] <= w->now);
+    const char *reason = active ? save_notes[save_state] : w->food == 100 ? "吃饱啦，过会儿再来"
+        : w->wallet.coins < dish->price ? "金币不足，可以换份便宜的"
+        : ui.delivery && pw_busy(w) ? "等当前动作结束再下单"
+        : (ui.delivery ? w->cooldown[PW_TAKEOUT] : w->cooldown[PW_EAT]) > w->now ? "稍等一下再来"
+        : ui.delivery ? "确认才扣费 · 约30秒送达" : "选好再付款，取消不花钱";
+    set_label(ui.order_save, reason);
+    if (enabled) lv_obj_remove_state(ui.order_button, LV_STATE_DISABLED); else lv_obj_add_state(ui.order_button, LV_STATE_DISABLED);
+    set_label_fmt(ui.menu_confirm_text, "%s · %u金币", ui.delivery ? "确认下单" : "确认用餐", dish->price);
+    lv_obj_center(ui.menu_confirm_text); visible(ui.order_button, !active);
 }
-
 static void paint_shop(void)
 {
     const pet_world_t *w = &ui.world;
     set_label_fmt(ui.shop_balance, "生活费  %u 金币", w->wallet.coins);
-    pw_checkin_t state = pw_checkin_status(w);
-    const char *checkin = state == PW_CHECKIN_WAIT_TIME ? "先校时"
-        : state == PW_CHECKIN_DONE ? "今日已领" : state == PW_CHECKIN_FUTURE ? "校准日期"
-        : state == PW_CHECKIN_FULL ? "余额已满" : w->phase != PW_IDLE ? "稍后签到" : "签到 +6";
-    if (state == PW_CHECKIN_READY && w->phase == PW_IDLE) lv_obj_remove_state(ui.checkin, LV_STATE_DISABLED);
-    else lv_obj_add_state(ui.checkin, LV_STATE_DISABLED);
-    set_label(ui.checkin_label, checkin); lv_obj_center(ui.checkin_label);
-    for (unsigned i = 0; i < 2; i++)
-        lv_obj_set_style_bg_color(ui.shop_tab[i], lv_color_hex(i == ui.shop_page ? 0xBCD4BC : 0xDCEAF3), 0);
-    for (unsigned i = 0; i < 3; i++)
+    for (unsigned i=0; i<3; i++)
     {
-        pe_item_t item = (pe_item_t)(ui.shop_page ? PE_PLANT + i : i);
-        pw_command_t cmd = ui.shop_page ? (pw_command_t)(PW_BUY_PLANT + i)
-            : i == 0 ? PW_EAT : i == 1 ? PW_BUY_SNACK : PW_ORDER;
-        unsigned bit = 1U << i;
-        bool owned = ui.shop_page && (w->wallet.owned & bit);
-        bool placed = owned && (w->wallet.equipped & bit);
+        pe_item_t item = (pe_item_t)(PE_PLANT+i); unsigned bit=1U<<i;
+        bool owned=(w->wallet.owned&bit)!=0, placed=(w->wallet.equipped&bit)!=0;
         set_label(ui.shop_name[i], pe_name(item));
         if (owned) set_label(ui.shop_price[i], placed ? "已摆放 · 永久拥有" : "已购买 · 免费摆放");
-        else set_label_fmt(ui.shop_price[i], "%u 金币 · %s", pe_price(item), ui.shop_page ? "永久拥有" : i == 2 ? "配送30秒" : "现买现吃");
-        const char *label = ui.shop_page ? owned ? placed ? "收起" : "摆上" : "购买" : i == 2 ? "下单" : "享用";
-        bool enabled = w->phase == PW_IDLE;
-        if (!enabled) label = w->phase == PW_SLEEP ? "先叫醒" : "稍等一下";
-        else if (!ui.shop_page && i == 0 && w->scene != PW_CANTEEN) { enabled = false; label = "到食堂吃"; }
-        else if (!ui.shop_page && i == 2 && w->scene != PW_DORM) { enabled = false; label = "回宿舍订"; }
-        else if (!ui.shop_page && i < 2 && w->food == 100) { enabled = false; label = "吃饱啦"; }
-        else if (!ui.shop_page && i == 2 && w->order != PW_ORDER_NONE) { enabled = false; label = "配送中"; }
-        else if ((!ui.shop_page && i == 0 && w->cooldown[PW_EAT] > w->now) ||
-            (!ui.shop_page && i == 2 && w->cooldown[PW_TAKEOUT] > w->now)) { enabled = false; label = "稍后再来"; }
-        else if (!owned && w->wallet.coins < pe_price(item)) { enabled = false; label = "金币不足"; }
-        if (enabled) lv_obj_remove_state(ui.shop_buy[i], LV_STATE_DISABLED);
-        else lv_obj_add_state(ui.shop_buy[i], LV_STATE_DISABLED);
-        lv_obj_set_style_bg_opa(ui.shop_buy[i], enabled ? LV_OPA_COVER : LV_OPA_40, 0);
-        set_label(ui.shop_action[i], label); lv_obj_center(ui.shop_action[i]);
-        lv_obj_remove_event_cb(ui.shop_buy[i], click);
-        lv_obj_add_event_cb(ui.shop_buy[i], click, LV_EVENT_CLICKED, (void *)(uintptr_t)cmd);
+        else set_label_fmt(ui.shop_price[i], "%u 金币 · 永久拥有", pe_price(item));
+        const char *label = owned ? placed ? "收起" : "摆上" : "购买";
+        bool enabled=w->scene==PW_DORM && w->phase==PW_IDLE && (owned || w->wallet.coins>=pe_price(item));
+        if (w->phase!=PW_IDLE) label=w->phase==PW_SLEEP ? "先叫醒" : "稍后再来";
+        else if (!owned && w->wallet.coins<pe_price(item)) label="金币不足";
+        if (enabled) lv_obj_remove_state(ui.shop_buy[i],LV_STATE_DISABLED); else lv_obj_add_state(ui.shop_buy[i],LV_STATE_DISABLED);
+        set_label(ui.shop_action[i],label);lv_obj_center(ui.shop_action[i]);
     }
-    const char *message = pw_message_text(w);
-    set_label(ui.shop_hint, *message ? message : ui.shop_page ? "买后可收起再摆上，不重复花钱" : "通关10金币 · 满5秒失败得2金币");
+    set_label(ui.shop_hint, "买后永久拥有，收起再摆上免费");
 }
 static void paint_memory(void)
 {
@@ -706,7 +747,7 @@ static void paint_memory(void)
     else if (game->phase == PM_LOST)
         set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
     else
-        set_label(ui.memory_footer, game->phase == PM_SHOW ? "通关赚10金币 · 先记住顺序"
+        set_label(ui.memory_footer, game->phase == PM_SHOW ? "先记住顺序，再依次点击"
                                                                   : "随时可以重新挑战");
 }
 static void paint_challenge(void)
@@ -718,7 +759,7 @@ static void paint_challenge(void)
     static const char *objects[] = {"水杯", "书本", "钥匙", "耳机"};
     static const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     set_label(ui.memory_title, rhythm ? "健身节奏" : g->kind == PG_FIND ? "宿舍找物" : "食堂配餐");
-    if (won || lost) set_label(ui.memory_note, won ? "通关啦，生活费赚到啦" : "差一点，下次再试");
+    if (won || lost) set_label(ui.memory_note, won ? "答对啦，完成挑战" : "差一点，下次再试");
     else if (rhythm) set_label(ui.memory_note, pg_window(g) ? "绿色时间，点一下！" : "等指针走到绿色");
     else if (g->phase == PG_SHOW) set_label(ui.memory_note, "先记住物品的位置");
     else set_label_fmt(ui.memory_note, "%s：%s", g->kind == PG_FIND ? "找一找" : "订单", 
@@ -808,6 +849,7 @@ static void paint(void)
     for (unsigned i = 0; i < 3; i++)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
+    visible(ui.decor_entry, ui.world.scene == PW_DORM);
     visible(ui.blackboard, !campus);
     visible(ui.life_hit, !campus);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
@@ -879,6 +921,9 @@ static void paint(void)
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
     visible(ui.order_dialog, !memory && ui.panel == PANEL_ORDER);
     visible(ui.shop_dialog, !memory && ui.panel == PANEL_SHOP);
+    visible(ui.curfew_dialog, !memory && ui.panel == PANEL_CURFEW);
+    paint_checkin();
+    set_label_fmt(ui.wallet_text, "%u", ui.world.wallet.coins);
     visible(ui.memory_dialog, memory);
     if (memory) { if (ui.world.challenge.kind == PG_NONE) paint_memory(); else paint_challenge(); }
     if (ui.panel == PANEL_SHOP) paint_shop();
@@ -904,6 +949,12 @@ static void paint(void)
 }
 void pet_ui_update(const pet_world_t *world)
 {
+    if (world->curfew_events != ui.world.curfew_events) ui.panel = PANEL_CURFEW;
+    else if (world->phase == PW_SEATED && ui.panel == PANEL_NONE && world->now - world->action_start >= 500)
+    {
+        ui.panel = PANEL_ORDER; ui.delivery = false; ui.selected = 0;
+        lv_obj_scroll_to_y(ui.menu_list, 0, LV_ANIM_OFF);
+    }
     ui.world = *world;
     paint();
 }

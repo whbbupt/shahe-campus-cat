@@ -110,6 +110,11 @@ old8_save.write_bytes(subprocess.check_output(['git','show','92293c0:src/pet_sav
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old8_save, root/'tests/pet_save_v8_producer_test.c'], 'pet-save-v8-producer')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_daily_test.c'], 'pet-daily-save-test')
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old8_save, root/'tests/pet_save_v8_refusal_test.c'], 'pet-save-v8-refusal-test')
+old9_save=out/'actual_schema9_pet_save.c'
+old9_save.write_bytes(subprocess.check_output(['git','show','a01b11f:src/pet_save.c'],cwd=root))
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old9_save, root/'tests/pet_save_v9_producer_test.c'], 'pet-save-v9-producer')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_menu_save_test.c'], 'pet-menu-save-test')
+build([root/'src/pet_world.c', root/'src/pet_memory.c', old9_save, root/'tests/pet_save_v9_refusal_test.c'], 'pet-save-v9-refusal-test')
 old_save=out/'actual_schema6_pet_save.c'
 old_save.write_bytes(subprocess.check_output(['git','show','a633ec9:src/pet_save.c'],cwd=root))
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old_save, root/'tests/pet_save_v6_refusal_test.c'], 'pet-save-v6-refusal-test')
@@ -117,6 +122,6 @@ build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_s
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))
-    sources += [root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_ui.c', root/'src/pet_world_assets.c', root/'src/pet_shahe_assets.c', root/'src/pet_world_font.c', root/'tests/pet_world_ui_test.c']
+    sources += [root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_ui.c', root/'src/pet_food_assets.c', root/'src/pet_world_assets.c', root/'src/pet_shahe_assets.c', root/'src/pet_world_font.c', root/'tests/pet_world_ui_test.c']
     build(sources, 'pet-ui-test', [root/'tests/include', lvgl], ['LV_KCONFIG_IGNORE', 'LV_CONF_INCLUDE_SIMPLE'])
     print('Actual LVGL software previews:', out)
