@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.16.0金币生活费主循环软件完成，TC-249完整实机待测；用户暂缓上传提交与同学交接"
+  milestone: "v0.16.1每日签到软件完成，金币完整闭环及新增TC-254待真实验收；上传提交交接暂缓"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -121,7 +121,7 @@ code:
   repo_url: null # 只有本地仓库，未配置远程或推送。
   local_path: "D:/project/sifli/course_starter"
   commit_range: "b3b20241f7b26782acb7b43731582643b149d6ca..refs/heads/feat/pet-core"
-  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.16.0_metadata_20261108.json
+  implementation_commit: "refs/heads/feat/pet-core" # 开发分支；当前源码与产物哈希见evidence/pet/build_v0.16.1_metadata_20261108.json
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -1196,7 +1196,47 @@ test_results:
     status: pending_physical
     pass: null
 
+  - test_id: TC-250
+    description: 每日签到日期与资格
+    expected: 按docs/03中REQ-212与TC-250判据
+    actual: v0.16.1软件和构建通过，详细覆盖见docs/04，不代替实机
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.1_attempt1_20261108.txt
+
+  - test_id: TC-251
+    description: 签到币日期保存与旧8迁移
+    expected: 按docs/03中REQ-212与TC-251判据
+    actual: v0.16.1软件和构建通过，详细覆盖见docs/04，不代替实机
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.1_attempt1_20261108.txt
+
+  - test_id: TC-252
+    description: 生产签到界面与原商店
+    expected: 按docs/03中REQ-212与TC-252判据
+    actual: v0.16.1软件和构建通过，详细覆盖见docs/04，不代替实机
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.1_attempt1_20261108.txt
+
+  - test_id: TC-253
+    description: 签到固件构建与原回归
+    expected: 按docs/03中REQ-212与TC-253判据
+    actual: v0.16.1软件和构建通过，详细覆盖见docs/04，不代替实机
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.16.1_attempt1_20261108.txt
+
+  - test_id: TC-254
+    description: 每日签到实机
+    expected: 按docs/03中REQ-212与TC-254判据
+    actual: 本版真实校时/签到/复位与跨日证据未取得，尚未执行
+    status: pending_physical
+    pass: null
+
 known_issues:
+  - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
   - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"
   - "v0.15.0三游戏/四生活角落/收藏提示已软件与构建通过；TC-229/231待最终集中实机。存档格式7不变，共享60秒奖励冷却；验收后才上传GitHub及交接同学。"
   - "当前v0.14.2配对/自动校时时间正确已获用户本人实机确认，见cts_v0142_success_20261108_user.txt；独立新日志/截图、完整操作时间及断开走时/重连/复位/全断电保时尚缺，不撤销成功也不扩大范围。"
