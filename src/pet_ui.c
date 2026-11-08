@@ -31,6 +31,8 @@ static struct
     int scene;
     unsigned panel;
     lv_obj_t *background, *shadow, *sprite, *cat_hit, *foreground, *marks, *hotspot[2];
+    lv_obj_t *tone, *lamplight, *clock_text, *clock_date;
+    int light_scene, light_band;
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
@@ -359,6 +361,7 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_t *dialog = box(ui.layer, 43, 15, 304, 420, 0xF9FCFD, 18);
     ui.status_dialog = dialog;
     text(dialog, "小猫状态", 18, 13, &pet_font_20, INK);
+    text(dialog, "v" PET_FIRMWARE_VERSION, 160, 18, &pet_font_16, BLUE);
     lv_obj_t *close = button(dialog, 254, 2, 44, 44, TAG_CLOSE, 0xF9FCFD, 12);
     lv_obj_t *x = text(close, "×", 0, 0, &pet_font_20, BLUE);
     lv_obj_center(x);
@@ -377,7 +380,7 @@ static void build_panel(lv_obj_t *screen)
     box(status, 0, 68, 240, 7, 0xE1E9ED, 3);
     ui.mood_fill = box(status, 0, 68, 144, 7, 0x88AA92, 3);
     ui.state = text(status, "闲逛中", 0, 80, &pet_font_16, BLUE);
-    text(status, "v" PET_FIRMWARE_VERSION " · 自动存档", 0, 104, &pet_font_16, INK);
+    ui.clock_date = text(status, "时间待校准", 0, 104, &pet_font_16, INK);
     ui.save_note = text(status, save_notes[save_state], 0, 128, &pet_font_16, 0x62736B);
     ui.link_detail = text(dialog, "", 18, 211, &pet_font_16, BLUE);
     ui.link_name = text(dialog, "", 18, 233, &pet_font_16, 0x62736B);
@@ -472,6 +475,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     memset(&ui, 0, sizeof(ui));
     ui.action = callback;
     ui.scene = -1;
+    ui.light_scene = ui.light_band = -1;
     lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(screen, lv_color_hex(PAPER), 0);
     ui.background = lv_image_create(screen);
@@ -482,6 +486,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.decor = lv_image_create(screen);
     lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
+    ui.tone = box(screen, 0, 0, 390, 450, 0x17344E, 0);
+    ui.lamplight = box(screen, 45, 177, 60, 60, 0xFFE6AA, LV_RADIUS_CIRCLE);
+    lv_obj_set_style_bg_opa(ui.lamplight, LV_OPA_TRANSP, 0);
     ui.shadow = box(screen, 0, 0, 32, 8, 0x60523D, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.shadow, LV_OPA_20, 0);
     ui.sprite = lv_image_create(screen);
@@ -505,8 +512,8 @@ void pet_ui_create(pet_ui_action_fn callback)
     gate_badge(ui.blackboard, "记忆题", 59, 40, 80);
     ui.location = box(screen, 24, 28, 196, 62, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
-    text(ui.location, "沙河校园小猫", 12, 4, &pet_font_16, BLUE);
-    ui.location_text = text(ui.location, room_names[0], 12, 28, &pet_font_20, INK);
+    ui.clock_text = text(ui.location, "--:-- 待校时", 12, 3, &pet_font_20, INK);
+    ui.location_text = text(ui.location, room_names[0], 12, 33, &pet_font_16, BLUE);
     ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
     ui.bubble = box(screen, 67, 398, 256, 36, PAPER, 12);
     lv_obj_set_style_bg_opa(ui.bubble, LV_OPA_90, 0);
@@ -612,6 +619,30 @@ static void paint_memory(void)
                                                                   : "随时可以重新挑战");
 }
 
+static void paint_clock(void)
+{
+    pt_date_t date;
+    bool valid=ui.world.clock.valid && pt_decode(ui.world.clock.utc,&date);
+    pt_band_t band=valid?pt_band(ui.world.clock.utc):PT_DAY;
+    static const char *bands[]={"早晨","白天","傍晚","夜晚"};
+    if(valid){
+        set_label_fmt(ui.clock_text,"%02u%c%02u · %s",date.hour,date.second%2?' ':':',date.minute,bands[band]);
+        set_label_fmt(ui.clock_date,"%04u-%02u-%02u · %s",date.year,date.month,date.day,
+            ui.world.clock.state==PT_SYNCED?"手机校时":"设备时钟");
+    }else{
+        set_label(ui.clock_text,"--:-- 待校时");
+        set_label(ui.clock_date,ui.world.clock.state==PT_ERROR?"校时失败，请用手机重试":"连接手机后可校准时间");
+    }
+    if(ui.light_band!=(int)band || ui.light_scene!=ui.scene){
+        bool outdoor=ui.scene==PW_CAMPUS;
+        static const uint32_t colors[]={0xFFF1CC,0xFFFFFF,0xD99B65,0x17344E};
+        static const lv_opa_t opacities[]={24,0,40,112};
+        lv_obj_set_style_bg_color(ui.tone,lv_color_hex(colors[band]),0);
+        lv_obj_set_style_bg_opa(ui.tone,band==PT_NIGHT && outdoor ? 138 : opacities[band],0);
+        lv_obj_set_style_bg_opa(ui.lamplight,band==PT_NIGHT && ui.scene==PW_DORM ? 32 : 0,0);
+        ui.light_band=band;ui.light_scene=ui.scene;
+    }
+}
 static void paint(void)
 {
     if (ui.scene != ui.world.scene)
@@ -628,6 +659,7 @@ static void paint(void)
             lv_obj_set_pos(ui.decor, decor_anchor[ui.scene][0], decor_anchor[ui.scene][1] - art->header.h);
         }
     }
+    paint_clock();
     bool campus = ui.world.scene == PW_CAMPUS;
     visible(ui.campus, campus);
     visible(ui.background, !campus);
@@ -708,6 +740,8 @@ static void paint(void)
         paint_order();
     lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.panel == PANEL_STATUS ? 0xDCEAF3 : PAPER), 0);
     const char *msg = pw_message_text(&ui.world);
+    if(!*msg && ui.world.phase==PW_IDLE && ui.world.clock.valid && pt_bedtime(ui.world.clock.utc))
+        msg=pw_state_text(&ui.world);
     if (ui.world.now < 2300 && !*msg)
         msg = "v" PET_FIRMWARE_VERSION " · 沙河校园";
     bool gains = ui.world.now < ui.world.gain_until;

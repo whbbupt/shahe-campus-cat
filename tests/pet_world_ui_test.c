@@ -672,6 +672,32 @@ static void campus_extended_route(void)
     assert(label_with(lv_screen_active(), "东区教学区"));
     screenshot("shahe-full-east.ppm");
 }
+static void real_clock_previews(void)
+{
+    const char *at[]={"20261108070000","20261108120000","20261108180000","20261108230000"};
+    const char *name[]={"morning","day","dusk","night"};
+    for(unsigned outside=0;outside<2;outside++) {
+        reset();world.now=5000;
+        if(outside){world.scene=PW_CAMPUS;world.node=0;pw_point_t p=pw_node(PW_CAMPUS,0);world.x=p.x;world.y=p.y;}
+        for(unsigned i=0;i<4;i++) {
+            uint32_t utc;assert(pt_parse((const uint8_t *)at[i],14,&utc));
+            world.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK};pet_ui_update(&world);step(40);
+            char file[80];snprintf(file,sizeof(file),"shahe-clock-%s-%s.ppm",outside?"campus":"dorm",name[i]);screenshot(file);
+            if(i==3)assert(label_with(lv_screen_active(),"有点困，回床上休息吧"));
+        }
+        press("状态");assert(label_with(lv_screen_active(),"2026-11-08 · 手机校时"));
+        assert(label_with(lv_screen_active(),"v0.14.0"));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
+        if(!outside){
+            tap(189,411);idle(PW_DORM);settled_at(189,411);
+            leave(PW_DORM);assert(world.scene==PW_CAMPUS && world.clock.valid);
+        }
+    }
+    world.clock.valid=false;world.clock.state=PT_ERROR;pet_ui_update(&world);step(40);
+    assert(label_with(lv_screen_active(),"--:-- 待校时"));press("状态");
+    assert(label_with(lv_screen_active(),"校时失败，请用手机重试"));screenshot("shahe-clock-error.ppm");press("×");
+    reset();
+    puts("[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS");
+}
 int main(int argc, char **argv)
 {
     lv_init();
@@ -745,6 +771,7 @@ int main(int argc, char **argv)
     dorm_takeout();
     journal_demo();
     campus_extended_route();
+    real_clock_previews();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
     {
