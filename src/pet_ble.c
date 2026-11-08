@@ -15,7 +15,8 @@
 
 #define UUID(n) {0x43,0x45,0x48,0x41,0x48,0x53,0x4d,0x9a,0x25,0x4f,0x73,0x2f,n,0x00,0x7c,0x8a}
 #define SERIAL_UUID_16(x) {(uint8_t)((x)&255),(uint8_t)((x)>>8)}
-enum { ATTR_SERVICE, ATTR_INFO_CHAR, ATTR_INFO, ATTR_PROBE_CHAR, ATTR_PROBE, ATTR_COUNT };
+enum { ATTR_SERVICE, ATTR_INFO_CHAR, ATTR_INFO, ATTR_PROBE_CHAR, ATTR_PROBE,
+       ATTR_PHONE_CHAR, ATTR_PHONE, ATTR_COUNT };
 enum { EVENT_ADV_ON=0xf100, EVENT_ADV_OFF, EVENT_PING };
 typedef struct { uint16_t id,length; union { uint32_t align; uint8_t bytes[64]; } data; } event_t;
 static rt_mq_t events;
@@ -26,6 +27,10 @@ static volatile uint8_t active_connection=0xff;
 static volatile uint8_t callback_connection=0xff;
 static uint8_t probe_value[5]={'R','E','A','D','Y'};
 static uint16_t probe_length=5;
+static char phone_status[96]="status=pending", phone_read_buffer[96];
+static uint16_t phone_status_length=14;
+static pet_phone_status_t published_status;
+static bool phone_status_ready;
 static uint8_t service_uuid[16]=UUID(0);
 static uint8_t info[]="ShaheCat " PET_FIRMWARE_VERSION " BLE probe; RTC sync not enabled";
 static sibles_hdl service;
@@ -63,6 +68,26 @@ static diagnostic_t snapshot(void)
     diagnostic_t copy=diagnostic;
     rt_hw_interrupt_enable(level);
     return copy;
+}
+void pet_ble_set_phone_status(const pet_phone_status_t *status)
+{
+    if (!status || status->food>100 || status->mood>100 || status->scene>4 ||
+        status->phase>5 || status->volume>10 || status->sound_mode>2) return;
+    rt_base_t level=rt_hw_interrupt_disable();
+    bool same=phone_status_ready && !memcmp(status,&published_status,sizeof(*status));
+    rt_hw_interrupt_enable(level);
+    if (same) return;
+    static const char *scenes[]={"dorm","classroom","canteen","campus","gym"};
+    static const char *phases[]={"idle","walking","activity","sleeping","entering","minigame"};
+    char value[96];
+    int count=rt_snprintf(value,sizeof(value),"food=%u;mood=%u;scene=%s;phase=%s;volume=%u;music=%s",
+        status->food,status->mood,scenes[status->scene],phases[status->phase],
+        status->volume,status->sound_mode==2?"on":"off");
+    if (count<0 || (unsigned)count>=sizeof(value)) return;
+    level=rt_hw_interrupt_disable();
+    published_status=*status;phone_status_ready=true;
+    memcpy(phone_status,value,(size_t)count+1);phone_status_length=(uint16_t)count;
+    rt_hw_interrupt_enable(level);
 }
 void pet_ble_get_link(pet_link_t *link)
 {
@@ -115,6 +140,9 @@ BLE_GATT_SERVICE_DEFINE_128(attributes) {
     BLE_GATT_CHAR_DECLARE(ATTR_PROBE_CHAR,SERIAL_UUID_16_CHARACTERISTIC,BLE_GATT_PERM_READ_ENABLE),
     BLE_GATT_CHAR_VALUE_DECLARE(ATTR_PROBE,UUID(2),BLE_GATT_PERM_READ_ENABLE|BLE_GATT_PERM_WRITE_REQ_ENABLE,
         BLE_GATT_VALUE_PERM_UUID_128|BLE_GATT_VALUE_PERM_RI_ENABLE,5),
+    BLE_GATT_CHAR_DECLARE(ATTR_PHONE_CHAR,SERIAL_UUID_16_CHARACTERISTIC,BLE_GATT_PERM_READ_ENABLE),
+    BLE_GATT_CHAR_VALUE_DECLARE(ATTR_PHONE,UUID(3),BLE_GATT_PERM_READ_ENABLE,
+        BLE_GATT_VALUE_PERM_UUID_128|BLE_GATT_VALUE_PERM_RI_ENABLE,95),
 };
 
 static void reset_probe(void) { memcpy(probe_value,"READY",5); probe_length=5; }
@@ -133,6 +161,12 @@ static uint8_t *read_value(uint8_t connection,uint8_t attribute,uint16_t *length
     if (queue_fault || callback_connection==0xff || connection!=callback_connection) return NULL;
     if (attribute==ATTR_INFO) { *length=sizeof(info)-1; return info; }
     if (attribute==ATTR_PROBE) { *length=probe_length; return probe_value; }
+    if (attribute==ATTR_PHONE) {
+        rt_base_t level=rt_hw_interrupt_disable();
+        *length=phone_status_length;memcpy(phone_read_buffer,phone_status,(size_t)*length+1);
+        rt_hw_interrupt_enable(level);
+        return (uint8_t *)phone_read_buffer;
+    }
     return NULL;
 }
 static uint8_t write_value(uint8_t connection,sibles_set_cbk_t *request)

@@ -135,5 +135,10 @@ int main(void)
     assert(!io.read(NULL,8190,b,8) && !io.write(NULL,8190,b,8) && !io.erase(NULL,4095,4096));
     assert(calls==before);
     puts("[host:save-app] capacity, erase-granularity, region bounds and truthful fallback PASS; no physical verdict");
+    pet_phone_status_t phone;
+    pet_app_get_phone_status(&phone);
+    assert(phone.food==snapshot.food && phone.mood==snapshot.mood && phone.scene==snapshot.scene &&
+        phone.phase==snapshot.phase && phone.volume==snapshot.volume && phone.sound_mode==snapshot.sound_mode);
+    puts("[host:save-app] main-thread phone snapshot matches actual application state PASS");
     return 0;
 }

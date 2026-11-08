@@ -11,7 +11,7 @@ static bool queue_create_fail,thread_create_fail,thread_start_fail,register_fail
 static unsigned advertising_error;
 static rt_tick_t tick;
 static rt_base_t irq_level;
-static unsigned worker_mode,receives;
+static unsigned worker_mode,receives,formats;
 static jmp_buf worker_exit;
 static char printed[32768];
 static size_t printed_length;
@@ -34,7 +34,7 @@ rt_base_t rt_hw_interrupt_disable(void) { return irq_level++; }
 void rt_hw_interrupt_enable(rt_base_t previous) { assert(irq_level==previous+1);irq_level=previous; }
 void *rt_malloc(size_t n) { allocations++;return allocations==fail_allocation?NULL:malloc(n); }
 void rt_free(void *p) { free(p); }
-int rt_snprintf(char *s,size_t n,const char *format,...) { va_list args;va_start(args,format);int r=vsnprintf(s,n,format,args);va_end(args);return r; }
+int rt_snprintf(char *s,size_t n,const char *format,...) { formats++;assert(!irq_level);va_list args;va_start(args,format);int r=vsnprintf(s,n,format,args);va_end(args);return r; }
 int rt_kprintf(const char *f,...) {
  assert(irq_level==0);
  va_list args;va_start(args,f);int result=vsnprintf(printed+printed_length,sizeof(printed)-printed_length,f,args);va_end(args);
@@ -94,6 +94,7 @@ int main(int argc,char **argv)
  assert(attributes[ATTR_SERVICE].uuid[0]==0 && attributes[ATTR_SERVICE].uuid[1]==0x28);
  assert(attributes[ATTR_INFO_CHAR].uuid[0]==3 && attributes[ATTR_INFO].uuid[12]==1);
  assert(attributes[ATTR_PROBE].uuid[12]==2 && attributes[ATTR_PROBE].permission==3);
+ assert(attributes[ATTR_PHONE].uuid[12]==3 && attributes[ATTR_PHONE].permission==1);
  queue_create_fail=true;assert(pet_ble_start()!=0&&!events&&!started);queue_create_fail=false;
  thread_create_fail=true;assert(pet_ble_start()!=0&&!events&&!started);thread_create_fail=false;
  thread_start_fail=true;assert(pet_ble_start()!=0&&!events&&!started);thread_start_fail=false;
@@ -104,6 +105,16 @@ int main(int argc,char **argv)
  connect_peer(0);assert(active_connection==0&&callback_connection==0);
  pet_ble_get_link(&link);assert(link.state==PET_LINK_CONNECTED);
  uint16_t n;assert(read_value(0,ATTR_INFO,&n)&&n>20);
+ assert(read_value(0,ATTR_PHONE,&n)&&n==14&&!memcmp(phone_read_buffer,"status=pending",14));
+ pet_phone_status_t pet={70,60,0,0,5,2};
+ pet_ble_set_phone_status(&pet);
+ assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=70;mood=60;scene=dorm;phase=idle;volume=5;music=on"));
+ unsigned previous_formats=formats;pet_ble_set_phone_status(&pet);assert(formats==previous_formats);
+ pet.food=82;pet.scene=3;pet.phase=1;pet.volume=7;pet.sound_mode=1;pet_ble_set_phone_status(&pet);
+ assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=82;mood=60;scene=campus;phase=walking;volume=7;music=off"));
+ pet.food=101;pet_ble_set_phone_status(&pet);
+ assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=82;"));
+ assert(!read_value(2,ATTR_PHONE,&n)&&n==0);
  assert(read_value(0,ATTR_PROBE,&n)&&n==5&&!memcmp(probe_value,"READY",5));
  sibles_set_cbk_t request={ATTR_PROBE,4,0,(uint8_t *)"PING"};
  assert(write_value(0,&request)==0);assert(read_value(0,ATTR_PROBE,&n)&&n==4&&!memcmp(probe_value,"PONG",4));drain();
@@ -111,12 +122,15 @@ int main(int argc,char **argv)
  request.value=(uint8_t *)"NOPE";assert(write_value(0,&request)!=0&&!memcmp(probe_value,"PONG",4));
  request.value=(uint8_t *)"PING";request.len=3;assert(write_value(0,&request)!=0);request.len=4;
  request.idx=ATTR_INFO;assert(write_value(0,&request)!=0);request.idx=ATTR_PROBE;
+ request.idx=ATTR_PHONE;assert(write_value(0,&request)!=0);request.idx=ATTR_PROBE;
  assert(write_value(2,&request)!=0);
  connect_peer(1);assert(disconnect_calls==1&&active_connection==0&&callback_connection==0);
  ble_gap_disconnected_ind_t d={0,19};stack_event(BLE_GAP_DISCONNECTED_IND,(uint8_t *)&d,sizeof(d),0);drain();
  assert(active_connection==0xff&&callback_connection==0xff&&probe_length==5);
+ assert(!read_value(0,ATTR_PHONE,&n)&&n==0);
  pet_ble_get_link(&link);assert(link.state==PET_LINK_WAITING);
  assert(write_value(0xff,&request)!=0);connect_peer(2);assert(active_connection==2);
+ assert(read_value(2,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=82;"));
  assert(write_value(2,&request)==0);drain();
  queued=16;assert(write_value(2,&request)!=0&&queue_fault);queued=0;
  stop_faulted_radio(NULL);assert(fault_latched&&stop_calls==1&&disconnect_calls==2);

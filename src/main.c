@@ -37,6 +37,9 @@ int main(void)
         pet_link_t link;
         pet_ble_get_link(&link);
         pet_ui_set_link(&link);
+        pet_phone_status_t status;
+        pet_app_get_phone_status(&status);
+        pet_ble_set_phone_status(&status);
         uint32_t delay_ms = lv_timer_handler();
         if (delay_ms < 2) delay_ms = 2;
         if (delay_ms > 20) delay_ms = 20;

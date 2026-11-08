@@ -12,6 +12,12 @@ static pet_save_t save;
 static rt_tick_t previous_tick;
 static uint32_t fraction, display_elapsed;
 static unsigned save_status;
+void pet_app_get_phone_status(pet_phone_status_t *status)
+{
+    if (!status) return;
+    *status=(pet_phone_status_t){world.food,world.mood,(uint8_t)world.scene,
+        (uint8_t)world.phase,world.volume,world.sound_mode};
+}
 static void show_save(unsigned status)
 {
     save_status = status;
