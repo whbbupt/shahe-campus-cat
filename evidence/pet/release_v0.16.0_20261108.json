@@ -1,0 +1,19 @@
+{
+  "recorded_on": "2026-11-08",
+  "version": "0.16.0",
+  "source_commit": "cd2f7ff48822624bf677897e45baaac3b471be74",
+  "package": "C:\\Users\\30831\\Desktop\\大三上\\周六软件产品综合开发\\outputs\\pet-shahe-v0160-20261108\\沙河校园小猫-v0.16.0-赚生活费待验收-20261108.zip",
+  "zip_bytes": 16044016,
+  "zip_sha256": "32CCEAE6F4A416765B82592BF2F20B4A68A29A33F994EA6780EBFB40381CF8AB",
+  "payload_files": 89,
+  "zip_files": 90,
+  "zip_crc": "PASS",
+  "payload_sha256": "PASS",
+  "build_inputs": 95,
+  "validation_inputs": 37,
+  "artifacts": 22,
+  "main_bin_sha256": "DDF994C2A42C499CAEDB8FFE6F31F602A4ED8C80E2300DFB6C2F991ECDA3BA0C",
+  "save_schema": 8,
+  "physical_acceptance": "TC249 pending; prior v0.14.2 pairing/correct time confirmation retained",
+  "external_submission": "Deferred by user; no remote/push/platform submission/handoff"
+}
