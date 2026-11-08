@@ -2,6 +2,7 @@
  * SDK callbacks never access LVGL, pet state, RTC or pet storage. */
 #include "pet_ble.h"
 #include "pet_ble_probe.h"
+#include "pet_cts.h"
 #include "pet_version.h"
 #include "bf0_ble_gap.h"
 #include "bf0_sibles.h"
@@ -37,6 +38,8 @@ static pt_clock_t published_clock;
 static bool clock_ready, time_busy, time_queued;
 static pet_time_request_t time_request;
 static uint32_t time_generation;
+static rt_tick_t time_received;
+static bool automatic_expired;
 static uint8_t service_uuid[16]=UUID(0);
 static uint8_t info[]="ShaheCat " PET_FIRMWARE_VERSION " RTC sync=0004; UTC+8; YYYYMMDDhhmmss";
 static sibles_hdl service;
@@ -80,7 +83,7 @@ void pet_ble_set_clock(const pt_clock_t *clock)
     if(!clock) return;
     rt_base_t level=rt_hw_interrupt_disable();
     bool same=clock_ready && published_clock.utc==clock->utc && published_clock.valid==clock->valid &&
-        published_clock.state==clock->state && published_clock.result==clock->result;
+        published_clock.state==clock->state && published_clock.result==clock->result && published_clock.automatic==clock->automatic;
     rt_hw_interrupt_enable(level);
     if(same)return;
     static const char *states[]={"wait","rtc","synced","error"};
@@ -88,8 +91,9 @@ void pet_ble_set_clock(const pt_clock_t *clock)
     char value[96];pt_date_t d;int count;
     if((unsigned)clock->state>PT_ERROR || (unsigned)clock->result>PT_VERIFY_ERROR)return;
     if(clock->valid && pt_decode(clock->utc,&d))
-        count=rt_snprintf(value,sizeof(value),"time=%04u-%02u-%02u %02u:%02u:%02u;state=%s;result=%s",
-            d.year,d.month,d.day,d.hour,d.minute,d.second,states[clock->state],results[clock->result]);
+        count=rt_snprintf(value,sizeof(value),"time=%04u-%02u-%02u %02u:%02u:%02u;state=%s;result=%s;source=%s",
+            d.year,d.month,d.day,d.hour,d.minute,d.second,states[clock->state],results[clock->result],
+            clock->state==PT_RTC?"rtc":clock->automatic?"cts":"manual");
     else count=rt_snprintf(value,sizeof(value),"time=unset;state=%s;result=%s",states[clock->state],results[clock->result]);
     if(count<0 || (unsigned)count>=sizeof(value))return;
     level=rt_hw_interrupt_disable();
@@ -101,9 +105,25 @@ bool pet_ble_take_time_request(pet_time_request_t *request)
     if(!request)return false;
     rt_base_t level=rt_hw_interrupt_disable();
     bool ready=time_queued && callback_connection!=0xff && !queue_fault;
+    rt_tick_t age=(rt_tick_t)(rt_tick_get()-time_received);
+    if(ready && time_request.automatic && age>=rt_tick_from_millisecond(2000)){
+        time_queued=time_busy=false;automatic_expired=true;ready=false;
+    }
     if(ready){*request=time_request;time_queued=false;}
+    if(ready && request->automatic)request->utc+=(uint32_t)(age/rt_tick_from_millisecond(1000));
     rt_hw_interrupt_enable(level);
     return ready;
+}
+static bool offer_automatic_time(uint32_t utc,uint32_t received_tick)
+{
+    rt_base_t lock=rt_hw_interrupt_disable();
+    bool accepted=callback_connection!=0xff && !queue_fault && !time_busy &&
+        (rt_tick_t)(rt_tick_get()-(rt_tick_t)received_tick)<rt_tick_from_millisecond(2000);
+    if(accepted){
+        time_request=(pet_time_request_t){utc,++time_generation,true};time_received=(rt_tick_t)received_tick;
+        time_busy=time_queued=true;automatic_expired=false;
+    }
+    rt_hw_interrupt_enable(lock);return accepted;
 }
 void pet_ble_finish_time_request(uint32_t token)
 {
@@ -141,6 +161,7 @@ void pet_ble_get_link(pet_link_t *link)
         : stage==DIAG_ADVERTISING || stage==DIAG_WAIT_ADV ? PET_LINK_WAITING
         : PET_LINK_STARTING;
     memcpy(link->name,diagnostic.name,sizeof(link->name));
+    link->auto_time=automatic_expired?2:(uint8_t)pet_cts_status();
     rt_hw_interrupt_enable(level);
     link->name[sizeof(link->name)-1]=0;
     if (!link->name[0]) memcpy(link->name,"ShaheCat",9);
@@ -155,6 +176,7 @@ static void print_status(const char *reason)
     rt_kprintf("[pet:BLE:STATUS] last_cb=0x%04X last_handled=0x%04X recv=%d adv_events=%u adv_result=%u fault=%u\n",
         (unsigned)d.last_callback,(unsigned)d.last_handled,d.last_receive,
         (unsigned)d.adv_events,(unsigned)d.adv_result,(unsigned)queue_fault);
+    rt_kprintf("[pet:CTS] query stage=%s\n",pet_cts_stage());
 }
 void pet_ble_poll(void)
 {
@@ -232,8 +254,8 @@ static uint8_t write_value(uint8_t connection,sibles_set_cbk_t *request)
         if(request->len!=14)return 0x0d;
         if(!pt_parse(request->value,request->len,&utc))return 0x13;
         rt_base_t level=rt_hw_interrupt_disable();
-        if(time_busy){rt_hw_interrupt_enable(level);return 0x11;}
-        time_request=(pet_time_request_t){utc,++time_generation};time_busy=time_queued=true;
+        if(time_busy && !(time_queued && time_request.automatic)){rt_hw_interrupt_enable(level);return 0x11;}
+        time_request=(pet_time_request_t){utc,++time_generation,false};time_busy=time_queued=true;
         rt_hw_interrupt_enable(level);
         return 0;
     }
@@ -261,6 +283,7 @@ static uint8_t advertising_event(uint8_t id,void *context,void *data)
 static int stack_event(uint16_t id,uint8_t *data,uint16_t length,uint32_t context)
 {
     (void)context;
+    pet_cts_event(id,data,length);
     rt_base_t level=rt_hw_interrupt_disable();
     diagnostic.callbacks++; diagnostic.last_callback=id;
     if (id==BLE_POWER_ON_IND) diagnostic.power_events++;
@@ -274,10 +297,11 @@ static int stack_event(uint16_t id,uint8_t *data,uint16_t length,uint32_t contex
     if (!data || length<needed || needed>sizeof(((event_t *)0)->data.bytes)) { queue_fault=true; return 0; }
     if (id==CONNECTION_MANAGER_CONNCTED_IND) {
         connection_manager_connect_ind_t *p=(void *)data;
-        if (callback_connection==0xff) { callback_connection=p->conn_idx; reset_probe(); }
+        if (callback_connection==0xff) { callback_connection=p->conn_idx; automatic_expired=false; reset_probe(); }
     } else {
         ble_gap_disconnected_ind_t *p=(void *)data;
         if (p->conn_idx==callback_connection) {
+            pet_cts_invalidate(p->conn_idx);
             callback_connection=0xff; reset_probe();
             rt_base_t lock=rt_hw_interrupt_disable();
             time_queued=time_busy=false;time_request.token=++time_generation;
@@ -353,10 +377,12 @@ static void handle(const event_t *event)
         const connection_manager_connect_ind_t *p=(const void *)event->data.bytes;
         if (active_connection!=0xff || !service_ready) { disconnect(p->conn_idx); return; }
         active_connection=p->conn_idx;
+        pet_cts_connected(p->conn_idx);
         set_stage(DIAG_CONNECTED,0);
         rt_kprintf("[pet:BLE] connected index=%u; link only, read/write not verified\n",p->conn_idx);
     } else if (event->id==BLE_GAP_DISCONNECTED_IND) {
         const ble_gap_disconnected_ind_t *p=(const void *)event->data.bytes;
+        pet_cts_disconnected(p->conn_idx);
         if (active_connection==p->conn_idx) active_connection=0xff;
         set_stage(DIAG_WAIT_ADV,0);
         rt_kprintf("[pet:BLE] disconnected reason=%u; SDK restarts advertising\n",p->reason);
@@ -376,6 +402,7 @@ static void stop_faulted_radio(const event_t *event)
 {
     if (!fault_latched) {
         fault_latched=true;
+        pet_cts_disconnected(active_connection);
         set_stage(DIAG_ERROR,-101);
         if (service_ready) sibles_advertising_stop(advertising);
         if (active_connection!=0xff) disconnect(active_connection);
@@ -407,6 +434,7 @@ static void task(void *unused)
         rt_hw_interrupt_enable(level);
         if (queue_fault) stop_faulted_radio(received==RT_EOK ? &event : NULL);
         else if (received==RT_EOK) handle(&event);
+        if(!queue_fault)pet_cts_poll();
         if (!service_ready && !timeout_reported &&
             (rt_tick_t)(rt_tick_get()-startup)>=rt_tick_from_millisecond(15000)) {
             timeout_reported=true;
@@ -417,6 +445,7 @@ static void task(void *unused)
 rt_err_t pet_ble_start(void)
 {
     if (started) return RT_EOK;
+    pet_cts_init(offer_automatic_time);
     diagnostic_start_tick=rt_tick_get(); diagnostic_started=true; diagnostic_reported=false;
     set_stage(DIAG_QUEUE,0);
     if (!pet_ble_probe_selftest()) { rt_kprintf("[pet:BLE-TEST] protocol FAIL\n"); return -RT_ERROR; }

@@ -657,7 +657,7 @@ static bool real_time_routine(void)
 {
     pet_world_t w;pw_init(&w);uint32_t utc;
     CHECK(pt_parse((const uint8_t *)"20261108230000",14,&utc));
-    w.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK};
+    w.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK,false};
     CHECK(strstr(pw_state_text(&w),"困")!=NULL);
     w.scene=PW_CLASSROOM;w.node=6;pw_point_t p=pw_node(PW_CLASSROOM,6);w.x=p.x;w.y=p.y;
     w.food=w.mood=50;CHECK(pw_request(&w,PW_STUDY)==PW_OK);

@@ -11,11 +11,13 @@ typedef struct {
     bool valid, trusted;
     pt_clock_state_t state;
     pt_result_t result;
+    bool automatic;
 } pt_clock_t;
 typedef enum { PT_MORNING, PT_DAY, PT_DUSK, PT_NIGHT } pt_band_t;
 bool pt_encode(const pt_date_t *date, uint32_t *utc);
 bool pt_decode(uint32_t utc, pt_date_t *date);
 bool pt_parse(const uint8_t *bytes, size_t length, uint32_t *utc);
+bool pt_from_cts(const uint8_t *value,size_t length,const uint8_t *local,size_t local_length,uint32_t *utc);
 unsigned pt_minute(uint32_t utc);
 pt_band_t pt_band(uint32_t utc);
 bool pt_class_time(uint32_t utc);

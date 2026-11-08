@@ -39,6 +39,19 @@ bool pt_parse(const uint8_t *bytes,size_t length,uint32_t *utc)
     return pt_encode(&date,utc);
 }
 unsigned pt_minute(uint32_t utc) { return ((utc+28800U)%86400U)/60U; }
+bool pt_from_cts(const uint8_t *v,size_t n,const uint8_t *local,size_t ln,uint32_t *utc)
+{
+    if(!v || n!=10 || !local || ln!=2 || !utc || v[7]>7 || (v[9]&0xf0))return false;
+    int zone=local[0]<128 ? local[0] : (int)local[0]-256;
+    unsigned dst=local[1];
+    if(zone<-48 || zone>56 || !(dst==0 || dst==2 || dst==4 || dst==8))return false;
+    pt_date_t d={(unsigned)v[0]+((unsigned)v[1]<<8),v[2],v[3],v[4],v[5],v[6]};
+    uint32_t assumed;
+    if(!pt_encode(&d,&assumed))return false;
+    int64_t actual=(int64_t)assumed+28800-(int64_t)zone*900-(int64_t)dst*900;
+    if(actual<0 || actual>UINT32_MAX || !pt_decode((uint32_t)actual,&d))return false;
+    *utc=(uint32_t)actual;return true;
+}
 pt_band_t pt_band(uint32_t utc)
 {
     unsigned m=pt_minute(utc);
@@ -62,6 +75,8 @@ bool pt_selftest(void (*report)(const char *,bool))
     bool a=pt_parse((const uint8_t *)"20240229060000",14,&t) && pt_decode(t,&d) && d.month==2 && d.day==29;
     bool b=!pt_parse((const uint8_t *)"20260229060000",14,&t) && !pt_parse((const uint8_t *)"20380101000000",14,&t);
     bool c=pt_parse((const uint8_t *)"20261108230000",14,&t) && pt_bedtime(t)==2 && pt_band(t)==PT_NIGHT && !pt_class_time(t);
-    if(report){report("calendar-leap",a);report("protocol-reject",b);report("bedtime-boundary",c);}
-    return a && b && c;
+    const uint8_t cts[]={0xea,7,11,8,23,0,0,7,0,0},local[]={32,0};uint32_t actual;
+    bool e=pt_from_cts(cts,10,local,2,&actual) && actual==t;
+    if(report){report("calendar-leap",a);report("protocol-reject",b);report("bedtime-boundary",c);report("cts-timezone",e);}
+    return a && b && c && e;
 }

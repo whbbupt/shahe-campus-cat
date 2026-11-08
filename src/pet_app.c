@@ -40,15 +40,16 @@ static uint32_t sync_clock(void)
     pet_audio_sync(&world);
     return ms;
 }
-pt_result_t pet_app_sync_time(uint32_t utc)
+pt_result_t pet_app_sync_time_from(uint32_t utc,bool automatic)
 {
     sync_clock();
-    pt_result_t result=pet_time_sync(utc);
+    pt_result_t result=pet_time_sync_from(utc,automatic);
     world.clock=pet_time_snapshot();
     refresh_save_status();
     pet_ui_update(&world);
     return result;
 }
+pt_result_t pet_app_sync_time(uint32_t utc) { return pet_app_sync_time_from(utc,false); }
 pt_clock_t pet_app_get_clock(void) { return world.clock; }
 static pw_result_t command(pw_command_t cmd)
 {

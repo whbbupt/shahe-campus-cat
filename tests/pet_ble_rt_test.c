@@ -67,6 +67,11 @@ void sifli_ble_enable(void) {
  if(worker_mode==4)queued=16;
  if(worker_mode!=2)stack_event(BLE_POWER_ON_IND,NULL,0,0);
 }
+int8_t sibles_search_service(uint8_t c,uint8_t n,uint8_t *uuid) { (void)c;assert(n==2 && uuid[0]==5 && uuid[1]==0x18);return 0; }
+uint16_t sibles_register_remote_svc(uint8_t c,uint16_t a,uint16_t b,sibles_remote_svc_cbk cb) { (void)c;(void)a;(void)b;(void)cb;return 0; }
+void sibles_unregister_remote_svc(uint8_t c,uint16_t a,uint16_t b,sibles_remote_svc_cbk cb) { (void)c;(void)a;(void)b;(void)cb; }
+int8_t sibles_read_remote_value(uint16_t h,uint8_t c,sibles_read_remote_value_req_t *v) { (void)h;(void)c;(void)v;return 0; }
+void connection_manager_create_bond(uint8_t c) { (void)c; }
 static void drain(void) { event_t e;while(rt_mq_recv(events,&e,sizeof(e),0)==0)handle(&e); }
 static void connect_peer(uint8_t index) { connection_manager_connect_ind_t c={index};stack_event(CONNECTION_MANAGER_CONNCTED_IND,(uint8_t *)&c,sizeof(c),0);drain(); }
 int main(int argc,char **argv)
@@ -130,6 +135,16 @@ int main(int argc,char **argv)
  time_write.len=13;assert(write_value(0,&time_write)!=0);time_write.len=14;
  time_write.value=(uint8_t *)"20260229230000";assert(write_value(0,&time_write)!=0&&!pet_ble_take_time_request(&tr));
  time_write.value=(uint8_t *)"20261108230000";
+ assert(offer_automatic_time(clock.utc,tick));tick+=1500;
+ pet_time_request_t automatic;assert(pet_ble_take_time_request(&automatic)&&automatic.automatic&&automatic.utc==clock.utc+1);
+ pet_ble_finish_time_request(automatic.token);
+ assert(offer_automatic_time(clock.utc,tick));tick+=2000;assert(!pet_ble_take_time_request(&automatic)&&automatic_expired);
+ assert(!offer_automatic_time(clock.utc,tick-2000));
+ assert(offer_automatic_time(clock.utc,tick));assert(write_value(0,&time_write)==0);
+ assert(pet_ble_take_time_request(&automatic)&&!automatic.automatic);pet_ble_finish_time_request(automatic.token);
+ assert(write_value(0,&time_write)==0);assert(!offer_automatic_time(clock.utc,tick));
+ assert(pet_ble_take_time_request(&automatic)&&!automatic.automatic);pet_ble_finish_time_request(automatic.token);
+ clock.automatic=true;pet_ble_set_clock(&clock);assert(read_value(0,ATTR_TIME,&n)&&strstr(clock_read_buffer,"source=cts"));
  assert(read_value(0,ATTR_PROBE,&n)&&n==5&&!memcmp(probe_value,"READY",5));
  sibles_set_cbk_t request={ATTR_PROBE,4,0,(uint8_t *)"PING"};
  assert(write_value(0,&request)==0);assert(read_value(0,ATTR_PROBE,&n)&&n==4&&!memcmp(probe_value,"PONG",4));drain();

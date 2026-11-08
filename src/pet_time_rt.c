@@ -28,18 +28,32 @@ void pet_time_poll(uint32_t elapsed_ms)
     else clock_value.state=PT_ERROR;
     if(clock_value.valid && clock_value.state==PT_ERROR)clock_value.state=PT_RTC;
 }
-pt_result_t pet_time_sync(uint32_t utc)
+pt_result_t pet_time_sync_from(uint32_t utc,bool automatic)
 {
     pt_date_t date;uint32_t actual=0;
     if(!pt_decode(utc,&date))return PT_IO_ERROR;
+    pt_clock_t previous=clock_value;uint32_t previous_utc=0;
+    bool can_restore=automatic && previous.valid && read_rtc(&previous_utc);
+    if(automatic && previous.valid && !can_restore){
+        clock_value.valid=false;clock_value.state=PT_ERROR;clock_value.result=PT_IO_ERROR;
+        rt_kprintf("[pet:TIME] automatic sync skipped: previous RTC unreadable\n");return PT_IO_ERROR;
+    }
     rt_device_t device=rt_device_find("rtc");
     pt_result_t result=!device || rt_device_control(device,RT_DEVICE_CTRL_RTC_SET_TIME,&utc)!=RT_EOK ? PT_IO_ERROR
         : !read_rtc(&actual) || actual<utc || actual-utc>1 ? PT_VERIFY_ERROR : PT_OK;
     clock_value.result=result;poll_elapsed=0;
     failed=result!=PT_OK;clock_value.valid=!failed;
-    if(!failed){clock_value.utc=actual;clock_value.trusted=true;clock_value.state=PT_SYNCED;}
+    if(!failed){clock_value.utc=actual;clock_value.trusted=true;clock_value.state=PT_SYNCED;clock_value.automatic=automatic;}
     else clock_value.state=PT_ERROR;
-    rt_kprintf("[pet:TIME] sync result=%u utc=%u readback=%u\n",(unsigned)result,(unsigned)utc,(unsigned)actual);
+    if(failed && can_restore){
+        uint32_t restored=0;
+        bool kept=read_rtc(&restored) && restored>=previous_utc && restored-previous_utc<=1;
+        if(!kept && device && rt_device_control(device,RT_DEVICE_CTRL_RTC_SET_TIME,&previous_utc)==RT_EOK)
+            kept=read_rtc(&restored) && restored>=previous_utc && restored-previous_utc<=1;
+        if(kept){clock_value=previous;clock_value.utc=restored;clock_value.state=PT_RTC;clock_value.result=result;clock_value.automatic=false;failed=false;}
+    }
+    rt_kprintf("[pet:TIME] sync result=%u utc=%u readback=%u source=%s\n",(unsigned)result,(unsigned)utc,(unsigned)actual,automatic?"cts":"manual");
     return result;
 }
+pt_result_t pet_time_sync(uint32_t utc) { return pet_time_sync_from(utc,false); }
 pt_clock_t pet_time_snapshot(void) { return clock_value; }

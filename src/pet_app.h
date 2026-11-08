@@ -9,6 +9,7 @@ void pet_app_poll(void);
 /* Main-thread value snapshot; no transport, storage or UI access. */
 void pet_app_get_phone_status(pet_phone_status_t *status);
 pt_result_t pet_app_sync_time(uint32_t utc);
+pt_result_t pet_app_sync_time_from(uint32_t utc,bool automatic);
 pt_clock_t pet_app_get_clock(void);
 
 #endif

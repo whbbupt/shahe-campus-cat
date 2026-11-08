@@ -36,7 +36,7 @@ int main(void)
         pet_ble_poll();
         pet_time_request_t request;
         if(pet_ble_take_time_request(&request)) {
-            pet_app_sync_time(request.utc);
+            pet_app_sync_time_from(request.utc,request.automatic);
             pt_clock_t clock=pet_app_get_clock();
             pet_ble_set_clock(&clock);
             pet_ble_finish_time_request(request.token);

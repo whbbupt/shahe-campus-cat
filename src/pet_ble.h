@@ -3,7 +3,7 @@
 #include <rtthread.h>
 #include "pet_link.h"
 #include "pet_time.h"
-typedef struct { uint32_t utc, token; } pet_time_request_t;
+typedef struct { uint32_t utc, token; bool automatic; } pet_time_request_t;
 /* SDK callbacks enqueue requests; only the main thread touches RTC. */
 rt_err_t pet_ble_start(void);
 /* Main-loop watchdog: prints one snapshot after 15 s, independent of worker. */

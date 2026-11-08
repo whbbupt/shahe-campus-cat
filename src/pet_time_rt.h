@@ -4,5 +4,6 @@
 void pet_time_start(bool trusted);
 void pet_time_poll(uint32_t elapsed_ms);
 pt_result_t pet_time_sync(uint32_t utc);
+pt_result_t pet_time_sync_from(uint32_t utc,bool automatic);
 pt_clock_t pet_time_snapshot(void);
 #endif

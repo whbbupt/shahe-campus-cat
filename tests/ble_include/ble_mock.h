@@ -6,6 +6,17 @@
 #define BLE_GAP_DISCONNECTED_IND 3
 #define SIBLES_ADV_EVT_ADV_STARTED 4
 #define SIBLES_ADV_EVT_ADV_STOPPED 5
+#define SIBLES_SEARCH_SVC_RSP 6
+#define SIBLES_REGISTER_REMOTE_SVC_RSP 7
+#define SIBLES_READ_REMOTE_VALUE_RSP 8
+#define BLE_GAP_ENCRYPT_IND 9
+#define BLE_GAP_BOND_IND 10
+#define SIBLES_READ_REMOTE_VALUE_ERROR_IND 11
+#define SIBLES_REMOTE_SVC_CHANGE_IND 12
+#define GAPC_PAIRING_SUCCEED 1
+#define GAPC_PAIRING_FAILED 2
+#define SIBLES_ERROR_REMOTE_HANDLE 0xffff
+#define SIBLES_READ 1
 #define CO_ERROR_REMOTE_USER_TERM_CON 19
 #define GAPM_STATIC_ADDR 0
 #define SIBLES_ADV_CONNECT_MODE 1
@@ -53,4 +64,23 @@ uint8_t sibles_advertising_init(void *,sibles_advertising_para_t *);
 uint8_t sibles_advertising_start(void *);
 uint8_t sibles_advertising_stop(void *);
 void sifli_ble_enable(void);
+typedef struct { uint8_t conn_idx,auth; } ble_gap_encrypt_ind_t;
+typedef struct { uint8_t conn_idx,info; } ble_gap_bond_ind_t;
+typedef struct { uint16_t attr_hdl;uint8_t uuid_len,uuid[16]; } mock_descriptor_t;
+#define sibles_disc_char_desc_ind mock_descriptor
+struct mock_descriptor { uint16_t attr_hdl;uint8_t uuid_len,uuid[16]; };
+typedef struct { uint16_t attr_hdl,pointer_hdl;uint8_t prop,uuid_len,uuid[16],desc_count; struct mock_descriptor desc[]; } sibles_svc_search_char_t;
+typedef struct { uint16_t hdl_start,hdl_end;uint8_t uuid_len,uuid[16],char_count;uint8_t *att_db; } sibles_svc_remote_svc_t;
+typedef struct { uint8_t conn_idx,result,search_svc_len,search_uuid[16];sibles_svc_remote_svc_t *svc; } sibles_svc_search_rsp_t;
+typedef struct { uint8_t conn_idx,status; } sibles_register_remote_svc_rsp_t;
+typedef struct { uint8_t conn_idx;uint16_t handle,offset,length;uint8_t *value; } sibles_read_remote_value_rsp_t;
+typedef struct { int read_type;uint16_t handle,offset,length; } sibles_read_remote_value_req_t;
+typedef struct { uint8_t conn_idx,status; } sibles_error_cmp_event_ind_t;
+typedef struct { uint8_t conn_idx;uint16_t start_handle,end_handle; } sibles_remote_svc_change_ind_t;
+typedef int (*sibles_remote_svc_cbk)(uint16_t,uint8_t *,uint16_t);
+int8_t sibles_search_service(uint8_t,uint8_t,uint8_t *);
+uint16_t sibles_register_remote_svc(uint8_t,uint16_t,uint16_t,sibles_remote_svc_cbk);
+void sibles_unregister_remote_svc(uint8_t,uint16_t,uint16_t,sibles_remote_svc_cbk);
+int8_t sibles_read_remote_value(uint16_t,uint8_t,sibles_read_remote_value_req_t *);
+void connection_manager_create_bond(uint8_t);
 #endif

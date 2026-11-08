@@ -154,6 +154,8 @@ int main(void)
     unsigned saved_writes=writes;rtc_value=utc+1;step(14000);
     assert(writes==saved_writes && status==PET_SAVE_SAVED);
     reboot();assert(pet_app_get_clock().valid && pet_app_get_clock().utc==utc+1);
+    assert(pet_app_sync_time_from(utc,true)==PT_OK&&pet_app_get_clock().automatic);
+    step(1000);assert(pet_app_get_clock().automatic);
     rtc_value=0;reboot();assert(!pet_app_get_clock().valid);
     puts("[host:save-app] phone sync, no time jumps, clock not dirty, reboot RTC trust and lost clock PASS");
     return 0;
