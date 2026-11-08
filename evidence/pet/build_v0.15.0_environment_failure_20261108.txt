@@ -1,0 +1,1 @@
+✗ SDK 环境未就绪（SIFLI_SDK 或 scons 缺失）。请先在 SDK 根目录运行 export 脚本，再运行 python scripts/check_env.py
