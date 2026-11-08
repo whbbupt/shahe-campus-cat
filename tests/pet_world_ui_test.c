@@ -686,7 +686,7 @@ static void real_clock_previews(void)
             if(i==3)assert(label_with(lv_screen_active(),"有点困，回床上休息吧"));
         }
         press("状态");assert(label_with(lv_screen_active(),"2026-11-08 · 手机校时"));
-        assert(label_with(lv_screen_active(),"v0.14.0"));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
+        assert(label_with(lv_screen_active(),"v0.14.1"));screenshot(outside?"shahe-clock-campus-status.ppm":"shahe-clock-dorm-status.ppm");press("×");
         if(!outside){
             tap(189,411);idle(PW_DORM);settled_at(189,411);
             leave(PW_DORM);assert(world.scene==PW_CAMPUS && world.clock.valid);
@@ -695,6 +695,15 @@ static void real_clock_previews(void)
     world.clock.valid=false;world.clock.state=PT_ERROR;pet_ui_update(&world);step(40);
     assert(label_with(lv_screen_active(),"--:-- 待校时"));press("状态");
     assert(label_with(lv_screen_active(),"校时失败，请用手机重试"));screenshot("shahe-clock-error.ppm");press("×");
+    world.clock=(pt_clock_t){0};
+    pet_link_t auto_link={PET_LINK_CONNECTED,"ShaheCat-800CD1",1};pet_ui_set_link(&auto_link);pet_ui_update(&world);press("状态");
+    assert(label_with(lv_screen_active(),"等待手机自动校时"));screenshot("shahe-auto-wait.ppm");
+    auto_link.auto_time=2;pet_ui_set_link(&auto_link);pet_ui_update(&world);
+    assert(label_with(lv_screen_active(),"自动校时未完成，可重连"));screenshot("shahe-auto-unavailable.ppm");
+    uint32_t utc;assert(pt_parse((const uint8_t *)"20261108120000",14,&utc));
+    world.clock=(pt_clock_t){utc,true,true,PT_SYNCED,PT_OK,true};pet_ui_update(&world);
+    assert(label_with(lv_screen_active(),"2026-11-08 · 自动校时"));screenshot("shahe-auto-synced.ppm");press("×");
+    auto_link.state=PET_LINK_STARTING;auto_link.auto_time=0;pet_ui_set_link(&auto_link);
     reset();
     puts("[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS");
 }

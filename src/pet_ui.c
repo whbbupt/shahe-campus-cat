@@ -42,7 +42,7 @@ static struct
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
 } ui;
 static bool audio_available = true;
-static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat"};
+static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat", 0};
 static unsigned save_state = PET_SAVE_PENDING;
 static void set_label(lv_obj_t *label, const char *value)
 {
@@ -628,10 +628,12 @@ static void paint_clock(void)
     if(valid){
         set_label_fmt(ui.clock_text,"%02u%c%02u · %s",date.hour,date.second%2?' ':':',date.minute,bands[band]);
         set_label_fmt(ui.clock_date,"%04u-%02u-%02u · %s",date.year,date.month,date.day,
-            ui.world.clock.state==PT_SYNCED?"手机校时":"设备时钟");
+            ui.world.clock.state==PT_SYNCED?(ui.world.clock.automatic?"自动校时":"手机校时"):"设备时钟");
     }else{
         set_label(ui.clock_text,"--:-- 待校时");
-        set_label(ui.clock_date,ui.world.clock.state==PT_ERROR?"校时失败，请用手机重试":"连接手机后可校准时间");
+        set_label(ui.clock_date,ui.world.clock.state==PT_ERROR?"校时失败，请用手机重试"
+            : link_status.state==PET_LINK_CONNECTED && link_status.auto_time==2?"自动校时未完成，可重连"
+            : link_status.state==PET_LINK_CONNECTED && link_status.auto_time?"等待手机自动校时":"连接手机后可校准时间");
     }
     if(ui.light_band!=(int)band || ui.light_scene!=ui.scene){
         bool outdoor=ui.scene==PW_CAMPUS;
