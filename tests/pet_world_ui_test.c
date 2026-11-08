@@ -744,6 +744,13 @@ static void new_life_and_challenges(void)
             press(k == 0 ? food[pick] : slots[pick]);
         }
         assert(world.challenge.phase == PG_WON && world.memory_wins == 1 && world.mood == 63);
+        assert(label_with(lv_screen_active(), "心情 +3 · 休息一会再挑战"));
+        if (k == 0)
+        {
+            world.mood_gain = 0; pet_ui_update(&world);
+            assert(label_with(lv_screen_active(), "心情 +0 · 休息一会再挑战"));
+            world.mood_gain = 3; pet_ui_update(&world);
+        }
         screenshot(k == 0 ? "shahe-meal-won.ppm" : k == 1 ? "shahe-rhythm-won.ppm" : "shahe-find-won.ppm");
         press("×"); assert(world.phase == PW_IDLE);
         press(entries[k]); assert(result == PW_COOLDOWN && world.memory_wins == 1);

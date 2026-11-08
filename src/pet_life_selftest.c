@@ -52,7 +52,11 @@ static bool games(void)
         pw_request(&w, PW_MEMORY_CANCEL);
         if (w.phase != PW_IDLE || w.memory_wins != 1) return false;
     }
-    return true;
+    pet_world_t capped; room(&capped, PW_CANTEEN); capped.mood = 100;
+    if (pw_request(&capped, PW_MEAL_GAME) != PW_OK || !arrive(&capped)) return false;
+    for (unsigned i = 0; i < 3; i++)
+        pw_request(&capped, (pw_command_t)(PW_MEMORY_0 + capped.challenge.targets[i]));
+    return capped.mood == 100 && capped.mood_gain == 0 && capped.memory_wins == 1;
 }
 static bool life(void)
 {

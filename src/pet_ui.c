@@ -691,7 +691,8 @@ static void paint_challenge(void)
         lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(rhythm && pg_window(g) ? 0x88AA92 : 0xDCEAF3), 0);
         lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
     }
-    set_label(ui.memory_footer, won ? "心情 +3 · 休息一会再挑战" : lost ? "没有扣分，可以直接退出"
+    if (won) set_label_fmt(ui.memory_footer, "心情 %+d · 休息一会再挑战", ui.world.mood_gain);
+    else set_label(ui.memory_footer, lost ? "没有扣分，可以直接退出"
         : rhythm ? "每拍点一次 · 命中四拍即成功" : g->phase == PG_SHOW ? "五秒后物品会盖住" : "点选答案 · 随时可以退出");
 }
 
