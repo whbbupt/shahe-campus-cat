@@ -61,7 +61,7 @@ int main(void){
     reset();discover(false);ble_gap_bond_ind_t pair_ok={0,GAPC_PAIRING_SUCCEED};pet_cts_event(BLE_GAP_BOND_IND,(uint8_t *)&pair_ok,sizeof(pair_ok));pet_cts_poll();assert(searches==2);
     ready();tick=123;value(14,stamp,10);stamp[4]=1;pet_cts_poll();assert(submits==1&&submitted==expected&&received==123&&pet_cts_status()==3&&unregisters==1);stamp[4]=23;
     reset();discover(false);assert(bonds==1&&pet_cts_status()==1);
-    sibles_remote_svc_change_ind_t changed={0};pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==1);
+    sibles_remote_svc_change_ind_t changed={0,10,30};pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==1);
     secure();assert(searches==2);secure();assert(searches==2);discover(false);assert(searches==3);discover(false);assert(pet_cts_status()==2&&bonds==1);
     reset();tick=8000;pet_cts_poll();assert(bonds==1);tick+=30000;pet_cts_poll();assert(pet_cts_status()==2&&bonds==1);
     reset();discover(false);ble_gap_bond_ind_t denied={0,GAPC_PAIRING_FAILED};pet_cts_event(BLE_GAP_BOND_IND,(uint8_t *)&denied,sizeof(denied));pet_cts_poll();assert(pet_cts_status()==2);
@@ -76,5 +76,7 @@ int main(void){
     ready();reject_submit=true;value(14,stamp,10);pet_cts_poll();assert(pet_cts_status()==2&&submits==1);
     reset();pet_cts_disconnected(0);search_error=true;pet_cts_connected(0);assert(pet_cts_status()==2);
     reset();discover(true);pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==2&&unregisters==1);
+    ready();changed.start_handle=40;changed.end_handle=60;pet_cts_event(SIBLES_REMOTE_SVC_CHANGE_IND,(uint8_t *)&changed,sizeof(changed));pet_cts_poll();assert(pet_cts_status()==1&&!unregisters);
+    value(14,stamp,10);pet_cts_poll();assert(pet_cts_status()==3&&submits==1);
     puts("[host:cts] actual SDK adapter: timezone/DST, pointer copies, zero remote handle, pairing once, timeout, errors, reconnect and overflow PASS");return 0;
 }

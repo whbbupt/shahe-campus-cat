@@ -160,7 +160,8 @@ void pet_cts_event(uint16_t id,uint8_t *data,uint16_t length)
     }else if(id==SIBLES_READ_REMOTE_VALUE_ERROR_IND && length>=sizeof(sibles_error_cmp_event_ind_t)){
         sibles_error_cmp_event_ind_t *r=(void *)data;if(begin_message(&m,r->conn_idx,READ_ERROR))push(&m);
     }else if(id==SIBLES_REMOTE_SVC_CHANGE_IND && length>=sizeof(sibles_remote_svc_change_ind_t)){
-        sibles_remote_svc_change_ind_t *r=(void *)data;if(begin_message(&m,r->conn_idx,SERVICE_CHANGED))push(&m);
+        sibles_remote_svc_change_ind_t *r=(void *)data;
+        if(begin_message(&m,r->conn_idx,SERVICE_CHANGED)){m.start=r->start_handle;m.end=r->end_handle;push(&m);}
     }
 }
 void pet_cts_poll(void)
@@ -204,7 +205,8 @@ void pet_cts_poll(void)
             else phase(FAILED,decoded?"sample-not-accepted":"invalid-date-zone");
         }else if(m.type==SERVICE_CHANGED){
             if(client.phase==SEARCH)client.refresh=true;
-            else if(client.phase!=PAIR && client.phase!=OFF && client.phase!=FAILED){release();phase(FAILED,"service-changed-reconnect");}
+            else if(client.phase!=PAIR && client.phase!=OFF && client.phase!=FAILED &&
+                    m.start<=client.end && m.end>=client.start){release();phase(FAILED,"service-changed-reconnect");}
         }
     }
     unsigned state=client.phase;
