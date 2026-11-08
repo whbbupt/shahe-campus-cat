@@ -128,6 +128,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "CTS自动校时未完成的用户实物反馈"
+    executed_at: null
+    student_action: "用户：我连上了，然后等待自动校时之后显示自动校时未完成。"
+    evidence_path: "evidence/pet/cts_auto_failure_20261108_user.txt"
+    agent_conclusion: "连接及提示已有用户观察，自动校时成功判据未满足；CTS阶段/原因、配对提示与RTC日志尚未取得，根因待定位，不假定手机不支持或板卡故障。"
   - item: "v0.13.1真机一般使用确认"
     executed_at: null
     student_action: "用户反馈：真机我看了可以，并授权完成现实钟/校时/昼夜睡眠。"
@@ -1092,11 +1097,13 @@ test_results:
   - test_id: TC-240
     description: iPhone自动校时实机
     expected: 按docs/03的TC-240验证
-    actual: v0.14.1已实现并构建，待用户连接/配对/自动RTC读回/走时及重连证据
-    status: pending_physical
-    pass: null
+    actual: 用户确认连接后从等待自动校时变成未完成，自动成功判据未满足；根因及原始CTS/TIME日志待补
+    status: failed_physical_user_confirmation_pending_diagnostics
+    pass: false
+    evidence_path: evidence/pet/cts_auto_failure_20261108_user.txt
 
 known_issues:
+  - "v0.14.1首次用户实物反馈：连接成功后自动校时未完成，TC-240未通过；原因待CTS/TIME阶段日志和配对反馈，不通过猜测修改或抹掉已有软件结果。"
   - "v0.14.1原生CTS自动校时只完成软件/构建，TC-240待本机iPhone配对及自动读回证据；不保证每个手机/系统均暴露CTS，0004备用保留。自动重连另属范围，原RTC保时/精度和板端FPS缺口保留。"
   - "v0.14.0现实钟/手动校时/夜景和晚间作息仅软件与构建通过，TC-210/225待新板端；RTC准确度/完整断电保时及新色层帧率未知，不能把已连接当自动手机同步。格式7旧6会写保护。"
   - "用户反馈v0.13.0有明显卡顿、顶部入口圆角裁切且难点；v0.13.1已完成缓存和无效重绘、入口内移及蓝牙信息位置软件修复，未经新板测不能声称流畅。"
