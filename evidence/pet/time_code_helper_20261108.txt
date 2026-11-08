@@ -1,0 +1,3 @@
+Valid 20261108230000 -> 3230323631313038323330303030 PASS
+Invalid leap day and unsupported 2038 rejected PASS
+No RTC/clipboard/phone operations executed.

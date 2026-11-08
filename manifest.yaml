@@ -853,57 +853,64 @@ test_results:
   - test_id: TC-203
     description: 日程流速与跨日
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-204
     description: 课程餐点与替代活动
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-205
     description: 操作时钟独立
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-206
     description: 按日程数值和余量
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-207
     description: 日程存档与兼容
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-208
     description: 时间昼夜与原玩法
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-209
     description: 日程增量容量构建
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-210
     description: 时间系统实机
     expected: 按docs/03时间系统计划用例
-    actual: 文档登记，代码尚未实现，用例尚未执行
-    status: planned_not_executed
+    actual: v0.14.0已实现并构建，待用户真实校时/昼夜/走时/复位及断电证据
+    status: pending_physical
     pass: null
 
   - test_id: TC-214
@@ -961,23 +968,25 @@ test_results:
   - test_id: TC-224
     description: 日期校时协议软件
     expected: 按docs/03的TC-224逐项验证
-    actual: 实现前文档登记，尚未执行，不代表已有新固件
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-225
     description: 手机校时与保时实机
     expected: 按docs/03的TC-225逐项验证
-    actual: 实现前文档登记，尚未执行，不代表已有新固件
-    status: planned_not_executed
+    actual: v0.14.0已实现并构建，待用户真实校时/昼夜/走时/复位及断电证据
+    status: pending_physical
     pass: null
 
   - test_id: TC-226
     description: 睡眠作息边界
     expected: 按docs/03的TC-226逐项验证
-    actual: 实现前文档登记，尚未执行，不代表已有新固件
-    status: planned_not_executed
-    pass: null
+    actual: v0.14.0软件与目标构建判据通过，见docs/04和最终日志；不代表新板端通过
+    status: passed_host_and_build_only
+    pass: true
+    evidence_path: evidence/pet/host_v0.14.0_final_20261108.txt
 
   - test_id: TC-227
     description: 新增三游戏规则
@@ -1053,9 +1062,10 @@ test_results:
     pass: null
 
 known_issues:
+  - "v0.14.0现实钟/手动校时/夜景和晚间作息仅软件与构建通过，TC-210/225待新板端；RTC准确度/完整断电保时及新色层帧率未知，不能把已连接当自动手机同步。格式7旧6会写保护。"
   - "用户反馈v0.13.0有明显卡顿、顶部入口圆角裁切且难点；v0.13.1已完成缓存和无效重绘、入口内移及蓝牙信息位置软件修复，未经新板测不能声称流畅。"
   - "v0.13.0使用格式6保留64字节与双区，读1–5；旧v0.12.4见新格式会写保护，不等于已实现反向迁移。压缩最大主机单图缓冲351000字节，板端全局峰值/帧率未知。"
-  - "整体清单首批v0.13.0已完成容量、蓝牙设备UI和音量；真实场景解码性能、状态显示、听音和音量复位待TC-221/223。现实钟/手机校时、昼夜/睡眠、小游戏及室内成长继续待实现。"
+  - "整体清单首批v0.13.0已完成容量、蓝牙设备UI和音量；真实场景解码性能、状态显示、听音和音量复位待TC-221/223。现实钟/手机校时、昼夜/睡眠已在v0.14.0完成软件；小游戏及室内成长继续待实现。"
   - "v0.12.3的LCPU镜像遗漏已确认；获用户授权后v0.12.4集成正式加载器和5412字节镜像，TC-219软件通过；TC-214本版启动、广播和iPhone连接已有真实日志；READY有原始十六进制文字、PING/PONG已有用户实物成功确认；手机Info、重连及完整并发使用待结果，不等同RTC已校时。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.3仅启用SDK内部日志，TC-217软件通过、TC-218待新启动；0回调的底层原因尚未确认。全量保留原7告警加既有SDK潜在空指针2次。"
   - "历史记录（当前以v0.12.4连接证据为准）：v0.12.2真实查询显示wait-ready、0回调、循环活跃且队列无故障；新增TC-217/218单独开启SDK日志，底层原因尚不确定。"
