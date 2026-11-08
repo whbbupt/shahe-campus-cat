@@ -1,10 +1,12 @@
 # 沙河校园小猫：接手说明
 
-当前软件v0.16.1，分支feat/pet-core。用户最新要求先完成完整项目闭环，暂缓提交/上传与交接；随后确认金币生活费主循环与固定位置布置。生产手账已由商店替代，当前仅软件与构建通过，尚无本版完整实机。GitHub默认账号whbbupt，未创建或推送remote，同学身份/实际职责未提供。
+> 当前入口（2026-11-09）：v0.17.0，宵禁与坐席图文菜单、独立外卖、宿舍布置及数值平衡；[本版操作与验收](pet-v017-life.md)。软件/构建通过，TC-260待实机；下文旧版本描述保留为历史，当前不再有集中商店。上传、平台提交及同学交接继续暂缓。
+
+当前软件v0.17.0，分支feat/pet-core。用户已确认宵禁、撤商店并保留金币、场景图文点餐与宿舍布置，实施中要求先坐下弹滑动菜单及数值平衡。当前软件与构建通过，TC-260完整实机仍待；上传/课程提交及同学交接继续暂缓。GitHub默认账号whbbupt，未创建或推送remote，同学身份/实际职责未提供。
 
 ## 先从哪里看
 
-1. 根目录AGENTS.md和README.md；再看[本版签到与验收](pet-v0161-checkin.md)、[下一阶段](pet-next-steps.md)。
+1. 根目录AGENTS.md和README.md；再看[本版生活互动与验收](pet-v017-life.md)、[下一阶段](pet-next-steps.md)。
 2. docs/01需求、02设计、03用例、04测试结果；docs/adr保存选择理由，manifest.yaml保存证据索引。
 3. 主入口src/main.c→pet_app.c。pet_world是业务模型，pet_ui只呈现快照；不要在蓝牙或音频线程直接画UI或改世界。
 
@@ -13,8 +15,8 @@
 | 养成/导航/作息 | src/pet_world.c/.h、pet_world_selftest.c、pet_life_selftest.c | 业务单调时钟、路径、奖励与资格；RTC跳变不能重复结算 |
 | 小游戏 | src/pet_memory.c/.h、pet_challenge.c/.h、pet_challenge_selftest.c | 原课堂记忆与新配餐/节奏/找物；输入只改变纯C状态 |
 | 画面与素材 | src/pet_ui.c、pet_shahe_assets.c、pet_world_assets.c、pet_world_font.c | 390×450，压缩缓存与触摸热点；新中文需重建子集字体 |
-| 金币/商店 | src/pet_economy.c/.h、pet_economy_selftest.c | 价格/有界钱包/家具拥有与免费切换；世界负责唯一扣费/奖励提交点 |
-| 存档 | src/pet_save.c/.h、pet_save_flash.c、pet_save_selftest.c | 格式9/64字节/双区日志，读旧1–8、旧8拒新9；签到日期与金币同事务，路径/动作/半局延后保存；分区不要随意移动 |
+| 金币/场景消费 | src/pet_economy.c/.h、pet_economy_selftest.c | 价格/有界钱包/家具拥有与免费切换；世界负责唯一扣费/奖励提交点 |
+| 存档 | src/pet_save.c/.h、pet_save_flash.c、pet_save_selftest.c | 格式10/64字节/双区日志，读旧1–9、旧9拒新10；外卖品类/签到日期与金币同事务，路径/动作/半局延后保存；分区不要随意移动 |
 | 时间/手机 | src/pet_time*、pet_ble*、pet_cts* | 固定UTC+8、SDK RTC、CTS自动校时；保留外设安全请求，不能恢复中心专用配对调用 |
 | 声音 | src/pet_audio* | 事件观察与PCM混音，SDK送音；新事件复用现有短音 |
 | 验证 | tests/run_pet_tests.py、tests/*、evidence/pet | 主机、真实LVGL、NOR/SDK模拟；物理证据必须单独登记 |

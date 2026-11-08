@@ -1,0 +1,24 @@
+========================================================
+✓ 提交规范     PASS
+✗ 开发日志     FAIL
+    开发日志：11 个开发日（共 145 次提交），11 个有日志，0 个有问题。
+      ! 2026-10-28 → 2026-11-05 间隔 8 天无提交（阈值 7 天），请在日志中说明原因
+✓ 需求追踪     PASS
+! manifest WARN
+    ����ļ�: manifest.yaml
+    
+    ���� 63 ����벹ȫ�����⣺
+      [����] submission.student_id δ��д
+      [����] submission.group_id δ��д
+      [����] submission.submitted_at δ��д
+      [����] dev_agent.session_log_path δ��д
+      [����] physical_verification[0].required_action δ��д
+      [����] physical_verification[0].executed_at δ��д
+      [����] physical_verification[1].required_action δ��д
+      [����] physical_verification[1].executed_at δ��д
+      [����] physical_verification[2].required_action δ��д
+      [����] physical_verification[2].executed_at δ��д
+      [����] physical_verification[3].required_action δ��д
+      [����] physical_verification[3].executed_at δ��д
+========================================================
+结论：存在必须修复的问题，请处理后再提交。

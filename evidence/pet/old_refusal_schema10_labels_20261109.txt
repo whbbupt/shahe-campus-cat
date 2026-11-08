@@ -1,0 +1,9 @@
+[host:save-old6] actual a633ec9 schema6 refuses schema10, zero writes/erase PASS
+
+
+[host:save-old7] actual df6e0db schema7 refuses schema10 with zero writes/erase PASS
+
+
+[host:save-old8] actual 92293c0 schema8 refuses schema10 with zero writes/erase PASS
+
+

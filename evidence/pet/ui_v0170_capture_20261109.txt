@@ -1,0 +1,106 @@
+[host:assets] 46 production decoders x10, released each time; peak image allocation=351000 bytes PASS
+[host:render-profile] scene=0 frames=50 large_decodes=0 pixels=199400 peak=359040
+[host:render-profile] scene=1 frames=50 large_decodes=0 pixels=199400 peak=1532415
+[host:render-profile] scene=2 frames=50 large_decodes=3 pixels=8775000 peak=2017365
+[host:world-ui] shahe-decor-first.ppm
+[host:world-ui] shahe-audio-music.ppm
+[host:world-ui] shahe-audio-effects.ppm
+[host:world-ui] shahe-audio-zero.ppm
+[host:world-ui] shahe-audio-full.ppm
+[host:world-ui] shahe-link-connected.ppm
+[host:world-ui] shahe-link-error.ppm
+[host:world-ui] shahe-audio-unavailable.ppm
+[host:world-ui] shahe-audio-room.ppm
+[host:world-ui] shahe-dorm.ppm
+[host:world-ui] shahe-status.ppm
+[host:world-ui] shahe-dorm-code.ppm
+[host:world-ui] shahe-dorm-climb.ppm
+[host:world-ui] shahe-dorm-sleep.ppm
+[host:world-ui] shahe-yanbei.ppm
+[host:world-ui] shahe-hongyan-guomai.ppm
+[host:world-ui] shahe-campus-status.ppm
+[host:world-ui] shahe-teaching-gate.ppm
+[host:world-ui] shahe-classroom.ppm
+[host:world-ui] shahe-memory-show.ppm
+[host:world-ui] shahe-memory-retry.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-won.ppm
+[host:world-ui] shahe-classroom-study.ppm
+[host:world-ui] shahe-teaching-entry.ppm
+[host:world-ui] shahe-guomai-south.ppm
+[host:world-ui] shahe-canteen-gate.ppm
+[host:world-ui] shahe-canteen.ppm
+[host:world-ui] shahe-canteen-seated-menu.ppm
+[host:world-ui] shahe-canteen-meal.ppm
+[host:world-ui] shahe-canteen-entry.ppm
+[host:world-ui] shahe-gym.ppm
+[host:world-ui] shahe-gym-workout.ppm
+[host:world-ui] shahe-gym-gains.ppm
+[host:world-ui] shahe-return-home.ppm
+[host:world-ui] shahe-takeout-menu.ppm
+[host:world-ui] shahe-takeout-delivering.ppm
+[host:world-ui] shahe-takeout-arrived.ppm
+[host:world-ui] shahe-takeout-gains.ppm
+[host:world-ui] shahe-shop-asleep.ppm
+[host:world-ui] shahe-full-north.ppm
+[host:world-ui] shahe-full-west.ppm
+[host:world-ui] shahe-full-south.ppm
+[host:world-ui] shahe-full-east.ppm
+[host:world-ui] shahe-clock-dorm-morning.ppm
+[host:world-ui] shahe-clock-dorm-day.ppm
+[host:world-ui] shahe-clock-dorm-dusk.ppm
+[host:world-ui] shahe-clock-dorm-night.ppm
+[host:world-ui] shahe-clock-dorm-status.ppm
+[host:world-ui] shahe-curfew-popup.ppm
+[host:world-ui] shahe-clock-campus-morning.ppm
+[host:world-ui] shahe-clock-campus-day.ppm
+[host:world-ui] shahe-clock-campus-dusk.ppm
+[host:world-ui] shahe-clock-campus-night.ppm
+[host:world-ui] shahe-clock-campus-status.ppm
+[host:world-ui] shahe-clock-error.ppm
+[host:world-ui] shahe-auto-wait.ppm
+[host:world-ui] shahe-auto-unavailable.ppm
+[host:world-ui] shahe-auto-synced.ppm
+[host:world-ui] shahe-meal-input.ppm
+[host:world-ui] shahe-meal-won.ppm
+[host:world-ui] shahe-rhythm-wait.ppm
+[host:world-ui] shahe-rhythm-green.ppm
+[host:world-ui] shahe-rhythm-won.ppm
+[host:world-ui] shahe-find-reveal.ppm
+[host:world-ui] shahe-find-input.ppm
+[host:world-ui] shahe-find-won.ppm
+[host:world-ui] shahe-life-0.ppm
+[host:world-ui] shahe-life-1.ppm
+[host:world-ui] shahe-life-2.ppm
+[host:world-ui] shahe-life-4.ppm
+[host:world-ui] shahe-shop-owned-0.ppm
+[host:world-ui] shahe-shop-owned-1.ppm
+[host:world-ui] shahe-shop-owned-2.ppm
+[host:world-ui] shahe-shop-owned-3.ppm
+[host:world-ui] shahe-shop-owned-4.ppm
+[host:world-ui] shahe-shop-owned-5.ppm
+[host:world-ui] shahe-shop-owned-6.ppm
+[host:world-ui] shahe-shop-owned-7.ppm
+[host:world-ui] shahe-shop-purchased.ppm
+[host:world-ui] shahe-room-furnished.ppm
+[host:world-ui] shahe-shop-stored.ppm
+[host:world-ui] shahe-decor-poor.ppm
+[host:world-ui] shahe-checkin-unset.ppm
+[host:world-ui] shahe-checkin-ready.ppm
+[host:world-ui] shahe-checkin-claimed.ppm
+[host:world-ui] shahe-checkin-rollback.ppm
+[host:world-ui] shahe-checkin-full.ppm
+[host:world-ui] shahe-meal-menu-top.ppm
+[host:world-ui] shahe-meal-menu-bottom.ppm
+[host:world-ui] shahe-takeout-menu-bottom.ppm
+[host:world-ui] shahe-takeout-congee-tracking.ppm
+[host:world-ui] shahe-curfew-after-wake.ppm
+[host:world-ui] shahe-dorm-furnished-night.ppm
+[host:shahe-ui] native dorm floor, detour, modal, desk, ladder, sleep and wake PASS
+[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS
+[host:shahe-ui] three challenges, coin rewards, four life corners, decor8 ownership states, purchases/free toggles and visible3 furniture PASS
+[host:daily-ui] real pointer wait/trusted/claim/disabled repeat/Beijing midnight/rollback/full/actual cap PASS
+[host:menu-ui] native pointer two scrolls to sixth meals, no charge on selection/cancel, seated confirmation, delivery kind, curfew/wake/close PASS
+[host:shahe-ui] decor, memory rounds, paid life route, glyphs and recreation PASS

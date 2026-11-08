@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.16.1每日签到软件完成，金币完整闭环及新增TC-254待真实验收；上传提交交接暂缓"
+  milestone: "v0.17.0宵禁、坐席图文点餐、场景布置与数值平衡软件完成，TC-260待实机；上传提交交接继续暂缓"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "撤集中商店，保留金币并在食堂/宿舍分别点单，宵禁保留室内生活"
+      alternatives_considered: "保留金币场景点单；取消金币改免费生活互动"
+      rationale: "用户选择前者并确认范围，后续明确先坐下弹滑动菜单、菜品图片和数值平衡；复用固定位置布置"
+      decided_by: "王焕博明确选择与确认；ADR-0018，具体菜价和数值为AI实施初稿"
     - decision: "小游戏赚金币购买食物与固定位置宿舍布置，替代手账主目标"
       alternatives_considered: "固定位置永久拥有并免费切换；自由拖拽布置需动态避障和编辑流程"
       rationale: "用户认为手账用途有限，要求赚生活费；先建立赚钱消费保存闭环"
@@ -1235,7 +1239,64 @@ test_results:
     status: pending_physical
     pass: null
 
+  - test_id: TC-255
+    description: 宵禁边界与旧入口
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-256
+    description: 十二菜品交易及收益
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-257
+    description: 订单品类迁移与原子保存
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-258
+    description: 生产LVGL场景与图文菜单
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-259
+    description: 目标固件与原有模块回归
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-260
+    description: 新版完整生活互动实机
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 未取得本版用户真机证据，尚未执行
+    status: pending_physical
+    pass: null
+
+  - test_id: TC-261
+    description: 坐稳再弹菜单与真实滚动
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-262
+    description: 数值平衡及摸摸冷却
+    expected: 按docs/03对应REQ-213至REQ-217判据
+    actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
 known_issues:
+  - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
   - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"
   - "v0.15.0三游戏/四生活角落/收藏提示已软件与构建通过；TC-229/231待最终集中实机。存档格式7不变，共享60秒奖励冷却；验收后才上传GitHub及交接同学。"
@@ -1289,6 +1350,9 @@ self_review: |
   收尾仅本地提交和个人练习归档，不推送、不处理小智或替用户选产品。最终产品级交接字段仍有真实缺口。
 
 human_checkpoints:
+  - decision_point: "本轮生活场景调整"
+    student_confirmation: "保留金币，食堂和外卖各自点单；可以，按这套范围实施。后续补菜图、滑动菜单、先坐下点餐和降低摸摸收益。"
+    evidence_path: evidence/pet/life_revision_20261109_user.txt
   - decision_point: "校园时间规则"
     student_confirmation: "现实30分钟＝游戏一天；关机暂停、开机继续；按时段区分、保留替代活动"
     evidence_path: evidence/pet/time_choices_20261107_user.txt
