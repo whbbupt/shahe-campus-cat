@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.17.0宵禁、坐席图文点餐、场景布置与数值平衡软件完成，TC-260待实机；上传提交交接继续暂缓"
+  milestone: "v0.17.1家具预览与v0.17.0生活互动软件完成，TC-260待实机；上传提交交接暂缓"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -1292,6 +1292,14 @@ test_results:
     description: 数值平衡及摸摸冷却
     expected: 按docs/03对应REQ-213至REQ-217判据
     actual: 共享纯C/真实应用SDK模拟/生产LVGL主机及目标构建通过，见v0.17.0测试报告
+    status: passed_software
+    pass: true
+
+  - test_id: TC-263
+    description: 布置购买前同款图与购买后实物
+    expected: 按docs/03对应REQ-216和TC-263判据
+    actual: 真实生产LVGL指针和购前购后画面核对通过，原固件构建成功
+    evidence_path: evidence/pet/previews/furniture-v0.17.1/furniture-before-after.png
     status: passed_software
     pass: true
 
