@@ -791,7 +791,7 @@ static void new_life_and_challenges(void)
         press("×"); assert(world.wallet.coins == 300 && world.wallet.owned == mask);
     }
     reset(); world.wallet.coins = 200; pet_ui_update(&world); step(40);
-    const unsigned pixels[][2] = {{286,207},{211,201},{67,225}};
+    const unsigned pixels[][2] = {{204,193},{107,180},{47,214}};
     unsigned char old_pixel[3][3]; lv_refr_now(NULL);
     for (unsigned i=0; i<3; i++) memcpy(old_pixel[i], frame[pixels[i][1]][pixels[i][0]], 3);
     press("布置");

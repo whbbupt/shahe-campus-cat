@@ -122,6 +122,6 @@ build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_s
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))
-    sources += [root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_ui.c', root/'src/pet_food_assets.c', root/'src/pet_world_assets.c', root/'src/pet_shahe_assets.c', root/'src/pet_world_font.c', root/'tests/pet_world_ui_test.c']
+    sources += [root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_ui.c', root/'src/pet_food_assets.c', root/'src/pet_furniture_assets.c', root/'src/pet_world_assets.c', root/'src/pet_shahe_assets.c', root/'src/pet_world_font.c', root/'tests/pet_world_ui_test.c']
     build(sources, 'pet-ui-test', [root/'tests/include', lvgl], ['LV_KCONFIG_IGNORE', 'LV_CONF_INCLUDE_SIMPLE'])
     print('Actual LVGL software previews:', out)
