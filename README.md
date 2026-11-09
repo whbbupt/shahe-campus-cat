@@ -1,13 +1,28 @@
-# course_starter —— 黄山派嵌入式产品开发课程脚手架
+# 沙河校园小猫
 
-> 最新版 v0.17.4 统一顶部状态、场景短签和底部反馈，详见[操作说明](docs/pet-v0174-hud.md)。下方 v0.17.0 为生活规则基线。
+一款运行在黄山派上的触屏校园电子宠物。带小猫沿校园道路逛宿舍、教室和食堂，给它点餐、布置房间，或在宿舍玩小游戏赚金币。手表按北京时间切换昼夜和作息，23:00 至次日 06:00 进入宿舍宵禁。
 
-> [安卓校时工具](android-clock/README.md)配合 v0.17.4 使用，选中手表后自动发送手机时间并读回确认。软件与打包检查通过，安卓和手表联调待验收。
+**当前固件 v0.17.4 · 安卓校时工具 v0.1.0**
 
-> 当前入口（2026-11-09）：v0.17.0，宵禁与坐席图文菜单、独立外卖、宿舍布置及数值平衡；[本版操作与验收](docs/pet-v017-life.md)。软件/构建通过，TC-260待实机；下文旧版本描述保留为历史，当前不再有集中商店。上传、平台提交及同学交接继续暂缓。
+![宿舍白天与夜间的固件主机预览](evidence/pet/previews/hud-v0.17.4/dorm-day-night.png)
 
+*固件在电脑上的画面预览。*
 
-这是课程的**统一起点**：既是入门训练的练习场，也是你自己产品项目的基础工程。它内置：
+| 我想做什么 | 从哪里开始 |
+| --- | --- |
+| 编译固件、烧录、连接手机 | [上手与手机校时](docs/pet-quickstart.md) |
+| 点餐、外卖、签到、摆家具 | [校园生活与菜品](docs/pet-v017-life.md) |
+| 打包安卓 APK | [安卓校时工具](android-clock/README.md) |
+| 查看需求、架构和验证记录 | [需求](docs/01-需求规格说明.md) · [设计](docs/02-方案设计说明.md) · [测试报告](docs/04-测试报告.md) |
+
+固件基于 SiFli SDK v2.5.1、RT-Thread 和 LVGL v9，目标板型为 `sf32lb52-lchspi-ulp`。固件源码在 [`src/`](src/)，板级工程在 [`project/`](project/)，安卓工具在 [`android-clock/`](android-clock/)。
+
+v0.17.4 已完成固件构建与主机测试。iPhone 自动校时在 v0.14.2 有用户实测记录。最新版校园生活整体验收及安卓联调分别登记为 TC-260 和 TC-268，等待实机结果。
+
+<details>
+<summary>课程脚手架与训练参考</summary>
+
+本项目从黄山派课程脚手架开始，以下保留入门训练和课程开发流程。脚手架内置以下内容。
 
 - **AI 软件工程过程文档模板**：计划、需求规格(PRD)、方案设计、测试计划、测试报告、风险台账、架构决策(ADR)、开发日志（Markdown），研制总结（Word）
 - **AI agent 驱动开发支持**：`CLAUDE.md` / `AGENTS.md`、Claude Code 斜杠命令、协作指南与提示词
@@ -132,3 +147,5 @@ type：`feat fix docs test refactor perf build ci chore revert hw`。`feat/fix/r
 **Q：我的 agent 工具读不到 CLAUDE.md/AGENTS.md？** 把 `AGENTS.md` 全文粘贴到会话开头，并在 `manifest.yaml` 里如实填写 `dev_agent.tool`。
 
 **Q：Windows 下钩子不生效？** 使用 Git for Windows，确认 `git config core.hooksPath` 为 `.githooks`；仍有问题时运行 `python scripts/check_commit_msg.py --log` 手动自查，并告知教师。
+
+</details>
