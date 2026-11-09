@@ -15,6 +15,10 @@
 #define INK 0x304C4A
 #define BLUE 0x456B77
 #define PAPER 0xF8F3DF
+#define HUD_PAPER 0xFAEBCF
+#define HUD_INK 0x573F30
+#define HUD_EDGE 0xAE8766
+#define HUD_BRASS 0xD9AF63
 enum
 {
     TAG_STATUS = 300,
@@ -40,10 +44,10 @@ static struct
     lv_obj_t *tone, *lamplight, *clock_text, *clock_date;
     int light_scene, light_band;
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
-    lv_obj_t *status_button, *bubble, *bubble_text, *decor, *phone, *bag;
+    lv_obj_t *status_button, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
-    lv_obj_t *shop_button, *shop_dialog, *shop_balance, *shop_hint, *checkin, *checkin_label, *shop_tab[2];
+    lv_obj_t *shop_dialog, *shop_balance, *shop_hint, *checkin, *checkin_label, *shop_tab[2];
     lv_obj_t *shop_name[3], *shop_price[3], *shop_buy[3], *shop_action[3], *furniture[3];
     unsigned shop_page;
     bool delivery;
@@ -246,10 +250,13 @@ static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_
 /* The label sizes itself to its text. The parent remains the touch target. */
 static lv_obj_t *scene_tag(lv_obj_t *parent, const char *name, lv_align_t align, int x, int y)
 {
-    lv_obj_t *label = text(parent, name, 0, 0, &pet_font_16, 0xFFF1D6);
-    lv_obj_set_style_bg_color(label, lv_color_hex(0x343B31), 0);
+    lv_obj_t *label = text(parent, name, 0, 0, &pet_font_16, HUD_INK);
+    lv_obj_set_style_bg_color(label, lv_color_hex(HUD_PAPER), 0);
     lv_obj_set_style_bg_opa(label, LV_OPA_80, 0);
     lv_obj_set_style_radius(label, 4, 0);
+    lv_obj_set_style_border_width(label, 1, 0);
+    lv_obj_set_style_border_color(label, lv_color_hex(HUD_EDGE), 0);
+    lv_obj_set_style_border_opa(label, LV_OPA_60, 0);
     lv_obj_set_style_pad_left(label, 5, 0);
     lv_obj_set_style_pad_right(label, 5, 0);
     lv_obj_align(label, align, x, y);
@@ -582,31 +589,38 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.life_hit = button(screen, 10, 350, 64, 60, PW_LIFE, PAPER, 9);
     lv_obj_set_style_bg_opa(ui.life_hit, LV_OPA_TRANSP, 0);
     scene_tag(ui.life_hit, "看看", LV_ALIGN_RIGHT_MID, -2, 0);
-    ui.location = box(screen, 24, 28, 196, 62, PAPER, 14);
+    ui.location = box(screen, 24, 28, 334, 54, HUD_PAPER, 9);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
-    ui.clock_text = text(ui.location, "--:-- 待校时", 12, 3, &pet_font_20, INK);
-    ui.location_text = text(ui.location, room_names[0], 12, 33, &pet_font_16, BLUE);
-    ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
-    ui.bubble = box(screen, 67, 398, 256, 36, PAPER, 12);
-    lv_obj_set_style_bg_opa(ui.bubble, LV_OPA_90, 0);
-    ui.bubble_text = text(ui.bubble, "", 6, 6, &pet_font_16, INK);
-    lv_obj_set_width(ui.bubble_text, 244);
-    lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
-    lv_label_set_long_mode(ui.bubble_text, LV_LABEL_LONG_CLIP);
-    build_panel(screen);
-    ui.shop_button = box(screen, 228, 28, 62, 62, PAPER, 14);
-    lv_obj_set_style_bg_opa(ui.shop_button, LV_OPA_90, 0);
-    lv_obj_t *coin = box(ui.shop_button, 20, 7, 22, 22, 0xD7B86E, 11);
-    lv_obj_set_style_border_width(coin, 1, 0);
-    lv_obj_set_style_border_color(coin, lv_color_hex(0x967027), 0);
-    lv_obj_t *coin_mark = text(coin, "币", 0, 0, &pet_font_16, INK);
+    lv_obj_set_style_border_width(ui.location, 1, 0);
+    lv_obj_set_style_border_color(ui.location, lv_color_hex(HUD_EDGE), 0);
+    lv_obj_set_style_border_opa(ui.location, LV_OPA_60, 0);
+    box(ui.location, 8, 12, 2, 30, HUD_EDGE, 1);
+    box(ui.location, 195, 10, 1, 34, HUD_EDGE, 0);
+    box(ui.location, 267, 10, 1, 34, HUD_EDGE, 0);
+    ui.clock_text = text(ui.location, "--:-- 待校时", 16, 2, &pet_font_20, HUD_INK);
+    ui.location_text = text(ui.location, room_names[0], 16, 28, &pet_font_16, HUD_INK);
+    lv_obj_t *coin = box(ui.location, 204, 17, 20, 20, HUD_BRASS, 10);
+    lv_obj_t *coin_mark = text(coin, "币", 0, 0, &pet_font_16, HUD_INK);
     lv_obj_center(coin_mark);
-    ui.wallet_text = text(ui.shop_button, "", 0, 36, &pet_font_16, BLUE);
-    lv_obj_set_width(ui.wallet_text, 62); lv_obj_set_style_text_align(ui.wallet_text, LV_TEXT_ALIGN_CENTER, 0);
-    ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, PAPER, 14);
-    lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_90, 0);
-    image(ui.status_button, pw_icons[0], 19, 8);
-    text(ui.status_button, "状态", 15, 36, &pet_font_16, BLUE);
+    ui.wallet_text = text(ui.location, "", 225, 16, &pet_font_16, HUD_INK);
+    lv_obj_set_width(ui.wallet_text, 40);
+    lv_obj_set_style_text_align(ui.wallet_text, LV_TEXT_ALIGN_CENTER, 0);
+    ui.marks = text(screen, "", 0, 0, &pet_font_16, BLUE);
+    ui.bubble_text = scene_tag(screen, "", LV_ALIGN_BOTTOM_MID, 0, -18);
+    lv_obj_set_style_pad_left(ui.bubble_text, 11, 0);
+    lv_obj_set_style_pad_right(ui.bubble_text, 11, 0);
+    lv_obj_set_style_pad_top(ui.bubble_text, 2, 0);
+    lv_obj_set_style_pad_bottom(ui.bubble_text, 2, 0);
+    lv_obj_set_style_max_width(ui.bubble_text, 328, 0);
+    lv_obj_set_style_text_align(ui.bubble_text, LV_TEXT_ALIGN_CENTER, 0);
+    build_panel(screen);
+    ui.status_button = button(screen, 296, 28, 62, 62, TAG_STATUS, HUD_PAPER, 8);
+    lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(ui.status_button, LV_OPA_TRANSP, LV_STATE_PRESSED);
+    lv_obj_t *book = box(ui.status_button, 24, 8, 14, 16, HUD_EDGE, 2);
+    box(book, 3, 4, 8, 1, HUD_PAPER, 0);
+    box(book, 3, 8, 6, 1, HUD_PAPER, 0);
+    text(ui.status_button, "状态", 15, 28, &pet_font_16, HUD_INK);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -841,7 +855,7 @@ static void paint(void)
     visible(ui.blackboard, !campus);
     visible(ui.life_hit, !campus);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
-    visible(ui.shop_button, ui.world.phase != PW_MINIGAME);
+    visible(ui.location, ui.world.phase != PW_MINIGAME);
     visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
@@ -917,7 +931,6 @@ static void paint(void)
     if (ui.panel == PANEL_SHOP) paint_shop();
     if (ui.panel == PANEL_ORDER)
         paint_order();
-    lv_obj_set_style_bg_color(ui.status_button, lv_color_hex(ui.panel == PANEL_STATUS ? 0xDCEAF3 : PAPER), 0);
     const char *msg = pw_message_text(&ui.world);
     if (!*msg && ui.world.phase == PW_IDLE) msg = pw_need_text(&ui.world);
     if (ui.world.now < 2300 && !*msg)
@@ -933,7 +946,7 @@ static void paint(void)
         set_label_fmt(ui.bubble_text, "心情 %+d", ui.world.mood_gain);
     else
         set_label(ui.bubble_text, msg);
-    visible(ui.bubble, gains || *msg || ui.world.now < ui.world.coin_until);
+    visible(ui.bubble_text, gains || *msg || ui.world.now < ui.world.coin_until);
 }
 void pet_ui_update(const pet_world_t *world)
 {
