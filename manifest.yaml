@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.17.3场景短签与生活互动软件完成，TC-260待实机"
+  milestone: "v0.17.4主场景信息层与生活互动软件完成，TC-260待实机"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -1316,6 +1316,14 @@ test_results:
     expected: 按REQ-218和TC-265判据
     actual: 昼夜及其他场景预览、原触摸回归和固件构建通过
     evidence_path: evidence/pet/previews/tags-v0.17.3/dorm-day-night.png
+    status: passed_software
+    pass: true
+
+  - test_id: TC-266
+    description: 主场景状态栏和反馈短签
+    expected: 按REQ-219和TC-266判据
+    actual: 主机预览、触摸回归和固件构建通过
+    evidence_path: evidence/pet/previews/hud-v0.17.4/dorm-day-night.png
     status: passed_software
     pass: true
 
