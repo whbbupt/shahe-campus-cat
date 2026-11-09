@@ -376,6 +376,46 @@ static void build_hotspots(void)
         lv_obj_move_to_index(o, lv_obj_get_index(ui.door));
     }
 }
+/* Use the exact same silhouette and colors in the purchase card and the room. */
+static lv_obj_t *draw_furniture(lv_obj_t *parent, unsigned item, int x, int y)
+{
+    if (item == 0)
+    {
+        lv_obj_t *art = box(parent, x, y, 26, 37, PAPER, 0);
+        lv_obj_set_style_bg_opa(art, LV_OPA_TRANSP, 0);
+        box(art, 12, 6, 2, 22, 0x537958, 1);
+        box(art, 2, 6, 13, 9, 0x88AA92, 7);
+        box(art, 13, 1, 12, 9, 0x6F9478, 6);
+        box(art, 13, 15, 12, 8, 0x88AA92, 6);
+        box(art, 4, 25, 20, 12, 0xBF9769, 4);
+        box(art, 2, 24, 24, 4, 0xD6B28C, 2);
+        box(art, 5, 4, 10, 6, 0xA6BF9B, 5);
+        box(art, 16, 12, 8, 5, 0x537958, 4);
+        box(art, 7, 28, 3, 7, 0xD6B28C, 1);
+        return art;
+    }
+    if (item == 1)
+    {
+        lv_obj_t *art = box(parent, x, y, 52, 37, 0xA78C69, 3);
+        box(art, 3, 3, 46, 31, 0xF8F3DF, 1);
+        box(art, 7, 6, 38, 21, 0xDCEAF3, 1);
+        box(art, 10, 16, 10, 11, 0x88AA92, 1);
+        box(art, 23, 12, 17, 15, 0x456B77, 1);
+        box(art, 29, 8, 6, 4, 0xF8F3DF, 2);
+        return art;
+    }
+    lv_obj_t *art = box(parent, x, y, 34, 37, PAPER, 0);
+    lv_obj_set_style_bg_opa(art, LV_OPA_TRANSP, 0);
+    box(art, 0, 0, 3, 36, 0x8F775B, 1);
+    box(art, 31, 0, 3, 36, 0x8F775B, 1);
+    box(art, 1, 0, 32, 3, 0xBF9769, 1);
+    box(art, 5, 11, 6, 22, 0x88AA92, 1);
+    box(art, 13, 7, 6, 26, 0xBF9769, 1);
+    box(art, 21, 9, 7, 24, 0x456B77, 1);
+    box(art, 0, 33, 34, 4, 0x8F775B, 1);
+    return art;
+}
+
 static void build_panel(lv_obj_t *screen)
 {
     ui.layer = box(screen, 0, 0, 390, 450, PAPER, 0);
@@ -455,8 +495,11 @@ static void build_panel(lv_obj_t *screen)
     for (unsigned i = 0; i < 3; i++)
     {
         lv_obj_t *row = box(ui.shop_dialog, 18, 112 + i * 72, 298, 68, 0xE6ECDE, 10);
-        ui.shop_name[i] = text(row, "", 10, 7, &pet_font_16, INK);
-        ui.shop_price[i] = text(row, "", 10, 36, &pet_font_16, BLUE);
+        static const int preview_x[] = {17, 4, 13};
+        lv_obj_t *preview = box(row, 8, 7, 60, 54, PAPER, 8);
+        draw_furniture(preview, i, preview_x[i], 8);
+        ui.shop_name[i] = text(row, "", 78, 7, &pet_font_16, INK);
+        ui.shop_price[i] = text(row, "", 78, 36, &pet_font_16, BLUE);
         ui.shop_buy[i] = button(row, 192, 12, 96, 44, PW_BUY_PLANT + i, 0xDCEAF3, 9);
         ui.shop_action[i] = text(ui.shop_buy[i], "", 0, 0, &pet_font_16, INK);
     }
@@ -518,33 +561,10 @@ static void build_dorm_items(lv_obj_t *screen)
 
 static void build_furniture(lv_obj_t *screen)
 {
-    /* Window/wall/desktop objects have no foot-space: original navigation stays valid. */
-    ui.furniture[0] = box(screen, 274, 176, 26, 37, PAPER, 0);
-    lv_obj_set_style_bg_opa(ui.furniture[0], LV_OPA_TRANSP, 0);
-    box(ui.furniture[0], 12, 6, 2, 22, 0x537958, 1);
-    box(ui.furniture[0], 2, 6, 13, 9, 0x88AA92, 7);
-    box(ui.furniture[0], 13, 1, 12, 9, 0x6F9478, 6);
-    box(ui.furniture[0], 13, 15, 12, 8, 0x88AA92, 6);
-    box(ui.furniture[0], 4, 25, 20, 12, 0xBF9769, 4);
-    box(ui.furniture[0], 2, 24, 24, 4, 0xD6B28C, 2);
-    box(ui.furniture[0], 5, 4, 10, 6, 0xA6BF9B, 5);
-    box(ui.furniture[0], 16, 12, 8, 5, 0x537958, 4);
-    box(ui.furniture[0], 7, 28, 3, 7, 0xD6B28C, 1);
-    ui.furniture[1] = box(screen, 210, 200, 52, 37, 0xA78C69, 3);
-    box(ui.furniture[1], 3, 3, 46, 31, 0xF8F3DF, 1);
-    box(ui.furniture[1], 7, 6, 38, 21, 0xDCEAF3, 1);
-    box(ui.furniture[1], 10, 16, 10, 11, 0x88AA92, 1);
-    box(ui.furniture[1], 23, 12, 17, 15, 0x456B77, 1);
-    box(ui.furniture[1], 29, 8, 6, 4, 0xF8F3DF, 2);
-    ui.furniture[2] = box(screen, 41, 193, 34, 37, PAPER, 0);
-    lv_obj_set_style_bg_opa(ui.furniture[2], LV_OPA_TRANSP, 0);
-    box(ui.furniture[2], 0, 0, 3, 36, 0x8F775B, 1);
-    box(ui.furniture[2], 31, 0, 3, 36, 0x8F775B, 1);
-    box(ui.furniture[2], 1, 0, 32, 3, 0xBF9769, 1);
-    box(ui.furniture[2], 5, 11, 6, 22, 0x88AA92, 1);
-    box(ui.furniture[2], 13, 7, 6, 26, 0xBF9769, 1);
-    box(ui.furniture[2], 21, 9, 7, 24, 0x456B77, 1);
-    box(ui.furniture[2], 0, 33, 34, 4, 0x8F775B, 1);
+    /* Keep these items off the walkable floor. */
+    static const int anchor[3][2] = {{274, 176}, {210, 200}, {41, 193}};
+    for (unsigned i = 0; i < 3; i++)
+        ui.furniture[i] = draw_furniture(screen, i, anchor[i][0], anchor[i][1]);
 }
 void pet_ui_create(pet_ui_action_fn callback)
 {
@@ -703,8 +723,8 @@ static void paint_shop(void)
         pe_item_t item = (pe_item_t)(PE_PLANT+i); unsigned bit=1U<<i;
         bool owned=(w->wallet.owned&bit)!=0, placed=(w->wallet.equipped&bit)!=0;
         set_label(ui.shop_name[i], pe_name(item));
-        if (owned) set_label(ui.shop_price[i], placed ? "已摆放 · 永久拥有" : "已购买 · 免费摆放");
-        else set_label_fmt(ui.shop_price[i], "%u 金币 · 永久拥有", pe_price(item));
+        if (owned) set_label(ui.shop_price[i], placed ? "已摆放" : "已购买");
+        else set_label_fmt(ui.shop_price[i], "%u 金币", pe_price(item));
         const char *label = owned ? placed ? "收起" : "摆上" : "购买";
         bool enabled=w->scene==PW_DORM && w->phase==PW_IDLE && (owned || w->wallet.coins>=pe_price(item));
         if (w->phase!=PW_IDLE) label=w->phase==PW_SLEEP ? "先叫醒" : "稍后再来";
