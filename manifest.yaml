@@ -1327,6 +1327,21 @@ test_results:
     status: passed_software
     pass: true
 
+  - test_id: TC-267
+    description: 安卓校时协议及 APK
+    expected: 按REQ-220和TC-267判据
+    actual: JVM协议测试、APK构建、对齐、签名和清单检查通过
+    evidence_path: evidence/pet/android-clock_final_20261109.txt
+    status: passed_software
+    pass: true
+
+  - test_id: TC-268
+    description: 安卓手机与手表自动校时实机
+    expected: 点选手表后自动校时，确认手表时间并重连复测
+    actual: 待用户使用安卓手机和手表联调
+    status: pending_physical
+    pass: null
+
 known_issues:
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
