@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.17.2绘本摆件与生活互动软件完成，TC-260待实机"
+  milestone: "v0.17.3场景短签与生活互动软件完成，TC-260待实机"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -1308,6 +1308,14 @@ test_results:
     expected: 按docs/03中REQ-216和TC-264判据
     actual: 购买与摆放回归、日夜主机预览和目标构建通过
     evidence_path: evidence/pet/previews/furniture-v0.17.2/furniture-before-after.png
+    status: passed_software
+    pass: true
+
+  - test_id: TC-265
+    description: 房间和校园场景互动短签
+    expected: 按REQ-218和TC-265判据
+    actual: 昼夜及其他场景预览、原触摸回归和固件构建通过
+    evidence_path: evidence/pet/previews/tags-v0.17.3/dorm-day-night.png
     status: passed_software
     pass: true
 

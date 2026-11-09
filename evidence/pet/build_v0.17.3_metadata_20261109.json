@@ -1,0 +1,898 @@
+{
+  "app_version": "0.17.3",
+  "recorded_on": "2026-11-09 Asia/Shanghai",
+  "baseline_commit": "3e83991",
+  "requirements_commit": "be71e53",
+  "implementation_commit": "f3f01b023029b553a03e58fb2432706e9421fc8a",
+  "save_schema": 10,
+  "build_exit_code": 0,
+  "host_test_exit_code": 0,
+  "link_memory_report": {
+    "ROM": {
+      "total": 8388608,
+      "used": 4606913
+    },
+    "RAM": {
+      "total": 523264,
+      "used": 171092
+    }
+  },
+  "inputs": [
+    {
+      "path": "assets/pet-audio/conversion.json",
+      "bytes": 2102,
+      "sha256": "0EACB0B0E981060E765133A59789D510DC989CC5EFE985F6594EA5F9AC318929"
+    },
+    {
+      "path": "assets/pet-audio/done.wav",
+      "bytes": 8364,
+      "sha256": "426FD04179495AD766F36E5D8C96FC9080758B0C55330E33F4C02629AC9C6E40"
+    },
+    {
+      "path": "assets/pet-audio/meal.wav",
+      "bytes": 8044,
+      "sha256": "3FE1934541209975815C10AC8AC823E81CB204CA4D7623A9528E7E03DDD89156"
+    },
+    {
+      "path": "assets/pet-audio/music.wav",
+      "bytes": 512044,
+      "sha256": "F9C147373AE66F6C836BEAFF579C441E245F21BFD9751920E2A968948B8B887E"
+    },
+    {
+      "path": "assets/pet-audio/note0.wav",
+      "bytes": 6444,
+      "sha256": "89C69B3688F8F6C783E894D9C9A3F11AF983E477F5D8AEC750889ACC9463DBCF"
+    },
+    {
+      "path": "assets/pet-audio/note1.wav",
+      "bytes": 6444,
+      "sha256": "ABD067C44D01B5B0D35541D1B86E67DDB9131A8876A1D9B873E8DAEF69829A30"
+    },
+    {
+      "path": "assets/pet-audio/note2.wav",
+      "bytes": 6444,
+      "sha256": "8B08F65011E8F4D8DDEBB07EA152E0F4F330FAC88DA65D27B47C6DAAC89A805D"
+    },
+    {
+      "path": "assets/pet-audio/note3.wav",
+      "bytes": 6444,
+      "sha256": "635D3B40A29B1100512FF40E128A874517957C55A73F00A753D86E806A720E66"
+    },
+    {
+      "path": "assets/pet-audio/rest.wav",
+      "bytes": 10284,
+      "sha256": "B0B07FBA784092C9F0FF8BBA985C4E26EAA4EBC81EEB6BF880E970492986E37E"
+    },
+    {
+      "path": "assets/pet-audio/retry.wav",
+      "bytes": 7084,
+      "sha256": "B65FC26CD9182F8B1CE124758CD143524FD6F8B9348A3A3602603B487A1B1DC8"
+    },
+    {
+      "path": "assets/pet-audio/stamp.wav",
+      "bytes": 13484,
+      "sha256": "A1A7F34A0DF43451D37FEB4B5AAD426543A59B13B407C9BFF1CFB276E0FEF1E8"
+    },
+    {
+      "path": "assets/pet-audio/touch.wav",
+      "bytes": 10924,
+      "sha256": "4892C438AF6AC8D8D13A4366FBCCB73E6F19F0BED4C218108961B216399EC165"
+    },
+    {
+      "path": "assets/pet-audio/win.wav",
+      "bytes": 13804,
+      "sha256": "562E162327A2383DC3160E8BAEFB82CF5B112D01B5014D524F21794510C48F21"
+    },
+    {
+      "path": "assets/pet-food/README.md",
+      "bytes": 428,
+      "sha256": "602FA90994961D8CF2980E2A674994C3CF6EBCD74D82899B2121A0F8CD65A6A2"
+    },
+    {
+      "path": "assets/pet-food/conversion.json",
+      "bytes": 351,
+      "sha256": "2E7D3A02B1159F7C9FE495F755C6BB89E5CE22BF2E473F8766972B83CCB70660"
+    },
+    {
+      "path": "assets/pet-food/meal-atlas-source.png",
+      "bytes": 2345396,
+      "sha256": "0AF47C55FF8172003F4D827D00D477147582FF917603FE097F30BEBE4AA05FAB"
+    },
+    {
+      "path": "assets/pet-shahe/LZ4-LICENSE.txt",
+      "bytes": 1631,
+      "sha256": "29CE3761DFF21AA56C180497C5D9531D5069372CEA443D1A12923D32C22BF89E"
+    },
+    {
+      "path": "assets/pet-shahe/campus-atlas.png",
+      "bytes": 1588413,
+      "sha256": "3031AA444A9682BD63B85AE00EF0FFCA791723AC9B7104189D2701974A597F44"
+    },
+    {
+      "path": "assets/pet-shahe/canteen.png",
+      "bytes": 2034150,
+      "sha256": "D2DA3DF63BE39CB00F5F9484C46BD26B016930E48B878DA1DB5EFC0116F59C9C"
+    },
+    {
+      "path": "assets/pet-shahe/classroom.png",
+      "bytes": 1993437,
+      "sha256": "5A475FC069F77E0C1CC44B8490F44DF8513FBC779322B2A9047F9AC13C997641"
+    },
+    {
+      "path": "assets/pet-shahe/dorm.png",
+      "bytes": 2105367,
+      "sha256": "8771308CA31CFB7302B34BF19E49559D04BF1F5C5F62A176CC7766E24691BBAB"
+    },
+    {
+      "path": "assets/pet-shahe/gym.png",
+      "bytes": 2082358,
+      "sha256": "710B8456435B53B1B389FF0BFFA2322274BEB1A16B824CCA741C01020AA0F778"
+    },
+    {
+      "path": "assets/pet-shahe/landmark-atlas.png",
+      "bytes": 1523239,
+      "sha256": "4E7AEDB962F330D05B3AD738B980259E9DA728246122C3F12E9FD12AD8C04437"
+    },
+    {
+      "path": "assets/pet-shahe/room-decor-atlas.png",
+      "bytes": 1323199,
+      "sha256": "3A2E5530893AEA6101EB41B6A87039A5EA5C9199DC1FB1AAC86CD47DB113784D"
+    },
+    {
+      "path": "assets/pet-world/font-conversion.json",
+      "bytes": 1637,
+      "sha256": "5062E5E3B16CF7D156094BD9B7FD1D7AA05081AA71B5E8D4EED4964DD6FAA735"
+    },
+    {
+      "path": "project/SConscript",
+      "bytes": 350,
+      "sha256": "93FE60576F195E38A30768E9E766A000AFBFF3B6F6AA10A76FD47724A72B47A4"
+    },
+    {
+      "path": "project/SConstruct",
+      "bytes": 962,
+      "sha256": "640079034E3D2ADEA8E224BF08E7C2BA3754BAB8F570F4A45F90CCF25F8E718B"
+    },
+    {
+      "path": "project/proj.conf",
+      "bytes": 2217,
+      "sha256": "7C79FFA35DE324BFF1F94A164D4BE22EAC01F3EAF1C0A8654309040ABC410242"
+    },
+    {
+      "path": "project/rtconfig.py",
+      "bytes": 10,
+      "sha256": "7414EA905126BB7954095AD6126A355FC08C173C87EA2E4885942B6B947B0614"
+    },
+    {
+      "path": "project/sf32lb52-lchspi-ulp_hcpu/ptab.json",
+      "bytes": 3708,
+      "sha256": "7AC09A722ED45824C2AD104A98367909DC0200D931D682477812F3DCDB239565"
+    },
+    {
+      "path": "scripts/compress_pet_assets.py",
+      "bytes": 5962,
+      "sha256": "FD825C561B3F53CDC4EDD234A5D6839C39A23E63917A4D1F5558023C4233D12D"
+    },
+    {
+      "path": "scripts/make_food_atlas.py",
+      "bytes": 1705,
+      "sha256": "23EE15785755B61999D29CE18FBDDBC56465112FB042AE9F202CA0D4C6F7F87E"
+    },
+    {
+      "path": "scripts/make_pet_audio.py",
+      "bytes": 3636,
+      "sha256": "EAF5D77901A33B0DD003071C3F1FF96784912A710B48009977C8ABA8ABA60379"
+    },
+    {
+      "path": "scripts/make_shahe_assets.py",
+      "bytes": 11679,
+      "sha256": "DEC843057C4AE9030B8E9649080F0208BAA2FDACCF08678AF07DD5823BE5A796"
+    },
+    {
+      "path": "scripts/make_world_fonts.py",
+      "bytes": 3603,
+      "sha256": "D8B8CE85754681BD96F698997B206B8B680B4B244CD9E7B9CFD3F6ED2ACA473B"
+    },
+    {
+      "path": "src/SConscript",
+      "bytes": 143,
+      "sha256": "FFFFC291D3787AA0AAAAE292049AABE028092886CAE28E06489A88F00FD9E8BA"
+    },
+    {
+      "path": "src/course_ui.c",
+      "bytes": 1838,
+      "sha256": "7D4D14E9DCDA93CC18B2FA93BAA43D495AAD1D29FC324664FA493DD01EB0B7A2"
+    },
+    {
+      "path": "src/course_ui.h",
+      "bytes": 216,
+      "sha256": "981E89DFFA5E4D32CE1AD41027F91265974419563F5733EEB8B2962E7ADFE212"
+    },
+    {
+      "path": "src/key.c",
+      "bytes": 5582,
+      "sha256": "66A3B61FE2472A8AFE33DAC07BA1F0F3E57B0CDD92C8FD77BC82806FED34AFB2"
+    },
+    {
+      "path": "src/key.h",
+      "bytes": 590,
+      "sha256": "5C854C1FFDAACC4AAEF4557BD6B25A4236C25845310B5D824BCFAE206CEB1F01"
+    },
+    {
+      "path": "src/main.c",
+      "bytes": 1898,
+      "sha256": "2FC1F178BF0DDF3CF164507FF76E57E4DE9F96EA12CC3DD23D6017B22567F9A2"
+    },
+    {
+      "path": "src/pet_app.c",
+      "bytes": 5379,
+      "sha256": "9A4C4F66E1F0A17588939CF1A5BB28127256B0B8DBC28E64227CE66346B3ECF4"
+    },
+    {
+      "path": "src/pet_app.h",
+      "bytes": 441,
+      "sha256": "A1467C5D2D5E535518EC98DCAB142456DFF6D199FE3242B6C8F1A353C0E1C880"
+    },
+    {
+      "path": "src/pet_audio.c",
+      "bytes": 3512,
+      "sha256": "5FD4448D65738B626ADE5FDDA264C0F18AF0A65F71671B40BE72F15A6354AB3C"
+    },
+    {
+      "path": "src/pet_audio.h",
+      "bytes": 993,
+      "sha256": "5AF2D856D07E69DFAFAED02620035163F1D6DD74D1E2700D4C14D8E966A5482B"
+    },
+    {
+      "path": "src/pet_audio_pcm.c",
+      "bytes": 1325369,
+      "sha256": "FE4B55C44463845CCCFC1C620D5EE4C569BD1E62B471A0E1E5929D6EE6FD45D4"
+    },
+    {
+      "path": "src/pet_audio_pcm.h",
+      "bytes": 251,
+      "sha256": "2CB8C9F36C7334AA20BA4B536E338D13B7455F5B05F4C2030EA1A4870AA8ACDD"
+    },
+    {
+      "path": "src/pet_audio_rt.c",
+      "bytes": 6413,
+      "sha256": "075E467344AFD8BCFDE3D4EA483D7E21424A6DD3F40E92840E740CCA7ACA4B47"
+    },
+    {
+      "path": "src/pet_audio_rt.h",
+      "bytes": 193,
+      "sha256": "3EBAB994CA1FAE9F2145C2BD1148223EDA4C7BD7ECB6B50756E31D23C7E83322"
+    },
+    {
+      "path": "src/pet_audio_selftest.c",
+      "bytes": 3255,
+      "sha256": "605338675D7CB72206E68C2885F1EE9D1005D4A16F1D2B96008033F8F94357DA"
+    },
+    {
+      "path": "src/pet_ble.c",
+      "bytes": 22498,
+      "sha256": "41C03273F505C63D33BC11ADEAC1E1ABA1D09335A6F0D0AD1D711AF871E966C2"
+    },
+    {
+      "path": "src/pet_ble.h",
+      "bytes": 736,
+      "sha256": "F4B3D58BB6AC20F200F79D38F2C84D6667C8EC891553DAD28A4B3A7C2A54AA2D"
+    },
+    {
+      "path": "src/pet_ble_probe.c",
+      "bytes": 890,
+      "sha256": "6222EC9B28ECC46C5964DE185934F24749EC80DA91B69BEA20297555A4F7CB82"
+    },
+    {
+      "path": "src/pet_ble_probe.h",
+      "bytes": 295,
+      "sha256": "F96E1A2704D9764F85F648B590D691602B7BC3D37FA06ADE808E0C6828495D33"
+    },
+    {
+      "path": "src/pet_campus_assets.c",
+      "bytes": 7189450,
+      "sha256": "9D24FEF3A2F54E78F39643384B9B0CAB4AD8F7725A731212607A5C1118AC0960"
+    },
+    {
+      "path": "src/pet_campus_assets.h",
+      "bytes": 593,
+      "sha256": "DA0CDDCE072D8EA4AFD793AA34FD56D0BA3CB5127E4D709812712519B75C2AE6"
+    },
+    {
+      "path": "src/pet_cat_assets.c",
+      "bytes": 686705,
+      "sha256": "BC583AA5EA64630EDC814BCA605AFA9FA8753240D4E9AFB98B820728CD6C0890"
+    },
+    {
+      "path": "src/pet_cat_assets.h",
+      "bytes": 286,
+      "sha256": "7FA10A2755DE3E6A7850117852495DBA687CD2E11C1E397E5C07427CA56EF0C8"
+    },
+    {
+      "path": "src/pet_challenge.c",
+      "bytes": 2293,
+      "sha256": "9AC97334A5A77BE143F24F6285F2F1A633AAA710B98CEDF52731375EDBDA1472"
+    },
+    {
+      "path": "src/pet_challenge.h",
+      "bytes": 698,
+      "sha256": "0FFB39631E7D79F3C788C8B34B36AD15AC7CB8B7287AB600596D05D2FBAF778C"
+    },
+    {
+      "path": "src/pet_challenge_selftest.c",
+      "bytes": 1278,
+      "sha256": "D567571760C868E32A363E5919DA246CDD44F95544C3E5089B40579780FF8938"
+    },
+    {
+      "path": "src/pet_cts.c",
+      "bytes": 12401,
+      "sha256": "669444A702541E747C73471BBF4575515331E9CB0948D83721984A17209668C2"
+    },
+    {
+      "path": "src/pet_cts.h",
+      "bytes": 723,
+      "sha256": "05A558F53D7B60B90827386C1C4E0CF54BDF31861E13BDBF377837C4C763DD99"
+    },
+    {
+      "path": "src/pet_economy.c",
+      "bytes": 2279,
+      "sha256": "967C7FA681B0CF63EE431A1431CCCEF64845BB4F46F1EC2FF50255F0421C066C"
+    },
+    {
+      "path": "src/pet_economy.h",
+      "bytes": 1049,
+      "sha256": "6CDAD8705FE08F7496D1702B4988BF2BD5C50B59D8984B5A5967012F20E352C2"
+    },
+    {
+      "path": "src/pet_economy_selftest.c",
+      "bytes": 13775,
+      "sha256": "01D35627F8D9E6FA0472741578887179F78F9B52F2FE35F6C59EEF04B296DBF0"
+    },
+    {
+      "path": "src/pet_food_assets.c",
+      "bytes": 500063,
+      "sha256": "7F97B169C0DC3006641A7A0E6AEFC48FCA025E0CFA1D12C7814361A06FD83F5F"
+    },
+    {
+      "path": "src/pet_food_assets.h",
+      "bytes": 126,
+      "sha256": "05CACD911A2895745B34CAB85D9F772E3A8171A4CB8063DFE9CAAEB1F6C6625F"
+    },
+    {
+      "path": "src/pet_life_selftest.c",
+      "bytes": 4294,
+      "sha256": "1C9757F0D4BC024DE053050DD96D68DAC3473BC1569DED79DA2ED0417246D356"
+    },
+    {
+      "path": "src/pet_link.h",
+      "bytes": 430,
+      "sha256": "32FB934465FDF8A3E5552D0C802A55353AF3A170F768B645F4F344DA64B88D76"
+    },
+    {
+      "path": "src/pet_memory.c",
+      "bytes": 1763,
+      "sha256": "2225EF5E06FA181E78F9C0118084C7B4485DE49788D55A5A401637B2AE629A12"
+    },
+    {
+      "path": "src/pet_memory.h",
+      "bytes": 502,
+      "sha256": "301AD9B8AFB29B4996B583BE8861C88E22A7C693CC0545A21C114DED34390164"
+    },
+    {
+      "path": "src/pet_model.c",
+      "bytes": 4020,
+      "sha256": "F08F42FFC1D236052FA2AA913F1EB9BAACE1EA4CE10FF45B7CC499D87A5D745B"
+    },
+    {
+      "path": "src/pet_model.h",
+      "bytes": 1280,
+      "sha256": "EC7BBA7FF587EA9CCB44EDE6533C98176E46781A94EA2FE1A149F6A64F1358C8"
+    },
+    {
+      "path": "src/pet_save.c",
+      "bytes": 13562,
+      "sha256": "92491DADC3D1DC328212C09A25D17936CE194E76F6F402F3E805F3E92A8D6B4B"
+    },
+    {
+      "path": "src/pet_save.h",
+      "bytes": 1176,
+      "sha256": "58DCEAEAEE016FAFBB3F2F0A443D0C2F3A6FBA80D57C32B54D98773907A1B91C"
+    },
+    {
+      "path": "src/pet_save_flash.c",
+      "bytes": 1683,
+      "sha256": "004AEDB587648A8F174C4494FA196784F11EA16A40D422B5FF7AE5189DC7DD2F"
+    },
+    {
+      "path": "src/pet_save_flash.h",
+      "bytes": 110,
+      "sha256": "44152D34D4A07E4962DFC0DFAF595B5339EEFDC437487E0E5798BB343125A174"
+    },
+    {
+      "path": "src/pet_save_selftest.c",
+      "bytes": 16418,
+      "sha256": "7E499871943EDB41F547C6F12121360A36EA188662B48DECB5D910F364E83064"
+    },
+    {
+      "path": "src/pet_scene_assets.c",
+      "bytes": 2390545,
+      "sha256": "857452F4FD865F32252C67E76467F54A0FFC09942611ACEA41CC10694B37FD7C"
+    },
+    {
+      "path": "src/pet_scene_assets.h",
+      "bytes": 219,
+      "sha256": "E22191F03069E8B2A2F06D7B745D8D28AC198CF1030C2B2F63B36122755D5B0B"
+    },
+    {
+      "path": "src/pet_selftest.c",
+      "bytes": 8492,
+      "sha256": "C3EFBFCDEB8E0E72CAA429D00577FF283E8227BD332BDE7CF7E9FEBAC65BB70F"
+    },
+    {
+      "path": "src/pet_selftest.h",
+      "bytes": 193,
+      "sha256": "474B56CB68B852E0352E0D288D8779FBE55CF7C520A454FA41644F24757EB269"
+    },
+    {
+      "path": "src/pet_shahe_assets.c",
+      "bytes": 12591324,
+      "sha256": "42A772FBF87B36740F4C82031B814F7EC993162BDF6CCFAC6E9A8BA6E6BD6045"
+    },
+    {
+      "path": "src/pet_shahe_assets.h",
+      "bytes": 2373,
+      "sha256": "5F1531E3B9D153F3CC57D5F90E53926039450814B69E7D1066A27AEF189B0EC0"
+    },
+    {
+      "path": "src/pet_shahe_roads.inc",
+      "bytes": 3019,
+      "sha256": "99DD986DB4D30B00A2BF2270D9019E8A11C6E8364D6EFE7023423A657007C697"
+    },
+    {
+      "path": "src/pet_time.c",
+      "bytes": 3809,
+      "sha256": "838CA0E2E6202062097D01405FEDB24A65DC2831A978930085243617F01EB7A0"
+    },
+    {
+      "path": "src/pet_time.h",
+      "bytes": 1085,
+      "sha256": "3026DAF4F150B9F318639698888A3B7BAFA7068BA5C9F5E099A4C6E0E73EA58D"
+    },
+    {
+      "path": "src/pet_time_rt.c",
+      "bytes": 3156,
+      "sha256": "1BAD92E454478E46261000B4BE8F211D2FBABBCFBAA8F665D778232011F40E62"
+    },
+    {
+      "path": "src/pet_time_rt.h",
+      "bytes": 287,
+      "sha256": "E4E01C75E66F541C1514D9FE7D7BF85E5219054B16C47E197879B62DEA5B59AA"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 47992,
+      "sha256": "56046B975493CF70504818C3D7D43F76999EEFC500F55A60B6A33D09A7E9F68C"
+    },
+    {
+      "path": "src/pet_ui.h",
+      "bytes": 591,
+      "sha256": "845096D45A03EDD092ABA2E08B4DBD336FD312FA82A32850E1265D5234021A50"
+    },
+    {
+      "path": "src/pet_version.h",
+      "bytes": 93,
+      "sha256": "EE2C84C781CBCA32713A3EEC77AD93EB4B8C2E8792423F445DBDFE286B17EC81"
+    },
+    {
+      "path": "src/pet_world.c",
+      "bytes": 45905,
+      "sha256": "E4E6FE902CEE9E39C0D175373E1D4349132E77F51A7B59B52DC38E1E9945D8B7"
+    },
+    {
+      "path": "src/pet_world.h",
+      "bytes": 5095,
+      "sha256": "3913A2132D22E32E086F05F1A93029CFAA4C24CDA0DB4EB9DB877EA75CBFDC52"
+    },
+    {
+      "path": "src/pet_world_assets.c",
+      "bytes": 7215708,
+      "sha256": "E46B2807DE89BCE26965753A6407BFE8A4521ECECBFE3079CEA6EE29E9EE258D"
+    },
+    {
+      "path": "src/pet_world_assets.h",
+      "bytes": 1592,
+      "sha256": "82F244A8BC2B0D5A610A7AC80DE05452A7F1D36D36D20642C9AAEB2571657264"
+    },
+    {
+      "path": "src/pet_world_font.c",
+      "bytes": 459821,
+      "sha256": "C95DA100737202F9CB8612A15B28E0615C860E95F3A6D4F2E6067A8FE1C6756B"
+    },
+    {
+      "path": "src/pet_world_font.h",
+      "bytes": 153,
+      "sha256": "0478F18E3D73D1EAA5100CC9DB1D9D1889B5DC41568B70E40DE0345BCB5F142B"
+    },
+    {
+      "path": "src/pet_world_selftest.c",
+      "bytes": 23479,
+      "sha256": "E451C056C4B412866AD8C18F354E9CEB6649EC5D6A3E898D6417FAD913A25ABB"
+    },
+    {
+      "path": "tests/check_pet_graphics_heap.py",
+      "bytes": 1956,
+      "sha256": "51F6245777A38A1395A1D47955AF4DA66717005B69F06DFDCF706FF802321062"
+    },
+    {
+      "path": "tests/check_pet_lcpu_image.py",
+      "bytes": 2760,
+      "sha256": "92997D64CD91F8AB94EA82BCCFE2D746FF4B9A8C86E5DD7F6B00B8037AF231EF"
+    },
+    {
+      "path": "src/pet_furniture_assets.c",
+      "bytes": 187855,
+      "sha256": "B0C1A9BB02175ACBBC5C6394C608332778DF908B5C4C50C246BEC932C36A5963"
+    },
+    {
+      "path": "src/pet_furniture_assets.h",
+      "bytes": 193,
+      "sha256": "0246E77BA4ACFF3136DB72DD1CC7DCAB1E6DDFD05ED2BB92DADB51B295709748"
+    },
+    {
+      "path": "scripts/make_pet_furniture_assets.py",
+      "bytes": 2093,
+      "sha256": "B7D63A0B81C1B89EFF05C8C92255FE996907596D1EC465DB6A431D6413A80FEB"
+    },
+    {
+      "path": "assets/pet-furniture/dorm-props.png",
+      "bytes": 1330140,
+      "sha256": "2FBA759134380F18E2ABAC016DE6C9B7A60355B65D818E2DAAA4FC315A209812"
+    },
+    {
+      "path": "assets/pet-furniture/README.md",
+      "bytes": 1682,
+      "sha256": "1D8E45A832AF3010B3D2FB9C60464737BE798400646CBA6285D5574BC4D004A3"
+    }
+  ],
+  "validation_inputs": [
+    {
+      "path": "scripts/pet_time_code.py",
+      "bytes": 925,
+      "sha256": "8AA3801773B7485379CD892F3DA3CC8F9A8220BD7CBAEAEC1CF377295D1C13D5"
+    },
+    {
+      "path": "tests/audio_include/audio_server.h",
+      "bytes": 584,
+      "sha256": "CAE4A2398C6859F19239847ED2E520F8AECB36F62F5824FE06BD48F5A40A2C89"
+    },
+    {
+      "path": "tests/audio_include/rtthread.h",
+      "bytes": 742,
+      "sha256": "8C30D98424B315518157F68BCB13731D8B04D987793033F172FCAB46A10A7525"
+    },
+    {
+      "path": "tests/ble_include/bf0_ble_gap.h",
+      "bytes": 22,
+      "sha256": "607664D7B2AC97825F8D1508BC0AC57CD3E08BF3486DC4244CA504C5F25B1441"
+    },
+    {
+      "path": "tests/ble_include/bf0_sibles.h",
+      "bytes": 22,
+      "sha256": "607664D7B2AC97825F8D1508BC0AC57CD3E08BF3486DC4244CA504C5F25B1441"
+    },
+    {
+      "path": "tests/ble_include/bf0_sibles_advertising.h",
+      "bytes": 22,
+      "sha256": "607664D7B2AC97825F8D1508BC0AC57CD3E08BF3486DC4244CA504C5F25B1441"
+    },
+    {
+      "path": "tests/ble_include/ble_connection_manager.h",
+      "bytes": 22,
+      "sha256": "607664D7B2AC97825F8D1508BC0AC57CD3E08BF3486DC4244CA504C5F25B1441"
+    },
+    {
+      "path": "tests/ble_include/ble_mock.h",
+      "bytes": 5259,
+      "sha256": "E8F754A54F9960B00796AFFA455568C69511209059BA2FF390BDEE64C4607BD4"
+    },
+    {
+      "path": "tests/ble_include/finsh.h",
+      "bytes": 57,
+      "sha256": "6E2BBC36F00AEB9014969CF0E19E07C77E9030A97AACF04134E9EC90FDBEC1FD"
+    },
+    {
+      "path": "tests/ble_include/rthw.h",
+      "bytes": 103,
+      "sha256": "B2AF6F91A43590D65436B13C2B69C40B76EE00C2679F81313B8E4818B5F8E1D6"
+    },
+    {
+      "path": "tests/ble_include/rtthread.h",
+      "bytes": 875,
+      "sha256": "45CEF81935622DC6D94F5C0A4BE4FEB1890596878C1EFE96B8B264B01CA75C52"
+    },
+    {
+      "path": "tests/check_pet_graphics_heap.py",
+      "bytes": 1956,
+      "sha256": "51F6245777A38A1395A1D47955AF4DA66717005B69F06DFDCF706FF802321062"
+    },
+    {
+      "path": "tests/check_pet_lcpu_image.py",
+      "bytes": 2760,
+      "sha256": "92997D64CD91F8AB94EA82BCCFE2D746FF4B9A8C86E5DD7F6B00B8037AF231EF"
+    },
+    {
+      "path": "tests/include/lv_conf.h",
+      "bytes": 642,
+      "sha256": "DF46B04166D96E92F6B95AF873E33B9A499BE99281347CCD934519D458BA2E4C"
+    },
+    {
+      "path": "tests/pet_audio_rt_test.c",
+      "bytes": 5696,
+      "sha256": "D99C233D5789211EC8E1CA0341B2DABC2F6628603F6DA688C98FBEA35CDB0527"
+    },
+    {
+      "path": "tests/pet_audio_test.c",
+      "bytes": 326,
+      "sha256": "B594985318D00AF28F79B015C943E219C8A2F890FB4196F300DBA06338548802"
+    },
+    {
+      "path": "tests/pet_ble_probe_test.c",
+      "bytes": 1058,
+      "sha256": "7207E12BE2EBF73863D670214E9DED2814BF08B8E8E11BF27C58D93F9354A656"
+    },
+    {
+      "path": "tests/pet_ble_rt_test.c",
+      "bytes": 13441,
+      "sha256": "3CF85DFA5276017ED8FDC1FD9FB443E3DB789060354D9DC8338EE0DC49443273"
+    },
+    {
+      "path": "tests/pet_challenge_test.c",
+      "bytes": 2450,
+      "sha256": "C66178B72ED143EB9D62F0E2E6288DFE2C98D4EDEED9C6A8DB5130E71072E653"
+    },
+    {
+      "path": "tests/pet_cts_test.c",
+      "bytes": 10310,
+      "sha256": "507FDBB5771D50C12D43B7DF5443D1C5301BFC76A8CFFDA097BE3BDAB2B3584A"
+    },
+    {
+      "path": "tests/pet_daily_test.c",
+      "bytes": 2485,
+      "sha256": "9D0A9F66B9485985DF2BA3925DB0F0F0C6EA2732232C63170D260A135A6831BC"
+    },
+    {
+      "path": "tests/pet_economy_save_test.c",
+      "bytes": 2304,
+      "sha256": "EB5CA7EF63E80DD7B397D91B78346806FEF30E86926F9913E3D936C1F55C674B"
+    },
+    {
+      "path": "tests/pet_menu_save_test.c",
+      "bytes": 3225,
+      "sha256": "BC8B426BF7B495D7169FFA24D195DA280A3CB36DC22685FFA7911228DE514D0F"
+    },
+    {
+      "path": "tests/pet_model_test.c",
+      "bytes": 337,
+      "sha256": "35AF9657490B095C038FAB9C941C6FB269FD08A44B3F44EA6F11A90E99E1C676"
+    },
+    {
+      "path": "tests/pet_save_app_test.c",
+      "bytes": 13159,
+      "sha256": "9C63907126FFFE4A325D5A29F0A12C7EDA0FB2847E977C2C4D1DDFA8CCD7221E"
+    },
+    {
+      "path": "tests/pet_save_test.c",
+      "bytes": 7187,
+      "sha256": "4C05E30599FCB4E152314AACE1427A9EABED895BE084DEFC941C8BC4F1AF8E1D"
+    },
+    {
+      "path": "tests/pet_save_v6_refusal_test.c",
+      "bytes": 870,
+      "sha256": "ACBDA4C4D79BEAA57D65DAB79900F75CD764621EF57A9CF6B79DD75E0CBED513"
+    },
+    {
+      "path": "tests/pet_save_v7_producer_test.c",
+      "bytes": 1118,
+      "sha256": "4CDD367223B3A792350256EAA36F085D6ACBF072B04E2FD27E5A8D75617FBBF1"
+    },
+    {
+      "path": "tests/pet_save_v7_refusal_test.c",
+      "bytes": 876,
+      "sha256": "A58B132A2CAF150387FBB394EB344B7D60B7FA3EF21B016E482FF346B41C1D1C"
+    },
+    {
+      "path": "tests/pet_save_v8_producer_test.c",
+      "bytes": 1174,
+      "sha256": "7166B347BAC3BA7A96453E758EB6C19520FBEF4690FC74BDB3829A2274E1682C"
+    },
+    {
+      "path": "tests/pet_save_v8_refusal_test.c",
+      "bytes": 876,
+      "sha256": "FF522C686942922D0339DA2CC462E517309235D6331B96B50B7EFEDA9A41FBD3"
+    },
+    {
+      "path": "tests/pet_save_v9_producer_test.c",
+      "bytes": 991,
+      "sha256": "177D6A58D4BEAD242EE894465EAA980591AD93637E6E81BED75F4CDE0436D55E"
+    },
+    {
+      "path": "tests/pet_save_v9_refusal_test.c",
+      "bytes": 860,
+      "sha256": "008E1DE8E401E034A469017D7F912E50EB42EBC577A92E9D18EA6FD761D14DA5"
+    },
+    {
+      "path": "tests/pet_time_rt_test.c",
+      "bytes": 2908,
+      "sha256": "0CB183A2E390B3993B355AFC50A7AA505C3EF35DBDB99847037ECC48F46D0D97"
+    },
+    {
+      "path": "tests/pet_time_test.c",
+      "bytes": 3974,
+      "sha256": "D423A65A2A5D0DA0DAB8AEC6F3736AB26D3B35897CB63EBA418C233C8E6A800F"
+    },
+    {
+      "path": "tests/pet_ui_test.c",
+      "bytes": 6721,
+      "sha256": "D26EE5A818D2783C4D6F293C183C361C70CAB9A916E1D2360AA00965F10A29F1"
+    },
+    {
+      "path": "tests/pet_world_test.c",
+      "bytes": 313,
+      "sha256": "E84E69E66E27987ECD007D1C3F16AF9F0ECB16C2633DE2556C93F01C75D7FE07"
+    },
+    {
+      "path": "tests/pet_world_ui_test.c",
+      "bytes": 41071,
+      "sha256": "279D946F0E783A9FAAE386C606FBC3DAB144AA64330FFD07399FF0FF1BF09BAE"
+    },
+    {
+      "path": "tests/run_pet_tests.py",
+      "bytes": 9210,
+      "sha256": "D0CC2260B1EC5A98C858EDC4E786D5148BFBC2B36AC0AE68342F1CB1A22C26AC"
+    },
+    {
+      "path": "tests/save_include/drv_flash.h",
+      "bytes": 235,
+      "sha256": "CFE65B83A42F06E2A5C60BB9DB7F40DE317FD49A27269CBDD7B2240776B2A510"
+    },
+    {
+      "path": "tests/save_include/ptab.h",
+      "bytes": 82,
+      "sha256": "FE248DAA015807D70CAD3D4B8F877E9B201B1EB6ECD4DA246B8D66844B593E8A"
+    },
+    {
+      "path": "tests/save_include/rtthread.h",
+      "bytes": 257,
+      "sha256": "2A7FE3C7D7CE0955F8B01D9D6C721E81ADD75D3DC9412023BCC543233D931ADC"
+    },
+    {
+      "path": "tests/time_include/rtdevice.h",
+      "bytes": 306,
+      "sha256": "BD67C0F16C2096310647C975F2C769E83C360B4F26DA58DFAE15058D7B02B0BF"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "ImgBurnList.ini",
+      "bytes": 143,
+      "sha256": "30F2A9B0F53C5AFEE62B650E3FAF27E13A47EC6CE369D077B5A7CF82BFF546A2"
+    },
+    {
+      "path": "bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "bootloader/bootloader.hex",
+      "bytes": 164615,
+      "sha256": "2F14CB6AE13C61ED97DBE7E1B5E4ED5B60F3B2D6C68ABD45821AE1C0FDCC5E46"
+    },
+    {
+      "path": "download.bat",
+      "bytes": 134,
+      "sha256": "FDE5C42582509F3F8D788D929BD2E7D1D731DAEE6CCCD826ED3374699FFFD340"
+    },
+    {
+      "path": "download.jlink",
+      "bytes": 139,
+      "sha256": "F0C9A5634FC970032FA2E71F4DD04497251B07F380BE55022D8E7DF32E7CAE7F"
+    },
+    {
+      "path": "download.sh",
+      "bytes": 195,
+      "sha256": "7E8F07E112EB97A1E9B2186189EA63B72CD4A26E35CE955BAD20588A642B2D0B"
+    },
+    {
+      "path": "ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "808E6B5B1DD17C5D0F5E4043AE2EE89910DBFD30E4FAB28827C666EA9FB1DBF6"
+    },
+    {
+      "path": "ftab/ftab.hex",
+      "bytes": 31818,
+      "sha256": "A68C1175EE44CFD545F09B4D6B4F1E09F709B914F237E64FB92C91BAA5C4E039"
+    },
+    {
+      "path": "lcpu/.config",
+      "bytes": 14724,
+      "sha256": "E7D52C8FD7A8033BFB357C3FB60D608F401F506F92D6C49FBAA5E5DD268BB372"
+    },
+    {
+      "path": "lcpu/lcpu.bin",
+      "bytes": 5412,
+      "sha256": "59CAE739A19FE50EBB5D925B1E8B930F8EAE3AB1F44667CF023918425F8FC128"
+    },
+    {
+      "path": "lcpu/lcpu.c",
+      "bytes": 16668,
+      "sha256": "1F2D34F50B324AF48537D4526CDAFA96AE3287C1483C4E6920BB623D8170A328"
+    },
+    {
+      "path": "lcpu/lcpu.elf",
+      "bytes": 342136,
+      "sha256": "610E255FBE2815A1C5F7EEDCFC5AAAC1BEFD49FD00B4E548C07B3B6647F94D9D"
+    },
+    {
+      "path": "lcpu/lcpu.hex",
+      "bytes": 15282,
+      "sha256": "14FF962A469888B6443E099922302FB13512B38639F50D798468637EEB984044"
+    },
+    {
+      "path": "lcpu/rtconfig.h",
+      "bytes": 2670,
+      "sha256": "84DFC4AE25052F1651A90782006DA76BE199845E1D1E2FBF07D0CB6D3B52EC4A"
+    },
+    {
+      "path": "main.bin",
+      "bytes": 4532180,
+      "sha256": "405820710C1C88DF25DDBC8C5FAEF437AD7354B56238E4A0EC49C4137553710B"
+    },
+    {
+      "path": "main.elf",
+      "bytes": 13931360,
+      "sha256": "2339CF67F9856F9EA186268682F0F3D153B11EAE52153749C44A9DCDD99A45B5"
+    },
+    {
+      "path": "main.hex",
+      "bytes": 12748008,
+      "sha256": "0AA85BCEB76324EB9862C035BB4247BDFB135AAC7306E7F3FBDFBFA4B3780A62"
+    },
+    {
+      "path": "main.map",
+      "bytes": 7727009,
+      "sha256": "A6F1A57FC2D07B647D4A092FD3048BFBA676B4F8F6C75EABC56704A7B73D670B"
+    },
+    {
+      "path": "ptab.h",
+      "bytes": 5986,
+      "sha256": "4767E5B60E537CE666F9AB67379A3E115392F8351742FCA37E0B3685E45EF2F2"
+    },
+    {
+      "path": "sftool_param.json",
+      "bytes": 382,
+      "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+    },
+    {
+      "path": "uart_download.bat",
+      "bytes": 399,
+      "sha256": "9D2B97C3583C2FAEDE29B746D5D33EAB23EE32E8916AD3ACDA5400120E9C907B"
+    },
+    {
+      "path": "uart_download.sh",
+      "bytes": 1527,
+      "sha256": "5C65112E7AD12601D7BFFAA4C82045375B443C4A043221B923A99664DF67068A"
+    }
+  ],
+  "physical_tests": "TC-260 pending",
+  "warnings": [
+    "D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: build_sf32lb52-lchspi-ulp_hcpu\\main.elf has a LOAD segment with RWX permissions",
+    "WARNING: img \"dfu\" not found",
+    "closer.c:(.text._close_r+0xc): warning: _close is not implemented and will always fail",
+    "lseekr.c:(.text._lseek_r+0x10): warning: _lseek is not implemented and will always fail",
+    "readr.c:(.text._read_r+0x10): warning: _read is not implemented and will always fail",
+    "writer.c:(.text._write_r+0x10): warning: _write is not implemented and will always fail",
+    "D:/development/sifli/tools/tools/arm-none-eabi-gcc/14.2.1/bin/../lib/gcc/arm-none-eabi/14.2.1/../../../../arm-none-eabi/bin/ld.exe: warning: cannot find entry symbol entry; defaulting to 12000000"
+  ],
+  "final_build_log": "evidence/pet/build_v0.17.3_20261109.txt",
+  "final_host_log": "evidence/pet/host_v0.17.3_20261109.txt"
+}
