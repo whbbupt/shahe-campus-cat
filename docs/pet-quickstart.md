@@ -2,12 +2,11 @@
 
 ## 编译与烧录
 
-使用黄山派 `sf32lb52-lchspi-ulp`、SiFli SDK v2.5.1 和 SiFli-SDK-CodeKit。先按 [T0 环境说明](../training/T0-环境与仓库.md)配好 SDK 与编译器。在已运行 SDK 导出脚本的终端中，从仓库根目录执行以下命令。
+第一次配置电脑时，请从[本地环境搭建](local-setup.md)开始。使用黄山派 `sf32lb52-lchspi-ulp` 和 SiFli SDK v2.5.1。在已运行 SDK 导出脚本的终端中，从仓库根目录执行以下命令。
 
-```text
-python -m pip install -r requirements.txt
-python scripts/check_env.py
-python scripts/build_firmware.py
+```powershell
+.\.venv\Scripts\python.exe scripts/check_env.py
+.\.venv\Scripts\python.exe scripts/build_firmware.py
 ```
 
 输出在 `project/build_sf32lb52-lchspi-ulp_hcpu/`。用 CodeKit 打开 `project/`，接入板子的 USB 转串口，选择 Download。启动后点右上角「状态」确认固件版本 v0.17.4。保留已有存档时请使用常规下载，避开全片擦除。
