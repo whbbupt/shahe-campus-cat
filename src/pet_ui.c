@@ -53,7 +53,7 @@ static struct
     lv_obj_t *menu_row[PE_MENU_COUNT], *menu_price[PE_MENU_COUNT];
     lv_obj_t *menu_name[PE_MENU_COUNT], *menu_image[PE_MENU_COUNT];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
-    lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit, *life_label;
+    lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit;
     lv_obj_t *challenge_track, *challenge_cursor;
 } ui;
 static bool audio_available = true;
@@ -243,11 +243,17 @@ static const lv_image_dsc_t *const campus_building[] = {
 static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅", "健身房"};
 static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
 
-static lv_obj_t *gate_badge(lv_obj_t *parent, const char *name, int x, int y, int width)
+/* The label sizes itself to its text. The parent remains the touch target. */
+static lv_obj_t *scene_tag(lv_obj_t *parent, const char *name, lv_align_t align, int x, int y)
 {
-    lv_obj_t *sign = box(parent, x, y, width, 28, PAPER, 7);
-    box(sign, 7, 11, 6, 6, 0xBF795F, 3);
-    return text(sign, name, 19, 2, &pet_font_16, INK);
+    lv_obj_t *label = text(parent, name, 0, 0, &pet_font_16, 0xFFF1D6);
+    lv_obj_set_style_bg_color(label, lv_color_hex(0x343B31), 0);
+    lv_obj_set_style_bg_opa(label, LV_OPA_80, 0);
+    lv_obj_set_style_radius(label, 4, 0);
+    lv_obj_set_style_pad_left(label, 5, 0);
+    lv_obj_set_style_pad_right(label, 5, 0);
+    lv_obj_align(label, align, x, y);
+    return label;
 }
 
 static void build_campus(lv_obj_t *screen)
@@ -321,7 +327,7 @@ static void build_gates(lv_obj_t *screen)
                                 PW_ENTER_DORM + room, PAPER, 5);
         lv_obj_set_style_bg_opa(gate, LV_OPA_TRANSP, 0);
         lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
-        gate_badge(gate, campus_names[room], 3, 2, 90);
+        scene_tag(gate, campus_names[room], LV_ALIGN_TOP_MID, 0, 3);
     }
 }
 typedef struct
@@ -498,16 +504,14 @@ static void build_dorm_items(lv_obj_t *screen)
 {
     ui.decor_entry = button(screen, 203, 279, 70, 58, TAG_SHOP, PAPER, 8);
     lv_obj_set_style_bg_opa(ui.decor_entry, LV_OPA_TRANSP, 0);
-    lv_obj_t *decor_tag = box(ui.decor_entry, 14, 30, 44, 26, PAPER, 6);
-    text(decor_tag, "布置", 6, 1, &pet_font_16, INK);
+    scene_tag(ui.decor_entry, "布置", LV_ALIGN_BOTTOM_MID, 0, -4);
 
     ui.phone = button(screen, 118, 191, 44, 61, TAG_PHONE, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.phone, LV_OPA_TRANSP, 0);
     box(ui.phone, 13, 9, 17, 25, 0x34596A, 4);
     box(ui.phone, 15, 11, 13, 19, 0xA4C1C0, 3);
     box(ui.phone, 19, 31, 5, 1, PAPER, 1);
-    lv_obj_t *phone_tag = box(ui.phone, 2, 34, 40, 25, PAPER, 6);
-    text(phone_tag, "外卖", 4, 0, &pet_font_16, INK);
+    scene_tag(ui.phone, "外卖", LV_ALIGN_BOTTOM_MID, 0, -2);
 
     ui.bag = button(screen, 278, 248, 52, 51, PW_TAKEOUT, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.bag, LV_OPA_TRANSP, 0);
@@ -515,8 +519,7 @@ static void build_dorm_items(lv_obj_t *screen)
     box(ui.bag, 22, 4, 8, 8, PAPER, 3);
     box(ui.bag, 10, 9, 32, 25, 0xC58D5D, 4);
     box(ui.bag, 13, 10, 24, 20, 0xE7B980, 3);
-    lv_obj_t *bag_tag = box(ui.bag, 5, 26, 42, 24, PAPER, 6);
-    text(bag_tag, "取餐", 5, 0, &pet_font_16, INK);
+    scene_tag(ui.bag, "取餐", LV_ALIGN_BOTTOM_MID, 0, -1);
 }
 
 static void build_furniture(lv_obj_t *screen)
@@ -571,14 +574,14 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.door = button(screen, 310, 100, 69, 143, PW_EXIT, PAPER, 5);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
-    gate_badge(ui.door, "出门", 1, 65, 63);
+    scene_tag(ui.door, "出门", LV_ALIGN_BOTTOM_MID, 0, -7);
     build_gates(screen);
     ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
-    ui.game_entry_label = gate_badge(ui.blackboard, "记忆题", 59, 40, 80);
+    ui.game_entry_label = scene_tag(ui.blackboard, "记忆题", LV_ALIGN_TOP_RIGHT, -3, 3);
     ui.life_hit = button(screen, 10, 350, 64, 60, PW_LIFE, PAPER, 9);
     lv_obj_set_style_bg_opa(ui.life_hit, LV_OPA_TRANSP, 0);
-    ui.life_label = text(ui.life_hit, "看看", 0, 32, &pet_font_16, BLUE);
+    scene_tag(ui.life_hit, "看看", LV_ALIGN_RIGHT_MID, -2, 0);
     ui.location = box(screen, 24, 28, 196, 62, PAPER, 14);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     ui.clock_text = text(ui.location, "--:-- 待校时", 12, 3, &pet_font_20, INK);
@@ -817,7 +820,6 @@ static void paint(void)
             static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 296}, {0, 0}, {280, 290}};
             lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], life_pos[ui.scene][1]);
             lv_obj_set_height(ui.life_hit, 44);
-            lv_obj_set_y(ui.life_label, 16);
         }
         if (ui.scene != PW_CAMPUS)
         {

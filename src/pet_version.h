@@ -1,4 +1,4 @@
 #ifndef PET_VERSION_H
 #define PET_VERSION_H
-#define PET_FIRMWARE_VERSION "0.17.2"
+#define PET_FIRMWARE_VERSION "0.17.3"
 #endif
