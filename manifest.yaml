@@ -151,7 +151,7 @@ physical_verification:
   - item: "v0.19.0 sftool烧录与启动自检（含建筑直达/点餐修复）"
     required_action: "用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；抓v0.19.0启动日志"
     executed_at: "2026-11-10 17:35（本机文件时间戳）"
-    evidence_path: "evidence/pet/serial_v019o_boot_20261110.txt"
+    evidence_path: "evidence/pet/serial_v019p_boot_20261110.txt"
     agent_conclusion: "烧录退出0；启动[pet] v0.19.0 boot ok，71项PASS/0 FAIL，activity-and-workstudy PASS，旧档seq4526可读；建筑直达/食堂点餐修复已烧录，真实屏幕/触摸和手机未验证，TC-276–282不能全部记通过。"
   - item: "v0.18.0 sftool烧录、启动与真实Flash格式11"
     required_action: "用户授权后，用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；只读读PET_SAVE 0x12DA8000 8192字节"
@@ -1431,7 +1431,7 @@ test_results:
     description: 活动中心入口（REQ-225）
     expected: 先弹窗三键，再点健身房进入原健身房；关闭不改状态
     actual: 启动自检PASS；主机UI回归未取得最终通过，真实触摸待测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-278
@@ -1445,14 +1445,14 @@ test_results:
     description: 勤工俭学（REQ-227）
     expected: 教室+3币/60秒冷却/错误房间拒绝
     actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-280
     description: 活动中心跳舞/羽毛球（REQ-228）
     expected: +5/+4心情、30秒共享冷却、满值/错误房间拒绝
     actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-281
@@ -1466,7 +1466,7 @@ test_results:
     description: v0.19板端验收（REQ-224–228）
     expected: 烧录启动v0.19.0、自检PASS、实拍新界面
     actual: sftool烧录COM6 exit0；启动v0.19.0、71项PASS；实拍待用户
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
 
@@ -1474,14 +1474,14 @@ test_results:
     description: 建筑直达（REQ-229）
     expected: 图书馆/公共教学楼/教学实验综合楼/智慧教学楼/雁北/雁南/风味/教工/学生餐厅/活动中心点击后进入对应场景或弹窗，标题正确
     actual: 模型新增PW_ENTER_LIBRARY/PUBLIC/LAB/WISDOM/FLAVOR/STAFF与building_id门节点；板端启动PASS；真实行走/各楼画面待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-284
     description: 食堂点餐与价格（REQ-229）
     expected: 点餐/桌台只坐下开菜单，确认前不扣费不加饱食，确认后按菜品扣一次；校园idle不反复提示买饭
     actual: 桌台标签改PW_SIT_MEAL、新增点餐按钮、校园idle改中性；板端启动PASS；真实菜单/扣费待用户复测
-    evidence_path: evidence/pet/flash_v0.19o_20261110.txt
+    evidence_path: evidence/pet/flash_v0.19p_20261110.txt
     status: partial
     pass: false
 
@@ -1489,7 +1489,7 @@ test_results:
     description: 课外活动短动画（REQ-230）
     expected: 跳舞/羽毛球/勤工俭学1.2秒内帧/位移/缩放与状态字，之后恢复，数值不二次变化
     actual: 代码实现activity_kind 3/4/5与activity_until，pw_visual轻跳/缩放；启动v0.19 PASS；真实屏幕动画待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
 
@@ -1497,14 +1497,14 @@ test_results:
     description: 图书馆独立场景（REQ-231）
     expected: 书架/阅读桌/椅子/窗、标题图书馆、看书可用、黑板/勤工俭学隐藏、出门回node10
     actual: 代码build_library与building_id==2生效；板端启动PASS；真实画面/看书/出门待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-287
     description: 学院建筑补齐（REQ-232，已撤回）
     expected: 网络安全/数字媒体/人文/马克思主义/理学/工程实验/综合办公/学生公寓有名称色块，不压主路
     actual: 代码增加示意块；真实画面待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
 
@@ -1512,7 +1512,7 @@ test_results:
     description: 学院建筑图层与跳转（REQ-233，已撤回）
     expected: 科研/智能/计算机/网络/媒体/人文/马克思/理学/工程/综合办公有建筑块，点击进对应楼名界面和入口，出门回对应门节点
     actual: 代码加PW_ENTER_COLLEGE_FIRST..LAST/building_id10-19与截图块；板端启动PASS；真实画面待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: withdrawn
     pass: false
 
@@ -1520,14 +1520,14 @@ test_results:
     description: 操场交互（REQ-234）
     expected: 运动场面板跑步/引体/仰卧起坐，数值/动画/冷却/拒绝正确
     actual: 代码PW_RUN/PULLUP/SITUP与面板，板端启动PASS；真实动作/动画待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-290
     description: 羽毛球小游戏（REQ-235）
     expected: 随机球1.2秒点击得分/超时失分，10球或30秒结束，开始只加一次心情
     actual: 代码PANEL_BADMINTON与badminton_tick，板端启动PASS；真实球场/点击/比分待用户复测
-    evidence_path: evidence/pet/serial_v019o_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019p_boot_20261110.txt
     status: partial
     pass: false
 

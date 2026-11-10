@@ -186,7 +186,7 @@ static void badminton_start(void)
     ui.badminton_shuttle_until = 0;
     ui.badminton_seed = (uint32_t)(ui.world.now * 2654435761u + 1u);
     badminton_scores();
-    set_label(ui.badminton_note, "看准羽毛球，1.2 秒内点它");
+    set_label(ui.badminton_note, "第一人称 · 点中飞来的羽毛球");
     visible(ui.badminton_hit, false);
 }
 static void badminton_hit_event(void)
@@ -218,10 +218,15 @@ static void badminton_tick(void)
     if (!ui.badminton_shuttle_until && now >= ui.badminton_next)
     {
         ui.badminton_seed = ui.badminton_seed * 1664525u + 1013904223u;
-        lv_obj_set_pos(ui.badminton_hit, 45 + (int)((ui.badminton_seed >> 16) % 260),
-                       105 + (int)((ui.badminton_seed >> 8) % 150));
+        lv_obj_set_pos(ui.badminton_hit, 45 + (int)((ui.badminton_seed >> 16) % 260), 68);
         visible(ui.badminton_hit, true);
         ui.badminton_shuttle_until = now + 1200;
+    }
+    if (ui.badminton_shuttle_until)
+    {
+        uint64_t started = ui.badminton_shuttle_until - 1200;
+        int y = 68 + (int)((now - started) * 132 / 1200);
+        lv_obj_set_y(ui.badminton_hit, y);
     }
 }
 
@@ -781,17 +786,38 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(b, sports[i].name, 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
-    ui.badminton_dialog = box(ui.layer, 20, 40, 350, 370, PAPER, 18);
-    text(ui.badminton_dialog, "羽毛球对打", 20, 12, &pet_font_20, INK);
-    lv_obj_t *bad_close = button(ui.badminton_dialog, 300, 2, 44, 44, TAG_BADMINTON_CLOSE, PAPER, 12);
-    lv_obj_t *bad_x = text(bad_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(bad_x);
-    box(ui.badminton_dialog, 16, 58, 318, 224, 0xDCE6CB, 10);
-    box(ui.badminton_dialog, 170, 62, 4, 216, 0x8D6548, 1);
-    ui.badminton_score = text(ui.badminton_dialog, "", 20, 296, &pet_font_20, INK);
-    ui.badminton_timer = text(ui.badminton_dialog, "", 20, 326, &pet_font_16, BLUE);
-    ui.badminton_note = text(ui.badminton_dialog, "看准羽毛球，1.2 秒内点它", 20, 350, &pet_font_16, 0x62736B);
-    ui.badminton_hit = button(ui.badminton_dialog, 40, 100, 44, 44, TAG_BADMINTON_HIT, 0xE9D8A8, 22);
-    lv_obj_t *bad_ball = text(ui.badminton_hit, "羽", 0, 0, &pet_font_20, INK); lv_obj_center(bad_ball);
+    /* First-person cat view: green court underfoot, net in the middle. */
+    ui.badminton_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
+    box(ui.badminton_dialog, 0, 0, 390, 58, 0x1D3B30, 0);
+    box(ui.badminton_dialog, 0, 58, 390, 170, 0x3F7D5A, 0);       /* far court */
+    box(ui.badminton_dialog, 0, 228, 390, 222, 0x2C5D45, 0);      /* near court */
+    box(ui.badminton_dialog, 16, 72, 3, 150, 0xE8F0E3, 0);
+    box(ui.badminton_dialog, 371, 72, 3, 150, 0xE8F0E3, 0);
+    box(ui.badminton_dialog, 16, 72, 358, 3, 0xE8F0E3, 0);
+    box(ui.badminton_dialog, 16, 218, 358, 3, 0xE8F0E3, 0);
+    box(ui.badminton_dialog, 16, 72, 3, 150, 0xE8F0E3, 0);
+    /* Net across the middle, at the cat's eye line. */
+    box(ui.badminton_dialog, 0, 218, 390, 7, 0x14211B, 0);
+    for (unsigned i = 0; i < 14; i++)
+        box(ui.badminton_dialog, 14 + (int)i * 26, 200, 2, 44, 0xDDE8DA, 0);
+    box(ui.badminton_dialog, 6, 196, 6, 56, 0x14211B, 0);
+    box(ui.badminton_dialog, 378, 196, 6, 56, 0x14211B, 0);
+    /* Cat paws at the bottom of the first-person view. */
+    box(ui.badminton_dialog, 34, 392, 82, 42, 0xE8C79A, 20);
+    box(ui.badminton_dialog, 274, 392, 82, 42, 0xE8C79A, 20);
+    box(ui.badminton_dialog, 48, 402, 54, 6, 0xB88A5E, 3);
+    box(ui.badminton_dialog, 288, 402, 54, 6, 0xB88A5E, 3);
+    ui.badminton_score = text(ui.badminton_dialog, "", 14, 8, &pet_font_20, 0xFFF1D6);
+    ui.badminton_timer = text(ui.badminton_dialog, "", 14, 32, &pet_font_16, 0xF2E5C8);
+    lv_obj_t *bad_close = button(ui.badminton_dialog, 336, 6, 44, 44, TAG_BADMINTON_CLOSE, 0x1D3B30, 10);
+    lv_obj_t *bad_x = text(bad_close, "×", 0, 0, &pet_font_20, 0xFFF1D6); lv_obj_center(bad_x);
+    ui.badminton_note = text(ui.badminton_dialog, "第一人称 · 点中飞来的羽毛球", 20, 414, &pet_font_16, 0xFFF1D6);
+    ui.badminton_hit = button(ui.badminton_dialog, 70, 80, 48, 48, TAG_BADMINTON_HIT, 0xE9D8A8, 0);
+    lv_obj_set_style_bg_opa(ui.badminton_hit, LV_OPA_TRANSP, 0);
+    box(ui.badminton_hit, 14, 28, 20, 14, 0xF4E3C3, 7);            /* cork */
+    box(ui.badminton_hit, 18, 2, 4, 28, 0xF8F3DF, 1);              /* feathers */
+    box(ui.badminton_hit, 25, 0, 4, 30, 0xF8F3DF, 1);
+    box(ui.badminton_hit, 32, 2, 4, 28, 0xF8F3DF, 1);
     visible(ui.badminton_hit, false);
     ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
     text(ui.curfew_dialog, "宿舍宵禁", 22, 20, &pet_font_20, INK);
