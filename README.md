@@ -1,4 +1,4 @@
-# 沙河校园小猫
+﻿# 沙河校园小猫
 
 一款运行在黄山派上的触屏校园电子宠物。带小猫沿校园道路逛宿舍、教室和食堂，给它点餐、布置房间，或在宿舍玩小游戏赚金币。手表按北京时间切换昼夜和作息，23:00 至次日 06:00 进入宿舍宵禁。
 
@@ -20,7 +20,7 @@
 
 固件基于 SiFli SDK v2.5.1、RT-Thread 和 LVGL v9，目标板型为 `sf32lb52-lchspi-ulp`。固件源码在 [`src/`](src/)，板级工程在 [`project/`](project/)，安卓工具在 [`android-clock/`](android-clock/)。
 
-v0.18.0 新增“校园图鉴”和四项交互修复，目标固件已构建（`main.bin` 4,537,068 字节，ROM 4,610,526/8,388,608），主机逻辑/存档/BLE 与实际 LVGL 渲染共 123 项通过；**尚未烧录**，图鉴真实屏幕与整体实机仍待 TC-260/TC-270 等验证。iPhone 自动校时在 v0.14.2 有用户实测记录，安卓联调仍待 TC-268。
+v0.18.0 新增“校园图鉴”和四项交互修复，目标固件已构建（`main.bin` 4,537,068 字节，ROM 4,610,526/8,388,608），主机逻辑/存档/BLE 与实际 LVGL 渲染共 124 项通过；已用 sftool 常规烧录并启动 v0.18.0（70 项自检 PASS、真实 Flash 格式 11 写入），**真实屏幕/触摸与手机仍待 TC-260/270/272 验证**。iPhone 自动校时在 v0.14.2 有用户实测记录，安卓联调仍待 TC-268。
 
 <details>
 <summary>课程脚手架与训练参考</summary>
@@ -152,4 +152,5 @@ type：`feat fix docs test refactor perf build ci chore revert hw`。`feat/fix/r
 **Q：Windows 下钩子不生效？** 使用 Git for Windows，确认 `git config core.hooksPath` 为 `.githooks`；仍有问题时运行 `python scripts/check_commit_msg.py --log` 手动自查，并告知教师。
 
 </details>
+
 

@@ -2,10 +2,11 @@
     [string]$Port = "COM5",
     [int]$Baud = 1000000,
     [int]$Seconds = 15,
-    [string]$Out = ""
+    [string]$Out = "",
+    [string]$Send = ""
 )
 
-# 只读串口记录器：不发送任何字节，不修改开发板状态。
+# 串口记录器：默认只读；加 -Send "reboot" 时只发送这一条命令，不改固件。
 # 用法：powershell -ExecutionPolicy Bypass -File scripts/capture_serial.ps1 -Port COM5 -Seconds 20
 # 运行后按板子复位键，脚本会保存原始启动日志到 evidence/pet/。
 
@@ -39,7 +40,12 @@ try {
 
 $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine("# port=$Port baud=$Baud started=$(Get-Date -Format o)")
-[void]$sb.AppendLine("# 只读采集；请在此期间按板卡复位键。")
+[void]$sb.AppendLine("# 默认只读采集；如指定 -Send，只发送一次该命令。")
+if ($Send.Length -gt 0) {
+    Start-Sleep -Milliseconds 500
+    [void]$sb.AppendLine("# sent: $Send")
+    $sp.Write($Send + "`r`n")
+}
 $watch = [System.Diagnostics.Stopwatch]::StartNew()
 try {
     while ($watch.Elapsed.TotalSeconds -lt $Seconds) {

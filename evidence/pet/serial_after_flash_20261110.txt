@@ -1,0 +1,12 @@
+# port=COM6 baud=1000000 started=2026-11-10T16:10:04.6165313+08:00
+# 只读采集；请在此期间按板卡复位键。
+[pet:WALK] x=741 y=700 result=0
+[pet:WALK] x=673 y=694 result=0
+[pet:BLE:STATUS] 15s version=0.18.0 tick=16179 stage=advertising result=0
+[pet:BLE:STATUS] callbacks=8 power=1 queued=2 handled=2 loops=138
+[pet:BLE:STATUS] last_cb=0x002E last_handled=0xF100 recv=-2 adv_events=1 adv_result=0 fault=0
+[pet:CTS] query stage=idle reason=idle sdk=0 conn=255 requested=0 encrypted=0
+[pet:WALK] x=851 y=543 result=6
+[pet:WALK] x=839 y=584 result=6
+
+# stopped=2026-11-10T16:10:12.6566887+08:00
