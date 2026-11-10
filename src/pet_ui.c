@@ -415,6 +415,10 @@ static void build_campus(lv_obj_t *screen)
     schematic_building(ui.campus, 1210, 820, 120, 80, 0xC9C0D7, "数字媒体学院");
     schematic_building(ui.campus, 1210, 970, 120, 60, 0xD7C9B4, "人文学院");
     schematic_building(ui.campus, 1210, 1140, 120, 60, 0xC7D3C1, "工程实验楼");
+    schematic_building(ui.campus, 1050, 700, 100, 70, 0xD7BFA9, "马克思主义学院");
+    schematic_building(ui.campus, 1050, 800, 100, 70, 0xBFD0C4, "理学院");
+    schematic_building(ui.campus, 700, 900, 100, 70, 0xC9B8A3, "学生公寓");
+    schematic_building(ui.campus, 760, 400, 80, 55, 0xCBB79C, "综合办公楼");
     static const int16_t trees[][2] = {
         {65,136}, {146,111}, {245,142}, {105,249}, {249,250},
         {590,121}, {691,117}, {875,112}, {996,123}, {1090,150},
