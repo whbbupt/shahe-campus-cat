@@ -9,7 +9,7 @@
 .\.venv\Scripts\python.exe scripts/build_firmware.py
 ```
 
-输出在 `project/build_sf32lb52-lchspi-ulp_hcpu/`。用 CodeKit 打开 `project/`，接入板子的 USB 转串口，选择 Download。启动后点右上角「状态」确认固件版本 v0.17.4。保留已有存档时请使用常规下载，避开全片擦除。
+输出在 `project/build_sf32lb52-lchspi-ulp_hcpu/`。用 CodeKit 打开 `project/`，接入板子的 USB 转串口，选择 Download。启动后点右上角「状态」确认固件版本 v0.18.0。保留已有存档时请使用常规下载，避开全片擦除。
 
 ## 手机校时
 

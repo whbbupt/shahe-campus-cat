@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.17.4主场景信息层与生活互动软件完成，TC-260待实机"
+  milestone: "v0.18.0校园图鉴与交互修复软件完成；主机116项PASS，TC-270/271/273与整体实机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "校园图鉴复用64字节存档的保留字节r[5]/r[7]，存档格式升到11"
+      alternatives_considered: "新增独立图鉴分区；记录扩到128字节；只在本次开机记录"
+      rationale: "12位刚好两个字节，不改分区、记录大小和轮转；旧1–10可读且图鉴视为空，旧10遇11保护"
+      decided_by: "用户选择图鉴方向；备选权衡由AI完成，ADR-0019"
     - decision: "撤集中商店，保留金币并在食堂/宿舍分别点单，宵禁保留室内生活"
       alternatives_considered: "保留金币场景点单；取消金币改免费生活互动"
       rationale: "用户选择前者并确认范围，后续明确先坐下弹滑动菜单、菜品图片和数值平衡；复用固定位置布置"
@@ -1340,9 +1344,55 @@ test_results:
     expected: 点选手表后自动校时，确认手表时间并重连复测
     actual: 待用户使用安卓手机和手表联调
     status: pending_physical
-    pass: null
+    pass: false
+
+  - test_id: TC-269
+    description: 图鉴模型与存档（REQ-221）
+    expected: 12 道菜按索引解锁、重复幂等、取消/拒绝/配送中不解锁、格式10读空、掩码越界拒绝
+    actual: WSL gcc 主机回归通过；RAM NOR 模拟，未验证真实 Flash/掉电
+    evidence_path: evidence/pet/host_v0.18.0_wsl_20261110.txt
+    status: passed_software
+    pass: true
+
+  - test_id: TC-270
+    description: 图鉴界面与触摸（REQ-221）
+    expected: 12 行滚动、剪影/菜名/进度可读、只读不改状态
+    actual: 本机无 SDK LVGL，未渲染；待学生构建后目视
+    status: pending_software_ui
+    pass: false
+
+  - test_id: TC-271
+    description: 布置弹窗跨场景（REQ-222a）
+    expected: 出行途中不可打开、离房后无残留
+    actual: 代码审查完成；LVGL 交互未执行
+    status: pending_software_ui
+    pass: false
+
+  - test_id: TC-272
+    description: 手机状态 seated（REQ-222b）
+    expected: 落座时 0003 读取 phase=seated
+    actual: 主机 mock 通过；真实手机/手表未测
+    evidence_path: evidence/pet/host_v0.18.0_wsl_20261110.txt
+    status: passed_software_mock
+    pass: true
+
+  - test_id: TC-273
+    description: 配送页文案（REQ-222c）
+    expected: 不出现“向上滑动看更多”，显示配送/取餐说明
+    actual: 代码审查完成；界面未渲染
+    status: pending_software_ui
+    pass: false
+
+  - test_id: TC-274
+    description: 错房间提示（REQ-222d）
+    expected: 返回 PW_WRONG_ROOM 且气泡提示，状态不变
+    actual: 主机模型自检通过
+    evidence_path: evidence/pet/host_v0.18.0_wsl_20261110.txt
+    status: passed_software
+    pass: true
 
 known_issues:
+  - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机116项PASS，但本机无SiFli SDK，目标固件未编译/未烧录，图鉴界面未渲染，真实Flash迁移与BLE seated未实机。"
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
   - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"
