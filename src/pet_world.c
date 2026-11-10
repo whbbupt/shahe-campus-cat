@@ -680,7 +680,7 @@ static int exit_door(const pet_world_t *w)
 {
     if (w->scene == PW_CLASSROOM)
     {
-        static const int doors[] = {14, 14, 10, 54, 16, 24, 9, 43, 15, 52, 32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
+        static const int doors[] = {14, 14, 56, 54, 16, 24, 9, 43, 15, 52, 32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
         unsigned id = w->building_id <= 19 ? w->building_id : 1;
         return doors[id];
     }
@@ -892,7 +892,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->phase != PW_IDLE)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
-        static const int goals[] = {10, 54, 16, 24, 9, 43};
+        static const int goals[] = {56, 54, 16, 24, 9, 43};
         static const pw_scene_t scenes[] = {PW_CLASSROOM, PW_CLASSROOM, PW_CLASSROOM,
                                             PW_CLASSROOM, PW_CANTEEN, PW_CANTEEN};
         unsigned i = (unsigned)(cmd - PW_ENTER_LIBRARY);

@@ -42,17 +42,19 @@ enum
     TAG_SPORTS,
     TAG_BADMINTON_HIT,
     TAG_BADMINTON_CLOSE,
+    TAG_LIBRARY_SHELF = 360,
+    TAG_BOOK_FIRST,
     TAG_SPORTS_ACTION = 350,
     TAG_SPORTS_CLOSE,
     TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY, PANEL_SPORTS, PANEL_BADMINTON, PANEL_SPORTS_GAME };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY, PANEL_SPORTS, PANEL_BADMINTON, PANEL_SPORTS_GAME, PANEL_LIBRARY };
 static struct
 {
     pet_ui_action_fn action;
     pet_ui_point_fn point;
-    lv_obj_t *campus, *gates, *door, *location, *location_text, *goal;
+    lv_obj_t *campus, *gates, *door, *location, *location_text, *goal, *library;
     pet_world_t world;
     int scene;
     unsigned panel;
@@ -85,6 +87,8 @@ static struct
     unsigned sports_mode, sports_score, sports_target, sports_distance;
     uint32_t sports_until, sports_next;
     lv_obj_t *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
+    lv_obj_t *library_shelf, *library_panel, *library_book_name[5], *library_book_button[5];
+    uint8_t library_borrowed;
     bool badminton_active, badminton_finished;
     uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
     unsigned badminton_player, badminton_rival, badminton_rallies;
@@ -441,6 +445,18 @@ static void click(lv_event_t *e)
     if (cmd == TAG_FLAVOR || cmd == TAG_STAFF)
     {
         if (ui.action) ui.action(cmd == TAG_FLAVOR ? PW_ENTER_FLAVOR : PW_ENTER_STAFF);
+        paint(); return;
+    }
+    if (cmd == TAG_LIBRARY_SHELF)
+    {
+        if (ui.world.scene == PW_CLASSROOM && ui.world.building_id == 2)
+            ui.panel = ui.panel == PANEL_LIBRARY ? PANEL_NONE : PANEL_LIBRARY;
+        paint(); return;
+    }
+    if (cmd >= TAG_BOOK_FIRST && cmd < TAG_BOOK_FIRST + 5 && ui.panel == PANEL_LIBRARY)
+    {
+        unsigned i = (unsigned)(cmd - TAG_BOOK_FIRST);
+        ui.library_borrowed ^= (uint8_t)(1U << i);
         paint(); return;
     }
     if (cmd == TAG_BADMINTON_HIT) { badminton_hit_event(); paint(); return; }
@@ -944,6 +960,21 @@ static void build_panel(lv_obj_t *screen)
     box(ui.badminton_hit, 25, 0, 4, 30, 0xF8F3DF, 1);
     box(ui.badminton_hit, 32, 2, 4, 28, 0xF8F3DF, 1);
     visible(ui.badminton_hit, false);
+    ui.library_panel = box(ui.layer, 24, 38, 342, 374, PAPER, 18);
+    text(ui.library_panel, "图书馆 · 借还书", 18, 12, &pet_font_20, INK);
+    lv_obj_t *lib_close = button(ui.library_panel, 290, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *lib_x = text(lib_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(lib_x);
+    static const char *books[] = {"《沙河植物图鉴》", "《校园猫观察笔记》", "《嵌入式系统小史》",
+                                 "《图书馆的猫》", "《北京风物》"};
+    for (unsigned i = 0; i < 5; i++)
+    {
+        lv_obj_t *row = box(ui.library_panel, 16, 58 + (int)i * 56, 310, 50, 0xE6ECDE, 8);
+        ui.library_book_name[i] = text(row, books[i], 10, 14, &pet_font_16, INK);
+        ui.library_book_button[i] = button(row, 236, 3, 68, 44, TAG_BOOK_FIRST + (int)i, 0xDCEAF3, 8);
+        lv_obj_t *bl = text(ui.library_book_button[i], "借阅", 0, 0, &pet_font_16, INK);
+        lv_obj_center(bl);
+    }
+    text(ui.library_panel, "点击借阅/归还，试点5本", 18, 344, &pet_font_16, 0x62736B);
     ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
     text(ui.curfew_dialog, "宿舍宵禁", 22, 20, &pet_font_20, INK);
     text(ui.curfew_dialog, "23:00至06:00，宿舍门已关闭。", 22, 65, &pet_font_16, BLUE);
@@ -973,6 +1004,38 @@ static void build_panel(lv_obj_t *screen)
     visible(ui.challenge_track, false);
     visible(ui.layer, false);
 }
+static void build_library(lv_obj_t *screen)
+{
+    ui.library = box(screen, 0, 0, 390, 450, 0xF3E6CF, 0);
+    lv_obj_add_flag(ui.library, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(ui.library, ground_click, LV_EVENT_CLICKED, NULL);
+    box(ui.library, 0, 0, 390, 92, 0xE4D2B4, 0);
+    box(ui.library, 0, 92, 390, 358, 0xC9B08C, 0);
+    box(ui.library, 22, 104, 82, 214, 0x8D6548, 7);
+    box(ui.library, 286, 104, 82, 214, 0x8D6548, 7);
+    for (unsigned i = 0; i < 4; i++)
+    {
+        box(ui.library, 28, 118 + i * 48, 70, 38, 0xE8D4B4, 3);
+        box(ui.library, 292, 118 + i * 48, 70, 38, 0xE8D4B4, 3);
+        for (unsigned j = 0; j < 5; j++)
+        {
+            box(ui.library, 34 + j * 12, 124 + i * 48, 7, 26, 0x6E8B73 + j * 0x080402, 1);
+            box(ui.library, 298 + j * 12, 124 + i * 48, 7, 26, 0x8B6E55 + j * 0x060402, 1);
+        }
+    }
+    box(ui.library, 132, 286, 178, 52, 0x7A553B, 6);
+    box(ui.library, 140, 292, 162, 7, 0xA97B55, 2);
+    box(ui.library, 148, 320, 34, 34, 0x6D4C36, 4);
+    box(ui.library, 238, 316, 38, 38, 0x6D4C36, 4);
+    box(ui.library, 112, 124, 118, 108, 0xBFD9D2, 4);
+    box(ui.library, 118, 130, 106, 96, 0xDCEBE7, 2);
+    box(ui.library, 166, 124, 5, 108, 0x8D6548, 0);
+    text(ui.library, "图书馆", 24, 18, &pet_font_20, HUD_INK);
+    text(ui.library, "安静自习区", 24, 48, &pet_font_16, 0x6B5A47);
+    text(ui.library, "书架", 34, 88, &pet_font_16, 0xFFF1D6);
+    text(ui.library, "书架", 298, 88, &pet_font_16, 0xFFF1D6);
+}
+
 static void build_dorm_items(lv_obj_t *screen)
 {
     ui.decor_entry = button(screen, 203, 279, 70, 58, TAG_SHOP, PAPER, 8);
@@ -1028,6 +1091,11 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
     build_furniture(screen);
+    build_library(screen);
+    ui.library_shelf = button(screen, 246, 278, 112, 44, TAG_LIBRARY_SHELF, 0xE9D8A8, 9);
+    lv_obj_set_style_bg_opa(ui.library_shelf, LV_OPA_80, 0);
+    lv_obj_t *shelf_label = text(ui.library_shelf, "借还书", 0, 0, &pet_font_16, INK);
+    lv_obj_center(shelf_label);
     ui.tone = box(screen, 0, 0, 390, 450, 0x17344E, 0);
     ui.lamplight = box(screen, 45, 177, 60, 60, 0xFFE6AA, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.lamplight, LV_OPA_TRANSP, 0);
@@ -1385,6 +1453,7 @@ static void paint(void)
     }
     paint_clock();
     bool campus = ui.world.scene == PW_CAMPUS;
+    bool library = !campus && ui.world.scene == PW_CLASSROOM && ui.world.building_id == 2;
     visible(ui.campus, campus);
     visible(ui.background, !campus);
     visible(ui.decor, !campus);
@@ -1408,6 +1477,11 @@ static void paint(void)
     visible(ui.door, !campus);
     if (!campus)
         set_label(ui.location_text, room_title(&ui.world));
+    for (unsigned i = 0; i < 5; i++)
+    {
+        lv_obj_t *b = lv_obj_get_child(ui.library_book_button[i], 0);
+        set_label(b, ui.library_borrowed & (1U << i) ? "归还" : "借阅");
+    }
     set_label(ui.context_label,
               (ui.building_kind == 4 || ui.building_kind == 10 || ui.building_kind == 11 ||
                ui.building_kind == 17 || ui.building_kind == 18) ? "做实验"
@@ -1436,7 +1510,7 @@ static void paint(void)
     lv_obj_set_pos(ui.shadow, (int)v.x - rx, (int)v.y + (v.sleeping ? -16 : -2));
     lv_obj_set_style_bg_opa(ui.shadow, v.airborne ? LV_OPA_0 : LV_OPA_20, 0);
     bool bed = ui.world.phase == PW_SLEEP || ui.world.action == PW_REST || ui.world.action == PW_WAKE;
-    bool show_front = !campus && (v.occlusion || (bed && v.y < 170));
+    bool show_front = !campus && !library && (v.occlusion || (bed && v.y < 170));
     if (show_front)
     {
         static const lv_image_dsc_t *const front[] = {&shahe_seat_0, &shahe_front_1, &shahe_front_2};
@@ -1478,7 +1552,10 @@ static void paint(void)
     visible(ui.curfew_dialog, !memory && ui.panel == PANEL_CURFEW);
     visible(ui.album_dialog, !memory && ui.panel == PANEL_ALBUM);
     visible(ui.activity_dialog, !memory && ui.panel == PANEL_ACTIVITY);
+    visible(ui.library, library);
     visible(ui.sports_dialog, !memory && ui.panel == PANEL_SPORTS);
+    visible(ui.library_shelf, library && ui.world.phase != PW_MINIGAME);
+    visible(ui.library_panel, !memory && ui.panel == PANEL_LIBRARY);
     visible(ui.sports_game_dialog, !memory && ui.panel == PANEL_SPORTS_GAME);
     visible(ui.badminton_dialog, !memory && (ui.panel == PANEL_BADMINTON || ui.badminton_active));
     visible(ui.album_button, ui.world.phase != PW_MINIGAME);
