@@ -42,10 +42,12 @@ enum
     TAG_SPORTS,
     TAG_BADMINTON_HIT,
     TAG_BADMINTON_CLOSE,
+    TAG_SPORTS_ACTION = 350,
+    TAG_SPORTS_CLOSE,
     TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY, PANEL_SPORTS, PANEL_BADMINTON };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY, PANEL_SPORTS, PANEL_BADMINTON, PANEL_SPORTS_GAME };
 static struct
 {
     pet_ui_action_fn action;
@@ -77,7 +79,12 @@ static struct
     lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
     lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
-    lv_obj_t *sports_dialog, *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
+    lv_obj_t *sports_dialog, *sports_game_dialog, *sports_run_layer, *sports_pull_layer, *sports_sit_layer;
+    lv_obj_t *sports_action, *sports_action_label, *sports_score_label, *sports_timer, *sports_prompt, *sports_marker, *sports_runner;
+    bool sports_active, sports_finished;
+    unsigned sports_mode, sports_score, sports_target, sports_distance;
+    uint32_t sports_until, sports_next;
+    lv_obj_t *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
     bool badminton_active, badminton_finished;
     uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
     unsigned badminton_player, badminton_rival, badminton_rallies;
@@ -230,6 +237,87 @@ static void badminton_tick(void)
     }
 }
 
+static void sports_scores(void)
+{
+    set_label_fmt(ui.sports_score_label, "%s  %u", ui.sports_mode == 1 ? "跑道" : ui.sports_mode == 2 ? "引体" : "仰卧",
+                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
+    set_label_fmt(ui.sports_timer, "剩余 %u 秒", (unsigned)((ui.sports_until > ui.world.now ? ui.sports_until - ui.world.now : 0) / 1000));
+}
+static void sports_show(unsigned mode)
+{
+    visible(ui.sports_run_layer, mode == 1);
+    visible(ui.sports_pull_layer, mode == 2);
+    visible(ui.sports_sit_layer, mode == 3);
+    set_label(ui.sports_action_label, mode == 1 ? "加速跑" : mode == 2 ? "向上拉" : "起身");
+}
+static void sports_start(int cmd)
+{
+    if (!ui.action || ui.action((pw_command_t)cmd) != PW_OK) return;
+    ui.sports_active = true; ui.sports_finished = false; ui.panel = PANEL_SPORTS_GAME;
+    ui.sports_mode = cmd == PW_RUN ? 1 : cmd == PW_PULLUP ? 2 : 3;
+    ui.sports_score = 0; ui.sports_target = 1; ui.sports_distance = 0;
+    ui.sports_until = ui.world.now + 20000; ui.sports_next = ui.world.now + 700;
+    sports_show(ui.sports_mode);
+    lv_obj_set_pos(ui.sports_runner, 38, 246);
+    set_label(ui.sports_prompt, ui.sports_mode == 1 ? "快速点击，跑到 100 米" : ui.sports_mode == 2 ? "在绿区点击向上拉" : "看字：起 / 卧");
+    sports_scores();
+}
+static void sports_end(void)
+{
+    ui.sports_active = false; ui.sports_finished = true;
+    set_label_fmt(ui.sports_prompt, "结束：%s %u", ui.sports_mode == 1 ? "跑了" : ui.sports_mode == 2 ? "拉了" : "做了",
+                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
+    set_label(ui.sports_action_label, "关闭");
+    sports_scores();
+}
+static void sports_tick(void)
+{
+    if (!ui.sports_active) return;
+    uint64_t now = ui.world.now;
+    if (now >= ui.sports_until) { sports_end(); return; }
+    if (ui.sports_mode == 2)
+    {
+        int y = 90 + (int)((now / 28) % 150);
+        lv_obj_set_y(ui.sports_marker, y);
+    }
+    else if (ui.sports_mode == 3 && now >= ui.sports_next)
+    {
+        ui.sports_target ^= 1;
+        ui.sports_next = now + 800;
+        set_label(ui.sports_prompt, ui.sports_target ? "起！" : "卧！");
+    }
+}
+static void sports_hit(void)
+{
+    if (!ui.sports_active)
+    {
+        if (ui.sports_finished) { ui.sports_finished = false; ui.panel = PANEL_NONE; }
+        return;
+    }
+    if (ui.sports_finished) return;
+    if (ui.sports_mode == 1)
+    {
+        ui.sports_distance += 7;
+        if (ui.sports_distance > 100) ui.sports_distance = 100;
+        lv_obj_set_x(ui.sports_runner, 38 + (int)ui.sports_distance * 3);
+        if (ui.sports_distance >= 100) sports_end();
+    }
+    else if (ui.sports_mode == 2)
+    {
+        int y = lv_obj_get_y(ui.sports_marker);
+        if (y >= 120 && y <= 190) ui.sports_score++;
+        if (ui.sports_score >= 10) sports_end();
+    }
+    else
+    {
+        if (ui.sports_target) ui.sports_score++;
+        ui.sports_target ^= 1;
+        ui.sports_next = ui.world.now + 800;
+        if (ui.sports_score >= 12) sports_end();
+    }
+    sports_scores();
+}
+
 static void click(lv_event_t *e)
 {
     lv_obj_t *o = lv_event_get_target(e);
@@ -336,8 +424,14 @@ static void click(lv_event_t *e)
     if (ui.panel == PANEL_SPORTS &&
         (cmd == PW_RUN || cmd == PW_PULLUP || cmd == PW_SITUP))
     {
-        if (ui.action && ui.action((pw_command_t)cmd) == PW_OK) ui.panel = PANEL_NONE;
+        sports_start(cmd);
         paint(); return;
+    }
+    if (cmd == TAG_SPORTS_ACTION) { sports_hit(); paint(); return; }
+    if (cmd == TAG_SPORTS_CLOSE)
+    {
+        ui.sports_active = false; ui.sports_finished = false;
+        ui.panel = PANEL_NONE; paint(); return;
     }
     if (cmd == TAG_SOUTH)
     {
@@ -787,6 +881,37 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_center(label);
     }
     /* First-person cat view: green court underfoot, net in the middle. */
+    ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
+    ui.sports_run_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xB85C3C, 0);
+    box(ui.sports_run_layer, 0, 30, 390, 3, 0xE8F0E3, 0);
+    box(ui.sports_run_layer, 0, 120, 390, 3, 0xE8F0E3, 0);
+    box(ui.sports_run_layer, 0, 210, 390, 3, 0xE8F0E3, 0);
+    box(ui.sports_run_layer, 0, 300, 390, 3, 0xE8F0E3, 0);
+    box(ui.sports_run_layer, 360, 0, 4, 300, 0xE8F0E3, 0);
+    ui.sports_runner = box(ui.sports_run_layer, 38, 246, 24, 28, 0xF0D3A8, 10);
+    text(ui.sports_run_layer, "100m", 300, 268, &pet_font_16, 0xFFF1D6);
+    ui.sports_pull_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xBFD9D2, 0);
+    box(ui.sports_pull_layer, 50, 60, 290, 8, 0x6D4C36, 4);
+    box(ui.sports_pull_layer, 58, 60, 8, 210, 0x6D4C36, 2);
+    box(ui.sports_pull_layer, 324, 60, 8, 210, 0x6D4C36, 2);
+    box(ui.sports_pull_layer, 180, 92, 34, 110, 0xF0D3A8, 12);
+    box(ui.sports_pull_layer, 250, 120, 30, 70, 0x6E8B73, 8);
+    ui.sports_marker = box(ui.sports_pull_layer, 256, 90, 18, 18, 0x456B77, 9);
+    text(ui.sports_pull_layer, "绿区", 250, 195, &pet_font_16, INK);
+    ui.sports_sit_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xDCE6CB, 0);
+    box(ui.sports_sit_layer, 55, 230, 280, 62, 0x8D6548, 12);
+    box(ui.sports_sit_layer, 170, 130, 50, 100, 0xF0D3A8, 18);
+    ui.sports_score_label = text(ui.sports_game_dialog, "", 14, 8, &pet_font_20, 0xFFF1D6);
+    ui.sports_timer = text(ui.sports_game_dialog, "", 14, 32, &pet_font_16, 0xF2E5C8);
+    lv_obj_t *sports_game_close = button(ui.sports_game_dialog, 336, 6, 44, 44, TAG_SPORTS_CLOSE, 0x1D3B30, 10);
+    lv_obj_t *sports_game_x = text(sports_game_close, "×", 0, 0, &pet_font_20, 0xFFF1D6); lv_obj_center(sports_game_x);
+    ui.sports_prompt = text(ui.sports_game_dialog, "", 16, 360, &pet_font_20, 0xFFF1D6);
+    ui.sports_action = button(ui.sports_game_dialog, 80, 392, 230, 46, TAG_SPORTS_ACTION, 0xDCE6CB, 12);
+    ui.sports_action_label = text(ui.sports_action, "开始", 0, 0, &pet_font_20, INK);
+    lv_obj_center(ui.sports_action_label);
+    visible(ui.sports_game_dialog, false);
+    visible(ui.sports_run_layer, false); visible(ui.sports_pull_layer, false); visible(ui.sports_sit_layer, false);
+
     ui.badminton_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
     box(ui.badminton_dialog, 0, 0, 390, 58, 0x1D3B30, 0);
     box(ui.badminton_dialog, 0, 58, 390, 170, 0x3F7D5A, 0);       /* far court */
@@ -1354,6 +1479,7 @@ static void paint(void)
     visible(ui.album_dialog, !memory && ui.panel == PANEL_ALBUM);
     visible(ui.activity_dialog, !memory && ui.panel == PANEL_ACTIVITY);
     visible(ui.sports_dialog, !memory && ui.panel == PANEL_SPORTS);
+    visible(ui.sports_game_dialog, !memory && ui.panel == PANEL_SPORTS_GAME);
     visible(ui.badminton_dialog, !memory && (ui.panel == PANEL_BADMINTON || ui.badminton_active));
     visible(ui.album_button, ui.world.phase != PW_MINIGAME);
     paint_checkin();
@@ -1398,5 +1524,6 @@ void pet_ui_update(const pet_world_t *world)
     ui.world = *world;
     ui.building_kind = world->building_id;
     badminton_tick();
+    sports_tick();
     paint();
 }
