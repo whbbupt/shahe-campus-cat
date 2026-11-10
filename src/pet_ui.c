@@ -1006,34 +1006,74 @@ static void build_panel(lv_obj_t *screen)
 }
 static void build_library(lv_obj_t *screen)
 {
-    ui.library = box(screen, 0, 0, 390, 450, 0xF3E6CF, 0);
+    ui.library = box(screen, 0, 0, 390, 450, 0xE9D8BC, 0);
     lv_obj_add_flag(ui.library, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ui.library, ground_click, LV_EVENT_CLICKED, NULL);
-    box(ui.library, 0, 0, 390, 92, 0xE4D2B4, 0);
-    box(ui.library, 0, 92, 390, 358, 0xC9B08C, 0);
-    box(ui.library, 22, 104, 82, 214, 0x8D6548, 7);
-    box(ui.library, 286, 104, 82, 214, 0x8D6548, 7);
+    box(ui.library, 0, 0, 390, 104, 0xE4D2B4, 0);          /* wall */
+    box(ui.library, 0, 104, 390, 346, 0xC9B08C, 0);        /* floor */
+    for (unsigned i = 0; i < 9; i++) box(ui.library, 0, 112 + (int)i * 38, 390, 2, 0xB89B78, 0);
+    /* left bookcase */
+    box(ui.library, 14, 112, 78, 206, 0x7A553B, 6);
+    box(ui.library, 18, 116, 70, 198, 0x8D6548, 4);
     for (unsigned i = 0; i < 4; i++)
     {
-        box(ui.library, 28, 118 + i * 48, 70, 38, 0xE8D4B4, 3);
-        box(ui.library, 292, 118 + i * 48, 70, 38, 0xE8D4B4, 3);
+        box(ui.library, 22, 124 + (int)i * 46, 62, 4, 0xC9A77E, 1);
         for (unsigned j = 0; j < 5; j++)
-        {
-            box(ui.library, 34 + j * 12, 124 + i * 48, 7, 26, 0x6E8B73 + j * 0x080402, 1);
-            box(ui.library, 298 + j * 12, 124 + i * 48, 7, 26, 0x8B6E55 + j * 0x060402, 1);
-        }
+            box(ui.library, 25 + (int)j * 12, 130 + (int)i * 46, 7, 32,
+                0x5E7D63 + (int)j * 0x080402, 1);
     }
-    box(ui.library, 132, 286, 178, 52, 0x7A553B, 6);
-    box(ui.library, 140, 292, 162, 7, 0xA97B55, 2);
-    box(ui.library, 148, 320, 34, 34, 0x6D4C36, 4);
-    box(ui.library, 238, 316, 38, 38, 0x6D4C36, 4);
-    box(ui.library, 112, 124, 118, 108, 0xBFD9D2, 4);
-    box(ui.library, 118, 130, 106, 96, 0xDCEBE7, 2);
-    box(ui.library, 166, 124, 5, 108, 0x8D6548, 0);
+    /* right bookcase, narrowed to leave the exit */
+    box(ui.library, 246, 112, 52, 178, 0x7A553B, 6);
+    box(ui.library, 250, 116, 44, 170, 0x8D6548, 4);
+    for (unsigned i = 0; i < 3; i++)
+    {
+        box(ui.library, 252, 124 + (int)i * 48, 40, 4, 0xC9A77E, 1);
+        for (unsigned j = 0; j < 3; j++)
+            box(ui.library, 255 + (int)j * 12, 130 + (int)i * 48, 6, 34,
+                0x8B6E55 + (int)j * 0x060402, 1);
+    }
+    /* window and curtains */
+    box(ui.library, 104, 116, 124, 96, 0x8D6548, 4);
+    box(ui.library, 110, 122, 112, 84, 0xBFD9D2, 2);
+    box(ui.library, 110, 122, 112, 30, 0x9CC4D0, 0);
+    box(ui.library, 110, 170, 112, 36, 0x7FAE83, 0);
+    box(ui.library, 164, 122, 4, 84, 0x8D6548, 0);
+    box(ui.library, 104, 116, 10, 96, 0xD9B7A2, 2);
+    box(ui.library, 220, 116, 10, 96, 0xD9B7A2, 2);
+    /* rug */
+    box(ui.library, 92, 336, 202, 82, 0x9D7B58, 6);
+    box(ui.library, 98, 342, 190, 70, 0xC9A77E, 4);
+    box(ui.library, 106, 350, 174, 54, 0xE3C9A4, 3);
+    /* reading desk, lamp, books, mug */
+    box(ui.library, 112, 282, 170, 50, 0x7A553B, 5);
+    box(ui.library, 120, 288, 154, 6, 0xA97B55, 2);
+    box(ui.library, 128, 326, 16, 30, 0x5D3E2B, 2);
+    box(ui.library, 252, 326, 16, 30, 0x5D3E2B, 2);
+    box(ui.library, 136, 270, 34, 14, 0x456B77, 2);        /* book */
+    box(ui.library, 140, 266, 26, 6, 0xDCE6CB, 1);
+    box(ui.library, 198, 266, 30, 16, 0xC98B5A, 2);        /* mug */
+    box(ui.library, 226, 252, 8, 30, 0x6D4C36, 1);         /* lamp stem */
+    box(ui.library, 216, 244, 30, 12, 0xE9D8A8, 4);
+    /* plant */
+    box(ui.library, 18, 338, 34, 26, 0x8D6548, 4);
+    box(ui.library, 24, 324, 4, 18, 0x4C6B4C, 1);
+    box(ui.library, 32, 320, 4, 22, 0x4C6B4C, 1);
+    box(ui.library, 40, 326, 4, 16, 0x4C6B4C, 1);
+    /* wall clock and quiet sign */
+    box(ui.library, 166, 70, 30, 30, 0xFFF1D6, 15);
+    box(ui.library, 180, 76, 2, 9, INK, 1);
+    box(ui.library, 180, 84, 7, 2, INK, 1);
+    text(ui.library, "静", 236, 70, &pet_font_20, 0x6B5A47);
+    /* obvious exit door on the right */
+    box(ui.library, 300, 88, 80, 178, 0x5D3E2B, 4);
+    box(ui.library, 306, 94, 68, 166, 0xA97B55, 2);
+    box(ui.library, 310, 100, 60, 154, 0xC9A77E, 1);
+    box(ui.library, 312, 104, 56, 6, 0xE9D8BC, 0);
+    box(ui.library, 336, 172, 6, 6, 0x5D3E2B, 3);
+    text(ui.library, "出口", 318, 112, &pet_font_20, 0x4A2E1E);
+    box(ui.library, 306, 264, 72, 6, 0x5D3E2B, 2);
     text(ui.library, "图书馆", 24, 18, &pet_font_20, HUD_INK);
     text(ui.library, "安静自习区", 24, 48, &pet_font_16, 0x6B5A47);
-    text(ui.library, "书架", 34, 88, &pet_font_16, 0xFFF1D6);
-    text(ui.library, "书架", 298, 88, &pet_font_16, 0xFFF1D6);
 }
 
 static void build_dorm_items(lv_obj_t *screen)
@@ -1092,7 +1132,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     build_campus(screen);
     build_furniture(screen);
     build_library(screen);
-    ui.library_shelf = button(screen, 246, 278, 112, 44, TAG_LIBRARY_SHELF, 0xE9D8A8, 9);
+    ui.library_shelf = button(screen, 18, 330, 112, 44, TAG_LIBRARY_SHELF, 0xE9D8A8, 9);
     lv_obj_set_style_bg_opa(ui.library_shelf, LV_OPA_80, 0);
     lv_obj_t *shelf_label = text(ui.library_shelf, "借还书", 0, 0, &pet_font_16, INK);
     lv_obj_center(shelf_label);
@@ -1454,6 +1494,7 @@ static void paint(void)
     paint_clock();
     bool campus = ui.world.scene == PW_CAMPUS;
     bool library = !campus && ui.world.scene == PW_CLASSROOM && ui.world.building_id == 2;
+    lv_obj_set_pos(ui.context_button, library ? 132 : 246, library ? 330 : 196);
     visible(ui.campus, campus);
     visible(ui.background, !campus);
     visible(ui.decor, !campus);
@@ -1462,7 +1503,7 @@ static void paint(void)
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
     visible(ui.blackboard, !campus && (ui.building_kind == 1 || ui.building_kind == 3 || ui.building_kind == 5));
-    visible(ui.life_hit, !campus);
+    visible(ui.life_hit, !campus && !library);
     bool college_lab = ui.building_kind == 10 || ui.building_kind == 11 || ui.building_kind == 12 ||
                        ui.building_kind == 17 || ui.building_kind == 18;
     visible(ui.work_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
