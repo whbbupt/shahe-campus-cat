@@ -673,6 +673,19 @@ pw_checkin_t pw_checkin_status(const pet_world_t *w)
     if (w->wallet.coins == PE_MAX_COINS) return PW_CHECKIN_FULL;
     return PW_CHECKIN_READY;
 }
+static int exit_door(const pet_world_t *w)
+{
+    if (w->scene == PW_CLASSROOM)
+    {
+        static const int doors[] = {14, 14, 10, 54, 16, 24};
+        unsigned id = w->building_id <= 5 ? w->building_id : 1;
+        return doors[id];
+    }
+    if (w->scene == PW_CANTEEN)
+        return w->building_id == 6 ? 9 : w->building_id == 7 ? 43 : 15;
+    return (int)pw_campus_door(w->scene);
+}
+
 static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
 {
     if (cmd == PW_SOUTH_LOCK)
@@ -839,7 +852,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->phase != PW_IDLE)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
-        static const int goals[] = {10, 53, 16, 24, 9, 43};
+        static const int goals[] = {10, 54, 16, 24, 9, 43};
         static const pw_scene_t scenes[] = {PW_CLASSROOM, PW_CLASSROOM, PW_CLASSROOM,
                                             PW_CLASSROOM, PW_CANTEEN, PW_CANTEEN};
         unsigned i = (unsigned)(cmd - PW_ENTER_LIBRARY);
@@ -861,9 +874,10 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->scene == PW_DORM && cmd == PW_EXIT && pw_curfew(w)) return reject(w, PW_CURFEW);
         pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
                           : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
+        int exit_node = cmd == PW_EXIT ? exit_door(w) : 0;
         w->building_id = cmd == PW_EXIT ? 0 : cmd == PW_ENTER_DORM ? 0 : cmd == PW_ENTER_CLASSROOM ? 1 : cmd == PW_ENTER_CANTEEN ? 8 : 9;
         int goal = cmd == PW_EXIT ? 0 : (int)pw_campus_door(next);
-        w->entry_node = cmd == PW_EXIT ? (int8_t)pw_campus_door(w->scene) : 0;
+        w->entry_node = (int8_t)exit_node;
         w->destination = (int8_t)next;
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;

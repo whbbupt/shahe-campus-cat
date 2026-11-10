@@ -498,10 +498,10 @@ static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
 static void build_buildings(lv_obj_t *screen)
 {
     static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
-        {842, 520, 100, TAG_LIBRARY, 1, "图书馆"},
-        {570, 780, 120, TAG_PUBLIC, 1, "公共教学楼"},
-        {1150, 780, 150, TAG_LAB, 1, "教学实验综合楼"},
-        {1150, 1110, 130, TAG_WISDOM, 1, "智慧教学楼"},
+        {820, 455, 150, TAG_LIBRARY, 1, "图书馆"},
+        {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
+        {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
+        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
         {600, 860, 100, TAG_SOUTH, 0, ""},
         {560, 440, 110, TAG_FLAVOR, 0, ""},
         {560, 560, 110, TAG_STAFF, 0, ""}};
