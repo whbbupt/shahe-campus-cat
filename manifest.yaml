@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.18.0校园图鉴与交互修复软件与目标构建完成；已烧录启动v0.18.0，70项自检PASS、真实Flash格式11；主机124项PASS，屏幕/触摸/手机待测"
+  milestone: "v0.18.0校园图鉴与交互修复软件/构建/烧录启动完成；图鉴实机0/12、外卖后1/12已拍照，真实Flash格式11；主机124项PASS，食堂/复位/手机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -148,7 +148,7 @@ physical_verification:
     required_action: "用户授权后，用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；只读读PET_SAVE 0x12DA8000 8192字节"
     executed_at: "2026-11-10 16:09（本机文件时间戳，精确操作时刻未逐秒记录）"
     evidence_path: "evidence/pet/serial_v0180_boot_20261110.txt"
-    agent_conclusion: "烧录退出0；启动[pet] v0.18.0 boot ok，70项自检PASS/0 FAIL，album与save图鉴用例PASS；PET_SAVE 89条有效记录（格式9:31、10:55、11:3），最新格式11 seq4440 dishes=0；屏幕/触摸/掉电/BLE手机未验证，TC-260/270/271/272/273仍不能记实机通过。"
+    agent_conclusion: "烧录退出0；启动[pet] v0.18.0 boot ok，70项自检PASS/0 FAIL，album与save图鉴用例PASS；PET_SAVE 89条有效记录（格式9:31、10:55、11:3），最新格式11 seq4440 dishes=0；用户回传图鉴0/12、外卖后1/12与宿舍主界面照片，TC-270实机布局/进度子项通过；食堂菜、复位保持、布置/配送页、掉电与BLE手机仍未验证，TC-260/271/272/273不能记实机通过。"
   - item: "v0.14.2配对与自动校时时间正确的用户实物确认"
     executed_at: null
     student_action: "用户原话：可以 配对成功了 现在成功了 时间正确。"
@@ -1366,9 +1366,9 @@ test_results:
   - test_id: TC-270
     description: 图鉴界面与触摸（REQ-221）
     expected: 3×4 网格一屏 12 项、上两行食堂/下两行外卖、剪影/菜名/进度可读、只读不改状态
-    actual: 实际LVGL 9.4主机打开/关闭、一屏12项、进度/未解锁/字形/44px断言通过；真实屏幕待TC-260
-    evidence_path: evidence/pet/previews/album-v0.18.0/shahe-album.png
-    status: passed_software_ui
+    actual: 主机LVGL通过；实机照片0/12与外卖后1/12显示3×4网格、进度与点亮正确；食堂菜/复位/关闭/触摸手感待TC-260
+    evidence_path: evidence/pet/previews/album-v0.18.0/real_20261110_album_1_takeout.jpg
+    status: passed_host_and_partial_physical
     pass: true
 
   - test_id: TC-271
@@ -1412,7 +1412,7 @@ test_results:
     pass: true
 
 known_issues:
-  - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool 0.2.5已对COM6常规烧录成功，启动日志70项PASS、真实PET_SAVE区读到格式11记录且旧9/10保留；真实屏幕/触摸、掉电恢复与BLE seated仍未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
+  - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool 0.2.5已对COM6常规烧录成功，启动日志70项PASS、真实PET_SAVE区读到格式11记录且旧9/10保留；图鉴实机0/12、外卖后1/12已拍照，食堂菜/复位保持/触摸手感、掉电恢复与BLE seated仍未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
   - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"

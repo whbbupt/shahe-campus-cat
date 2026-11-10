@@ -1,6 +1,6 @@
 ﻿# 沙河校园小猫 v0.18.0 真机验收单
 
-> 2026-11-10 已用 sftool 在 COM6 常规烧录并启动 v0.18.0：启动日志 70 项自检 PASS、真实 Flash 已写入格式 11。**屏幕/触摸与手机仍未观察**。这份单子列剩余动作与证据；没有证据的项不要勾选。完成后把照片/视频/串口原文放入 `evidence/pet/`，再更新 `docs/04`、`manifest.yaml` 与 TC-260/270 等状态。
+> 2026-11-10 已用 sftool 在 COM6 常规烧录并启动 v0.18.0：启动日志 70 项自检 PASS、真实 Flash 已写入格式 11；用户已回传图鉴 0/12、外卖后 1/12、宿舍主界面三张实机照片（见 `evidence/pet/previews/album-v0.18.0/REAL_PHOTOS.md`）。**仍缺**食堂菜点亮、复位保持、布置/配送页面、手机与安卓证据。这份单子列剩余动作与证据；没有证据的项不要勾选。
 
 ## 0. 文件与版本
 
@@ -68,4 +68,5 @@ powershell -ExecutionPolicy Bypass -File scripts/capture_serial.ps1 -Port COM5 -
 - `docs/devlog/2026-11-10.md`：如当天补测，追加真实记录。
 
 **不要**在没有照片/日志时勾选或口述“通过”；主机 124 项 PASS 不能替代板端结论。
+
 
