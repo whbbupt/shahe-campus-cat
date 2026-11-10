@@ -121,7 +121,10 @@ enum
     MSG_DANCE,
     MSG_BADMINTON,
     MSG_WORK,
-    MSG_NO_KEY
+    MSG_NO_KEY,
+    MSG_RUN,
+    MSG_PULLUP,
+    MSG_SITUP
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -688,6 +691,27 @@ static int exit_door(const pet_world_t *w)
 
 static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_RUN || cmd == PW_PULLUP || cmd == PW_SITUP)
+    {
+        if (w->phase != PW_IDLE)
+            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
+        if (w->cooldown[PW_WORKOUT] > w->now) return reject(w, PW_COOLDOWN);
+        if (w->mood >= 100) return reject(w, PW_FULL);
+        int food = cmd == PW_RUN ? 3 : cmd == PW_PULLUP ? 2 : 1;
+        int mood = cmd == PW_RUN ? 6 : cmd == PW_PULLUP ? 5 : 4;
+        w->food = clamp_value(w->food - food);
+        int old_mood = w->mood;
+        w->mood = clamp_value(w->mood + mood);
+        w->cooldown[PW_WORKOUT] = w->now + PW_WORKOUT_COOLDOWN_MS;
+        w->activity_kind = cmd == PW_RUN ? 6 : cmd == PW_PULLUP ? 7 : 8;
+        w->activity_start = w->now;
+        w->activity_until = w->now + 1200;
+        w->coin_until = 0;
+        feedback(w, -food, w->mood - old_mood, w->now);
+        say(w, cmd == PW_RUN ? MSG_RUN : cmd == PW_PULLUP ? MSG_PULLUP : MSG_SITUP);
+        return PW_OK;
+    }
     if (cmd == PW_SOUTH_LOCK)
     {
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
@@ -1244,7 +1268,9 @@ const char *pw_state_text(const pet_world_t *w)
 {
     if (w->phase == PW_SEATED) return "坐好啦，选一份饭吧";
     if (w->phase == PW_IDLE && w->now < w->activity_until)
-        return w->activity_kind == 3 ? "跳一支舞" : w->activity_kind == 4 ? "打羽毛球" : "整理资料";
+        return w->activity_kind == 3 ? "跳一支舞" : w->activity_kind == 4 ? "打羽毛球"
+             : w->activity_kind == 5 ? "整理资料" : w->activity_kind == 6 ? "跑步中"
+             : w->activity_kind == 7 ? "引体向上" : "仰卧起坐";
     if (w->phase == PW_ACTION && w->action == PW_MEMORY) return pw_life_text(w->scene);
     if(w->phase==PW_IDLE && w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc)==2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
@@ -1310,7 +1336,10 @@ const char *pw_message_text(const pet_world_t *w)
                                   "跳一支舞，心情松快",
                                   "打一局羽毛球，活动一下",
                                   "勤工俭学 +3 金币",
-                                  "未带宿舍楼钥匙，无权入内"};
+                                  "未带宿舍楼钥匙，无权入内",
+                                  "跑了一圈，气喘吁吁",
+                                  "拉了几个引体向上",
+                                  "做了一组仰卧起坐"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }
 const char *pw_life_text(pw_scene_t scene)

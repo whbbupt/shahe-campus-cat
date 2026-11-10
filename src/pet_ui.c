@@ -39,10 +39,13 @@ enum
     TAG_SOUTH,
     TAG_FLAVOR,
     TAG_STAFF,
+    TAG_SPORTS,
+    TAG_BADMINTON_HIT,
+    TAG_BADMINTON_CLOSE,
     TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY, PANEL_SPORTS, PANEL_BADMINTON };
 static struct
 {
     pet_ui_action_fn action;
@@ -74,6 +77,10 @@ static struct
     lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
     lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
+    lv_obj_t *sports_dialog, *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
+    bool badminton_active, badminton_finished;
+    uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
+    unsigned badminton_player, badminton_rival, badminton_rallies;
     unsigned building_kind;
     const char *room_override;
     unsigned pending_window;
@@ -164,6 +171,60 @@ static void visible(lv_obj_t *o, bool show)
     else
         lv_obj_add_flag(o, LV_OBJ_FLAG_HIDDEN);
 }
+static void badminton_scores(void)
+{
+    set_label_fmt(ui.badminton_score, "你 %u : %u 对手", ui.badminton_player, ui.badminton_rival);
+    set_label_fmt(ui.badminton_timer, "第 %u/10 球 · 剩余 %u 秒", ui.badminton_rallies,
+                  (unsigned)((ui.badminton_until > ui.world.now ? ui.badminton_until - ui.world.now : 0) / 1000));
+}
+static void badminton_start(void)
+{
+    ui.badminton_active = true; ui.badminton_finished = false; ui.panel = PANEL_BADMINTON;
+    ui.badminton_player = ui.badminton_rival = ui.badminton_rallies = 0;
+    ui.badminton_until = ui.world.now + 30000;
+    ui.badminton_next = ui.world.now + 800;
+    ui.badminton_shuttle_until = 0;
+    ui.badminton_seed = (uint32_t)(ui.world.now * 2654435761u + 1u);
+    badminton_scores();
+    set_label(ui.badminton_note, "看准羽毛球，1.2 秒内点它");
+    visible(ui.badminton_hit, false);
+}
+static void badminton_hit_event(void)
+{
+    if (!ui.badminton_active || !ui.badminton_shuttle_until) return;
+    ui.badminton_player++; ui.badminton_rallies++;
+    ui.badminton_shuttle_until = 0; ui.badminton_next = ui.world.now + 650;
+    visible(ui.badminton_hit, false); badminton_scores();
+}
+static void badminton_tick(void)
+{
+    if (!ui.badminton_active) return;
+    uint64_t now = ui.world.now;
+    if (now >= ui.badminton_until || ui.badminton_rallies >= 10)
+    {
+        ui.badminton_active = false; ui.badminton_finished = true;
+        visible(ui.badminton_hit, false);
+        set_label_fmt(ui.badminton_note, "结束：你 %u : %u 对手", ui.badminton_player, ui.badminton_rival);
+        badminton_scores();
+        return;
+    }
+    if (ui.badminton_shuttle_until && now > ui.badminton_shuttle_until)
+    {
+        ui.badminton_rival++; ui.badminton_rallies++;
+        ui.badminton_shuttle_until = 0; ui.badminton_next = now + 700;
+        visible(ui.badminton_hit, false); badminton_scores();
+        return;
+    }
+    if (!ui.badminton_shuttle_until && now >= ui.badminton_next)
+    {
+        ui.badminton_seed = ui.badminton_seed * 1664525u + 1013904223u;
+        lv_obj_set_pos(ui.badminton_hit, 45 + (int)((ui.badminton_seed >> 16) % 260),
+                       105 + (int)((ui.badminton_seed >> 8) % 150));
+        visible(ui.badminton_hit, true);
+        ui.badminton_shuttle_until = now + 1200;
+    }
+}
+
 static void click(lv_event_t *e)
 {
     lv_obj_t *o = lv_event_get_target(e);
@@ -247,6 +308,11 @@ static void click(lv_event_t *e)
         (cmd == PW_ENTER_GYM || cmd == PW_DANCE || cmd == PW_BADMINTON))
     {
         if (cmd == PW_ENTER_GYM) { ui.room_override = NULL; ui.building_kind = 9; }
+        if (cmd == PW_BADMINTON)
+        {
+            if (ui.action && ui.action(PW_BADMINTON) == PW_OK) badminton_start();
+            paint(); return;
+        }
         if (ui.action && ui.action((pw_command_t)cmd) == PW_OK) ui.panel = PANEL_NONE;
         paint();
         return;
@@ -254,6 +320,18 @@ static void click(lv_event_t *e)
     if (cmd == TAG_LIBRARY || cmd == TAG_PUBLIC || cmd == TAG_LAB || cmd == TAG_WISDOM)
     {
         if (ui.action) ui.action((pw_command_t)(PW_ENTER_LIBRARY + (cmd - TAG_LIBRARY)));
+        paint(); return;
+    }
+    if (cmd == TAG_SPORTS)
+    {
+        if (ui.world.scene == PW_CAMPUS && ui.world.phase != PW_MINIGAME)
+            ui.panel = ui.panel == PANEL_SPORTS ? PANEL_NONE : PANEL_SPORTS;
+        paint(); return;
+    }
+    if (ui.panel == PANEL_SPORTS &&
+        (cmd == PW_RUN || cmd == PW_PULLUP || cmd == PW_SITUP))
+    {
+        if (ui.action && ui.action((pw_command_t)cmd) == PW_OK) ui.panel = PANEL_NONE;
         paint(); return;
     }
     if (cmd == TAG_SOUTH)
@@ -265,6 +343,12 @@ static void click(lv_event_t *e)
     {
         if (ui.action) ui.action(cmd == TAG_FLAVOR ? PW_ENTER_FLAVOR : PW_ENTER_STAFF);
         paint(); return;
+    }
+    if (cmd == TAG_BADMINTON_HIT) { badminton_hit_event(); paint(); return; }
+    if (cmd == TAG_BADMINTON_CLOSE)
+    {
+        ui.badminton_active = false; ui.badminton_finished = false;
+        ui.panel = PANEL_NONE; visible(ui.badminton_hit, false); paint(); return;
     }
     if (cmd == TAG_CLOSE)
     {
@@ -447,7 +531,6 @@ static void build_campus(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(ui.goal, LV_OPA_20, 0);
     lv_obj_set_style_border_width(ui.goal, 2, 0);
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
-    campus_label(ui.campus, 188, 600, 96, "运动场");
 }
 
 static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag);
@@ -484,7 +567,8 @@ static void build_buildings(lv_obj_t *screen)
         {820, 455, 150, TAG_LIBRARY, 1, "图书馆"},
         {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
         {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
-        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"}};
+        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
+        {130, 560, 120, TAG_SPORTS, 1, "运动场"}};
     for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
     {
         lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
@@ -683,6 +767,32 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(b, activities[i].name, 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
+    ui.sports_dialog = box(ui.layer, 38, 100, 314, 250, PAPER, 18);
+    text(ui.sports_dialog, "操场", 22, 12, &pet_font_20, INK);
+    lv_obj_t *sports_close = button(ui.sports_dialog, 254, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *sports_x = text(sports_close, "×", 0, 0, &pet_font_20, BLUE);
+    lv_obj_center(sports_x);
+    static const struct { const char *name; int cmd; } sports[] = {
+        {"跑步", PW_RUN}, {"引体向上", PW_PULLUP}, {"仰卧起坐", PW_SITUP}};
+    for (unsigned i = 0; i < 3; i++)
+    {
+        lv_obj_t *b = button(ui.sports_dialog, 22, 62 + (int)i * 54, 270, 44,
+                             sports[i].cmd, 0xDCE6CB, 10);
+        lv_obj_t *label = text(b, sports[i].name, 0, 0, &pet_font_16, INK);
+        lv_obj_center(label);
+    }
+    ui.badminton_dialog = box(ui.layer, 20, 40, 350, 370, PAPER, 18);
+    text(ui.badminton_dialog, "羽毛球对打", 20, 12, &pet_font_20, INK);
+    lv_obj_t *bad_close = button(ui.badminton_dialog, 300, 2, 44, 44, TAG_BADMINTON_CLOSE, PAPER, 12);
+    lv_obj_t *bad_x = text(bad_close, "×", 0, 0, &pet_font_20, BLUE); lv_obj_center(bad_x);
+    box(ui.badminton_dialog, 16, 58, 318, 224, 0xDCE6CB, 10);
+    box(ui.badminton_dialog, 170, 62, 4, 216, 0x8D6548, 1);
+    ui.badminton_score = text(ui.badminton_dialog, "", 20, 296, &pet_font_20, INK);
+    ui.badminton_timer = text(ui.badminton_dialog, "", 20, 326, &pet_font_16, BLUE);
+    ui.badminton_note = text(ui.badminton_dialog, "看准羽毛球，1.2 秒内点它", 20, 350, &pet_font_16, 0x62736B);
+    ui.badminton_hit = button(ui.badminton_dialog, 40, 100, 44, 44, TAG_BADMINTON_HIT, 0xE9D8A8, 22);
+    lv_obj_t *bad_ball = text(ui.badminton_hit, "羽", 0, 0, &pet_font_20, INK); lv_obj_center(bad_ball);
+    visible(ui.badminton_hit, false);
     ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
     text(ui.curfew_dialog, "宿舍宵禁", 22, 20, &pet_font_20, INK);
     text(ui.curfew_dialog, "23:00至06:00，宿舍门已关闭。", 22, 65, &pet_font_16, BLUE);
@@ -1217,6 +1327,8 @@ static void paint(void)
     visible(ui.curfew_dialog, !memory && ui.panel == PANEL_CURFEW);
     visible(ui.album_dialog, !memory && ui.panel == PANEL_ALBUM);
     visible(ui.activity_dialog, !memory && ui.panel == PANEL_ACTIVITY);
+    visible(ui.sports_dialog, !memory && ui.panel == PANEL_SPORTS);
+    visible(ui.badminton_dialog, !memory && (ui.panel == PANEL_BADMINTON || ui.badminton_active));
     visible(ui.album_button, ui.world.phase != PW_MINIGAME);
     paint_checkin();
     set_label_fmt(ui.wallet_text, "%u", ui.world.wallet.coins);
@@ -1259,5 +1371,6 @@ void pet_ui_update(const pet_world_t *world)
     }
     ui.world = *world;
     ui.building_kind = world->building_id;
+    badminton_tick();
     paint();
 }

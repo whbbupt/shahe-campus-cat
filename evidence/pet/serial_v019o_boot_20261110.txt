@@ -1,0 +1,192 @@
+# port=COM7 baud=1000000 started=2026-11-10T20:43:23.9046604+08:00
+# 默认只读采集；如指定 -Send，只发送一次该命令。
+# sent: reboot
+[83446] D/sibles_utils mbox: delay
+SFBL
+Serial:c2,Chip:4,Package:3,Rev:3  Reason:00000000
+
+ \ | /
+- SiFli Corporation
+ / | \     build on Nov 10 2026, 2.5.1 build 421126d9
+ 2020 - 2022 Copyright by SiFli team
+aw32001_init ok,  time consum: 0.00 ms.
+mount /dev sucess
+[534] I/drv.rtc main: PSCLR=0x80000100 DivAI=128 DivAF=0 B=256
+[560] I/drv.rtc main: RTC use LXT RTC_CR=00000001
+
+[579] I/drv.rtc main: Init RTC, wake = 1
+
+[601] I/drv.audprc main: init 00 ADC_PATH_CFG0 0x606
+
+[622] I/drv.audprc main: HAL_AUDPRC_Init res 0
+
+[642] I/drv.audcodec main: HAL_AUDCODEC_Init res 0
+
+[663] I/drv.rgb main: rgbled register success, supporting 1 LEDs
+[688] I/TOUCH main: Regist touch screen driver, probe=12027599 
+[32;22m[I/FAL] Flash Abstraction Layer (V0.5.99) initialize success.[0m
+[32;22m[I/FAL] The FAL MTD NOR device (dfu) created successfully[0m
+[32;22m[I/FAL] The FAL MTD NOR device (ble) created successfully[0m
+LV_MEM_RT: psram heap enabled [60000000,60400000), size=4096KB
+[822] I/drv.epic main: drv_gpu opened.
+call par CFG1(3313)
+fc 9, xtal 2000, pll 2149
+call par CFG1(3313)
+fc 7, xtal 2000, pll 1723
+[979] I/audio audiosvr: audio server run
+[997] I/audio bt_downv: audio_btdownlink run
+
+[pet] v0.19.0 boot ok
+[1032] I/drv.lcd main: [NONE] -> [OPENING]
+[1050] I/drv.lcd lcd_task: open
+[1062] I/drv.lcd lcd_task: HW open
+[1097] I/drv.lcd lcd_task: Try registered LCD driver...
+msh />
+CO5300_ReadID 0x331100 
+[3424] I/co5300 lcd_task: LCD module use CO5300 IC 
+
+
+CO5300_ReadID 0x331100 
+[9694] I/co5300 lcd_task: LCD module use CO5300 IC 
+
+[9714] I/drv.lcd lcd_task: Found lcd co5300 id:331100h
+[9735] I/drv.lcd lcd_task: HW open done.
+[9751] I/drv.lcd lcd_task: [OPENING] -> [INITIALIZED]
+[9771] I/drv.lcd lcd_task: open done.
+[9862] I/drv.lcd_fb main: drv_lcd_fb_init
+[9884] I/drv.lcd_fb main: drv_lcd_fb_init done.
+[User]	(0.288, +288)	 lv_touchscreen_create: touchscreen touch opening lv_touch.c:153
+[9943] I/TOUCH main: Open
+[9958] I/TOUCH tp_init: Find touch screen driver...
+[9978] I/TOUCH tp_init: Probe 12027599
+[9996] I/TOUCH tp_init: touch screen found driver  2001e7f0, ft6146
+[10022] I/TOUCH main: Opened.
+[User]	(0.292, +4)	 lv_touchscreen_create: touchscreen touch open success lv_touch.c:172
+[10072] I/LVGL main: [littlevgl2rtt] Welcome to the littlevgl2rtt lib.
+[pet:WORLD] calendar-leap PASS
+[pet:WORLD] protocol-reject PASS
+[pet:WORLD] bedtime-boundary PASS
+[pet:WORLD] cts-timezone PASS
+[pet:WORLD] meal-challenge PASS
+[pet:WORLD] rhythm-challenge PASS
+[pet:WORLD] find-challenge PASS
+[pet:WORLD] wallet-bounds-and-no-overdraft PASS
+[pet:WORLD] furniture-own-once-free-toggle PASS
+[pet:WORLD] real-clock-routine-and-no-repeat PASS
+[pet:WORLD] volume-bounds-and-music-toggle PASS
+[pet:WORLD] initial-scene PASS
+[pet:WORLD] arrive-once PASS
+[pet:WORLD] retarget-no-snap PASS
+[pet:WORLD] arrival-eligibility PASS
+[pet:WORLD] busy-no-queue PASS
+[pet:WORLD] cooldown-from-finish PASS
+[pet:WORLD] capped-meal PASS
+[pet:WORLD] full-mood-study PASS
+[pet:WORLD] sleep-wake-support PASS
+[pet:WORLD] touch-cancels-intent PASS
+[pet:WORLD] elapsed-and-long-gap PASS
+[pet:WORLD] jump-and-seat PASS
+[pet:WORLD] eight-directions PASS
+[pet:WORLD] indoor-floor-detour-and-retarget PASS
+[pet:WORLD] classroom-and-canteen-detours PASS
+[pet:WORLD] reset-invalid PASS
+[pet:WORLD] retired-journal-cannot-claim PASS
+[pet:WORLD] memory-rounds-wrong-cancel-and-once PASS
+[pet:WORLD] rebalanced-actions-and-sleep-clamp PASS
+[pet:WORLD] gym-access-workout-and-return PASS
+[pet:WORLD] takeout-delivery-guards-and-once PASS
+[pet:WORLD] album-unlock-once-and-takeout PASS
+[pet:WORLD] wrong-room-feedback PASS
+[pet:WORLD] activity-and-workstudy PASS
+[pet:WORLD] four-room-decor-and-expanded-floor PASS
+[12811] E/drv.ft6146 tp_init: ft6146 id_H=64
+[12834] E/drv.ft6146 tp_init: ft6146 id_L=56
+[pet:WORLD] campus-point-retarget-road PASS
+[pet:WORLD] campus-three-building-doors PASS
+[pet:WORLD] campus-guards-no-wander PASS
+[pet:WORLD] campus-clock-camera PASS
+[pet:WORLD] campus-all-road-endpoints PASS
+[pet:WORLD] three-games-once-shared-cooldown-cancel PASS
+[pet:WORLD] four-life-corners-path-deferred-retarget PASS
+[pet:WORLD] need-hints-real-state-priority PASS
+[pet:WORLD] zero-coins-zero-food-can-earn-and-buy-meal PASS
+[pet:WORLD] coin-once-cancel-cap-and-4999-5000-boundary PASS
+[pet:WORLD] paid-food-arrival-cancel-and-owned-free-toggle PASS
+[pet:WORLD] daily-checkin-trusted-midnight-once-rollback-cap PASS
+[pet:WORLD] twelve-meals-seated-cancel-once-and-touch-balance PASS
+[pet:WORLD] curfew-boundaries-wake-old-route-crossing-and-return PASS
+[pet:SAVE-TEST] format-restore-cooldowns PASS
+[pet:SAVE-TEST] sleep-elapsed-wake PASS
+[pet:SAVE-TEST] all-65-write-cut-points PASS
+[pet:SAVE-TEST] crc-fallback PASS
+[pet:SAVE-TEST] rotation-partial-erase PASS
+[pet:SAVE-TEST] short-io-no-success PASS
+[pet:SAVE-TEST] no-unfinished-action-replay PASS
+[pet:SAVE-TEST] autosave-throttle-checkpoint-retry PASS
+[pet:SAVE-TEST] visible-state-save-consistency PASS
+[pet:SAVE-TEST] campus-safe-restore PASS
+[pet:SAVE-TEST] takeout-resume-and-atomic-pickup PASS
+[pet:SAVE-TEST] takeout-autosave-phase-key PASS
+[pet:SAVE-TEST] wallet-furniture-atomic-autosave-no-repeat-gift PASS
+[pet:SAVE-TEST] sound-mode-autosave-and-reboot PASS
+[pet:SAVE-TEST] challenge-life-no-half-replay-and-shared-cooldown PASS
+[pet:SAVE-TEST] album-bits-roundtrip-and-range PASS
+[pet:AUDIO-TEST] pcm-loop-modes-duck-and-four-notes PASS
+[pet:AUDIO-TEST] world-events-once-no-replay PASS
+[pet:WORLD] all PASS
+[pet:SAVE-TEST] all PASS (RAM only)
+[pet:TIME] boot trusted=1 valid=0 utc=0
+[pet:AUDIO] worker ready, mode=1, 16000Hz mono PCM
+[pet:SAVE] load=0 seq=4641 scene=3 food=0 mood=76 sleeping=0
+[pet:BLE] stage=queue result=0
+[pet:BLE-TEST] protocol PASS (RAM only, no radio verdict)
+[pet:BLE] stage=thread result=0
+[pet:BLE] stage=stack-call result=0
+[45831] D/nvds mbox: NVDS Update Addr res 6, addr d1-0c-80-52-fd-5c
+[45863] I/nvds mbox: read sleep time 3500
+[81928] D/sibles_utils mbox: delay
+[82123] I/sibles pet_ble: enable BLE Core. Lib ver: bt.2.0.3d25ed62
+[pet:BLE] stage=wait-ready result=0
+[87233] I/drv.lcd lcd_task: Auto turn on display.
+[87254] I/drv.lcd lcd_task: set brightness 50
+[87273] I/drv.lcd lcd_task: display on
+[87289] I/drv.lcd lcd_task: [INITIALIZED] -> [ON]
+[114770] I/nvds mbox: hci en 32
+[114849] I/ble_cm mbox: read_bond_infor_from_flash: 0
+le p256 nvds get 0
+le p256 nvds get 0
+app addr nvds get 1
+[115217] I/sibles KE_EVT2: 
+BLE ready!
+
+[115235] I/btcomm KE_EVT2: Clear mask 1
+act num:0
+set cmd 0x91, stop_status:0, msg_status:2
+act num:0
+set cmd 0x91, stop_status:0, msg_status:2
+act num:0
+set cmd 0x91, stop_status:0, msg_status:1
+[115340] D/BLE_GAP KE_EVT2: evt 5, ret 0
+
+[pet:BLE] stage=gatt result=0
+[115398] I/sibles KE_EVT2: status=0, start_handle=0x10
+[pet:BLE] stage=name result=0
+[pet:BLE] stage=adv-init result=0
+[115467] D/BLE_GAP KE_EVT2: evt 145, ret 0
+
+[pet:BLE] stage=adv-start result=0
+[pet:BLE] name=ShaheCat-800CD1; open LightBlue, scan and connect
+[115545] D/BLE_GAP KE_EVT2: evt 160, ret 0
+
+[115569] I/NO_TAG KE_EVT2: Sibles ADV start 0!
+
+[115655] D/BLE_GAP KE_EVT2: evt 169, ret 0
+
+[115685] D/BLE_GAP KE_EVT2: evt 170, ret 0
+
+[115712] D/BLE_GAP KE_EVT2: evt 164, ret 0
+
+[pet:BLE] stage=advertising result=0
+[pet:BLE] advertising result=0
+
+# stopped=2026-11-10T20:43:42.4734673+08:00
