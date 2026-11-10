@@ -1,4 +1,4 @@
-﻿# 沙河校园小猫 v0.18.0 真机验收单
+# 沙河校园小猫 v0.18.0 真机验收单
 
 > 2026-11-10 已用 sftool 在 COM6 常规烧录并启动 v0.18.0：启动日志 70 项自检 PASS、真实 Flash 已写入格式 11；用户已回传图鉴 0/12、外卖后 1/12、宿舍主界面三张实机照片（见 `evidence/pet/previews/album-v0.18.0/REAL_PHOTOS.md`）。**仍缺**食堂菜点亮、复位保持、布置/配送页面、手机与安卓证据。这份单子列剩余动作与证据；没有证据的项不要勾选。
 
@@ -25,13 +25,15 @@
 
 1. CodeKit 打开 `project/`，选择板型，常规 Download（main/bootloader/ftab/lcpu 一起）。
 2. 复位后状态页应显示 **v0.18.0**。
-3. 用只读串口记录器抓启动日志：
+3. 用只读串口记录器抓启动日志（端口按实际改，本次为 COM6）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/capture_serial.ps1 -Port COM5 -Seconds 20
+powershell -ExecutionPolicy Bypass -File scripts/capture_serial.ps1 -Port COM6 -Seconds 20
 ```
 
 运行后按一次复位键，结束后把生成的 `evidence/pet/serial_v0180_*.txt` 留存。脚本不发送任何字节。
+
+> **复位时屏幕不一定会熄灭或黑屏**：背光可能保持亮，面板短暂无数据后直接显示新画面。可靠判据是串口出现 `[pet] v0.18.0 boot ok` 和 `all PASS`，或状态页时间回到 `--:-- 待校时`、图鉴进度从存档重建。若画面完全冻结且串口没有新的 boot 日志，再拔 USB 重新上电。
 
 **判据**：日志包含 `[pet] v0.18.0 boot ok`；没有新的 ERROR；`[pet:WORLD] all PASS`、`[pet:SAVE-TEST] all PASS`。
 
