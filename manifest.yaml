@@ -1365,9 +1365,10 @@ test_results:
   - test_id: TC-271
     description: 布置弹窗跨场景（REQ-222a）
     expected: 出行途中不可打开、离房后无残留
-    actual: 休眠查看“先叫醒”主机通过；行走/过渡途中与出门残留仅代码审查
-    status: partial_software_ui
-    pass: false
+    actual: 实际LVGL 9.4休眠查看“先叫醒”与走向房门途中点布置不打开均通过；出门后屏幕残留待TC-260
+    evidence_path: evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt
+    status: passed_software_ui
+    pass: true
 
   - test_id: TC-272
     description: 手机状态 seated（REQ-222b）
@@ -1380,9 +1381,10 @@ test_results:
   - test_id: TC-273
     description: 配送页文案（REQ-222c）
     expected: 不出现“向上滑动看更多”，显示配送/取餐说明
-    actual: 代码审查完成；界面未渲染
-    status: pending_software_ui
-    pass: false
+    actual: 实际LVGL 9.4配送中/已送达页均通过专用文案断言
+    evidence_path: evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt
+    status: passed_software_ui
+    pass: true
 
   - test_id: TC-274
     description: 错房间提示（REQ-222d）
@@ -1517,4 +1519,6 @@ human_checkpoints:
 #     executed_at: "2026-11-03T20:15:00+08:00"
 #     evidence_path: "evidence/bt_pan_connect_log.png"
 #     agent_conclusion: "配对成功，ping通外部服务器，联网延迟约800ms"
+
+
 

@@ -86,7 +86,7 @@
 
 - **REQ-221 图鉴**：`dishes` 12 位，堂食 bit0–5、外卖 bit6–11；`finish()` 动作完成才置位；格式 11 复用 `r[5]/r[7]`；`visible_key` 扩到 20 字节；首页入口 + 12 行只读滚动页；重生成 486 字中文字体子集。
 - **REQ-222 修复**：布置弹窗只在宿舍空闲打开、离房清理；BLE 接受 `seated`；配送页专用文案；错房间走统一 `reject` 提示。
-- **验证**：WSL Ubuntu + gcc 15.2.0，`tests/run_pet_tests.py` **123 PASS / 0 FAIL**（`evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt`，含 LVGL 9.4 渲染与图鉴预览）；`check_trace.py` PASS。**目标构建已通过**（main.bin 4,537,196；ROM 4,610,718/8,388,608），但未烧录、未做真实屏幕/触摸、真实 Flash 掉电、真实手机 BLE；因此 TC-271/273 仍 `pass: false`，TC-260/268 仍 pending，TC-270 只记主机软件通过。
+- **验证**：WSL Ubuntu + gcc 15.2.0，`tests/run_pet_tests.py` **123 PASS / 0 FAIL**（`evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt`，含 LVGL 9.4 渲染与图鉴预览）；`check_trace.py` PASS。**目标构建已通过**（main.bin 4,537,196；ROM 4,610,718/8,388,608），但未烧录、未做真实屏幕/触摸、真实 Flash 掉电、真实手机 BLE；因此 TC-260/268 仍 pending；TC-270/271/273 只记主机软件通过，真实屏幕待补。
 
 ## 7. 给下一步的建议
 
@@ -104,6 +104,8 @@
 - [Neko Atsume 官方门户](https://www.nekoatsume.com/index_en.html)
 - [Peridot 官方 Mobile 页（养育/散步/孵化与停服说明）](https://playperidot.com/experiences/peridot-mobile)
 - [Peridot 官方首页](https://playperidot.com/)
+
+
 
 
 

@@ -643,10 +643,17 @@ static void dorm_takeout(void)
     assert(!label_with(lv_screen_active(), "取餐"));
     press("外卖");
     assert(!label_with(lv_screen_active(), "确认下单"));
+    assert(!label_with(lv_screen_active(), "向上滑动看更多"));
+    assert(label_with(lv_screen_active(), "订单进行中 · 菜品列表已收起"));
+    assert(label_with(lv_screen_active(), "配送中，可先在屋里活动"));
     screenshot("shahe-takeout-delivering.ppm");
     press("×");
     step((uint32_t)(world.order_due - world.now));
     assert(world.order == PW_ORDER_READY && label_with(lv_screen_active(), "取餐"));
+    press("外卖");
+    assert(label_with(lv_screen_active(), "已送达，点门旁纸袋取餐"));
+    assert(!label_with(lv_screen_active(), "向上滑动看更多"));
+    press("×");
     screenshot("shahe-takeout-arrived.ppm");
     int food = world.food;
     press("取餐");
@@ -660,6 +667,15 @@ static void dorm_takeout(void)
     until_action(PW_REST);
     step(700);
     assert(world.phase == PW_SLEEP);
+}
+static void shop_during_walk(void)
+{
+    reset();
+    press("出门");
+    assert(world.scene == PW_DORM && world.phase == PW_WALK);
+    press("布置");
+    assert(!label_with(lv_screen_active(), "布置宿舍"));
+    assert(world.scene == PW_DORM);
 }
 static void campus_extended_route(void)
 {
@@ -984,6 +1000,7 @@ int main(int argc, char **argv)
     new_life_and_challenges();
     daily_checkin_ui();
     scroll_menus_and_curfew();
+    shop_during_walk();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)
     {
