@@ -686,6 +686,9 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         w->mood = clamp_value(mood + gain);
         w->cooldown[PW_TOUCH] = w->now + PW_ACTIVITY_COOLDOWN_MS;
         w->coin_until = 0;
+        w->activity_kind = cmd == PW_DANCE ? 3 : 4;
+        w->activity_start = w->now;
+        w->activity_until = w->now + 1200;
         feedback(w, 0, w->mood - mood, w->now);
         say(w, cmd == PW_DANCE ? MSG_DANCE : MSG_BADMINTON);
         return PW_OK;
@@ -701,6 +704,9 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         w->cooldown[PW_CODE] = w->now + PW_WORK_COOLDOWN_MS;
         w->coin_gain = gain;
         w->coin_until = w->now + 2400;
+        w->activity_kind = 5;
+        w->activity_start = w->now;
+        w->activity_until = w->now + 1200;
         say(w, MSG_WORK);
         return PW_OK;
     }
@@ -1088,6 +1094,14 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     v->scale = fmaxf(.91f, fminf(1.05f, .92f + (w->y - 240) / 1000));
     if (w->scene == PW_CAMPUS)
         v->scale = .78f;
+    if (w->phase == PW_IDLE && w->now < w->activity_until && w->activity_kind >= 3)
+    {
+        float p = (float)(w->now - w->activity_start) / 1200.0f;
+        v->lift = sinf(3.141592654f * p) * 9.0f;
+        v->scale += sinf(3.141592654f * p) * .04f;
+        v->frame = (uint8_t)(16 + (w->now / 150 % 2));
+        return;
+    }
     if (w->phase == PW_ACTION && w->action == PW_MEMORY)
     {
         v->frame = (uint8_t)(w->facing * 2 + w->now / 500 % 2);
@@ -1173,6 +1187,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
 const char *pw_state_text(const pet_world_t *w)
 {
     if (w->phase == PW_SEATED) return "坐好啦，选一份饭吧";
+    if (w->phase == PW_IDLE && w->now < w->activity_until)
+        return w->activity_kind == 3 ? "跳一支舞" : w->activity_kind == 4 ? "打羽毛球" : "整理资料";
     if (w->phase == PW_ACTION && w->action == PW_MEMORY) return pw_life_text(w->scene);
     if(w->phase==PW_IDLE && w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc)==2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";

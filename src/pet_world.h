@@ -143,7 +143,9 @@ typedef struct
     pg_game_t challenge;
     int message, gain, mood_gain;
     pt_clock_t clock;
-    uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack */
+    uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack, 3=dance, 4=badminton, 5=work */
+    uint64_t activity_start;
+    uint64_t activity_until;
     bool action_tired;
     pe_wallet_t wallet;
     uint16_t checkin_day;
