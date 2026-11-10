@@ -128,8 +128,8 @@ design:
 code:
   repo_url: "https://github.com/whbbupt/shahe-campus-cat.git" # 公开仓库；本轮从该仓库恢复缺失的.git
   local_path: "shahe-campus-cat-feat-pet-core"
-  commit_range: "faf9e74..e0ce156" # v0.17.4基线到v0.18.0代码+文档+日志
-  implementation_commit: "27f8faa" # v0.18.0代码提交；当前无新固件产物，目标构建待学生
+  commit_range: "faf9e74..HEAD" # v0.17.4基线到当前分支头；具体提交见git log
+  implementation_commit: "6ddb284" # v0.18.0图鉴与最终回归；目标构建待学生
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
