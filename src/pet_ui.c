@@ -251,10 +251,6 @@ static void click(lv_event_t *e)
         paint();
         return;
     }
-    {
-        if (ui.action) ui.action((pw_command_t)(PW_ENTER_COLLEGE_FIRST + (cmd - TAG_COLLEGE_FIRST)));
-        paint(); return;
-    }
     if (cmd == TAG_LIBRARY || cmd == TAG_PUBLIC || cmd == TAG_LAB || cmd == TAG_WISDOM)
     {
         if (ui.action) ui.action((pw_command_t)(PW_ENTER_LIBRARY + (cmd - TAG_LIBRARY)));
