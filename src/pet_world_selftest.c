@@ -518,35 +518,47 @@ static bool album_unlock(void)
     pet_world_t w;
     pw_init(&w);
     w.now = 10000;
-    w.scene = PW_CANTEEN;
-    w.phase = PW_SEATED;
-    w.action_start = w.now - 1000;
-    w.wallet.coins = 200;
-    pw_point_t seat = pw_node(PW_CANTEEN, 3);
-    w.x = seat.x; w.y = seat.y;
-    CHECK(pw_dish_count(&w) == 0 && w.dishes == 0);
-    CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_FIRST + 2)) == PW_OK);
-    CHECK(w.phase == PW_ACTION && w.dishes == 0);
-    pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
-    CHECK(w.dishes == (1U << 2) && pw_dish_count(&w) == 1);
+    w.wallet.coins = PE_MAX_COINS;
+    pw_point_t canteen = pw_node(PW_CANTEEN, 3);
+    for (unsigned i = 0; i < PE_MENU_COUNT; i++)
+    {
+        w.scene = PW_CANTEEN;
+        w.phase = PW_SEATED;
+        w.action_start = w.now - 1000;
+        w.food = 10;
+        w.cooldown[PW_EAT] = 0;
+        w.x = canteen.x; w.y = canteen.y;
+        CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_FIRST + i)) == PW_OK);
+        CHECK((w.dishes & (1U << i)) == 0);
+        pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
+        CHECK(w.dishes == ((1U << (i + 1)) - 1U) && pw_dish_count(&w) == i + 1);
+    }
     /* A second helping unlocks nothing new and does not corrupt the mask. */
-    pw_advance(&w, 2100);
-    w.food = 50;
     w.phase = PW_SEATED;
     w.action_start = w.now - 1000;
+    w.food = 10;
+    w.cooldown[PW_EAT] = 0;
     CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_FIRST + 2)) == PW_OK);
     pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
-    CHECK(w.dishes == (1U << 2) && pw_dish_count(&w) == 1);
+    CHECK(w.dishes == 0x003F && pw_dish_count(&w) == PE_MENU_COUNT);
     /* Delivery uses bits 6..11 and unlocks only after pickup. */
-    w.scene = PW_DORM;
-    pw_point_t room = pw_node(PW_DORM, 3);
-    w.x = room.x; w.y = room.y;
-    w.phase = PW_IDLE; w.order = PW_ORDER_READY; w.order_choice = 3; w.food = 40;
-    CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK);
-    CHECK(w.dishes == (1U << 2));
-    for (unsigned i = 0; i < 500 && w.phase == PW_WALK; i++) pw_advance(&w, 20);
-    pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
-    CHECK((w.dishes == ((1U << 2) | (1U << 8))) && pw_dish_count(&w) == 2);
+    pw_point_t dorm = pw_node(PW_DORM, 3);
+    for (unsigned i = 0; i < PE_MENU_COUNT; i++)
+    {
+        w.scene = PW_DORM;
+        w.phase = PW_IDLE;
+        w.order = PW_ORDER_READY;
+        w.order_choice = (uint8_t)(i + 1);
+        w.food = 10;
+        w.cooldown[PW_TAKEOUT] = 0;
+        w.x = dorm.x; w.y = dorm.y;
+        CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK);
+        for (unsigned n = 0; n < 500 && w.phase == PW_WALK; n++) pw_advance(&w, 20);
+        pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
+        CHECK(w.dishes == (0x003FU | (((1U << (i + 1)) - 1U) << PE_MENU_COUNT)));
+        CHECK(pw_dish_count(&w) == PE_MENU_COUNT + i + 1);
+    }
+    CHECK(w.dishes == 0x0FFFU && pw_dish_count(&w) == 12);
     return true;
 }
 

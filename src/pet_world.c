@@ -920,7 +920,7 @@ static void finish(pet_world_t *w)
     pw_command_t a = w->action;
     w->action = PW_NONE;
     /* Album unlocks only after a successful action completes, never on order/cancel. */
-    if (a == PW_EAT && w->meal_choice < PE_MENU_COUNT)
+    if (a == PW_EAT && w->selected_meal && w->meal_choice < PE_MENU_COUNT)
         w->dishes |= (uint16_t)(1U << w->meal_choice);
     else if (a == PW_TAKEOUT && w->order_choice >= 1 && w->order_choice <= PE_MENU_COUNT)
         w->dishes |= (uint16_t)(1U << (PE_MENU_COUNT + w->order_choice - 1));
