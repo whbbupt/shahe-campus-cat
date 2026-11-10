@@ -6,7 +6,7 @@
 
 1. **产品主循环已经成立**：宿舍/教室/食堂/健身房/校园五场景、点地走动、饱食/心情、作息与宵禁、堂食与外卖 12 道菜、金币/签到/小游戏、家具布置、格式 10 存档、BLE 校时与手机状态、音频和安卓校时工具都有软件实现，历代主机与目标构建记录在 `04`。
 2. **“还没跑起来”的主要不是主循环代码，而是四类边界**：① 交付目录原本没有 `.git`，历史不可追溯；② 本机最初没有 SiFli SDK/scons/ARM 编译器，目标固件无法复现构建（本轮已装 SDK 并构建成功，sftool 仍被应用策略拦截）；③ TC-260 整体实机、TC-268 安卓联调、真实 Flash 掉电/旧档升级、真实屏幕触摸与音质仍未执行；④ 内容虽多，玩家看不到“我收集了什么”，缺少长期目标。
-3. 本轮恢复 Git 基线，按用户选择新增**校园图鉴**（REQ-221），并修复评审发现的 4 处真实交互缺陷（REQ-222）。主机 123 项 PASS（含实际 LVGL 9.4 渲染），**目标固件已构建（main.bin 4,537,068 字节），未烧录，真实屏幕待测**，这些边界已写入 `04`/`06`/manifest。
+3. 本轮恢复 Git 基线，按用户选择新增**校园图鉴**（REQ-221），并修复评审发现的 4 处真实交互缺陷（REQ-222）。主机 124 项 PASS（含实际 LVGL 9.4 渲染），**目标固件已构建（main.bin 4,537,068 字节），未烧录，真实屏幕待测**，这些边界已写入 `04`/`06`/manifest。
 4. 市场调研的共性：Tamagotchi 靠“养育关系 + 收集/装扮 + 每日低摩擦”活 30 年；Neko Atsume 靠“低压力收集（Catbook/Album）”；Peridot 证明强联网宠物服务也会停服。对本项目的启示是**离线优先、收集可见、每日一件小事**，而不是堆传感器。
 
 ## 2. 已有功能盘点
@@ -26,7 +26,7 @@
 | 手机 | 广播 `ShaheCat`、iPhone CTS 自动校时、0003 状态只读、0004 手动写入 | `pet_ble.c`、`pet_cts.c` | v0.14.2 配对/时间有用户确认；seated 与安卓待 TC-272/268 |
 | 声音 | 循环背景音乐、互动短音、音量/开关持久化 | `pet_audio*` | 主机；真实音质/时序待 TC-202 |
 | 安卓工具 | 扫描、点选、写入北京时间、回读确认 | `android-clock/` | JVM/APK 通过；TC-268 待真机 |
-| 工程与测试 | 主机模型/存档/UI/构建脚本、证据与 manifest | `tests/`、`scripts/`、`evidence/` | SDK 构建通过；WSL gcc 123 PASS（含 LVGL） |
+| 工程与测试 | 主机模型/存档/UI/构建脚本、证据与 manifest | `tests/`、`scripts/`、`evidence/` | SDK 构建通过；WSL gcc 124 PASS（含 LVGL） |
 
 ## 3. “尚未能运行/未闭环”清单
 
@@ -86,7 +86,7 @@
 
 - **REQ-221 图鉴**：`dishes` 12 位，堂食 bit0–5、外卖 bit6–11；`finish()` 动作完成才置位；格式 11 复用 `r[5]/r[7]`；`visible_key` 扩到 20 字节；首页入口 + 3×4 只读网格（一屏 12 项）；重生成包含“两/行”等新字的 486 字子集。
 - **REQ-222 修复**：布置弹窗只在宿舍空闲打开、离房清理；BLE 接受 `seated`；配送页专用文案；错房间走统一 `reject` 提示。
-- **验证**：WSL Ubuntu + gcc 15.2.0，`tests/run_pet_tests.py` **123 PASS / 0 FAIL**（`evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt`，含 LVGL 9.4 渲染与图鉴预览）；`check_trace.py` PASS。**目标构建已通过**（main.bin 4,537,068；ROM 4,610,526/8,388,608），但未烧录、未做真实屏幕/触摸、真实 Flash 掉电、真实手机 BLE；因此 TC-260/268 仍 pending；TC-270/271/273 只记主机软件通过，真实屏幕待补。
+- **验证**：WSL Ubuntu + gcc 15.2.0，`tests/run_pet_tests.py` **124 PASS / 0 FAIL**（`evidence/pet/host_ui_lvgl_v0.18.0_20261110.txt`，含 LVGL 9.4 渲染与图鉴预览）；`check_trace.py` PASS。**目标构建已通过**（main.bin 4,537,068；ROM 4,610,526/8,388,608），但未烧录、未做真实屏幕/触摸、真实 Flash 掉电、真实手机 BLE；因此 TC-260/268 仍 pending；TC-270/271/273 只记主机软件通过，真实屏幕待补。
 
 ## 7. 给下一步的建议
 
@@ -104,6 +104,7 @@
 - [Neko Atsume 官方门户](https://www.nekoatsume.com/index_en.html)
 - [Peridot 官方 Mobile 页（养育/散步/孵化与停服说明）](https://playperidot.com/experiences/peridot-mobile)
 - [Peridot 官方首页](https://playperidot.com/)
+
 
 
 

@@ -119,6 +119,7 @@ old_save=out/'actual_schema6_pet_save.c'
 old_save.write_bytes(subprocess.check_output(['git','show','a633ec9:src/pet_save.c'],cwd=root))
 build([root/'src/pet_world.c', root/'src/pet_memory.c', old_save, root/'tests/pet_save_v6_refusal_test.c'], 'pet-save-v6-refusal-test')
 build([root/'src/pet_audio.c', root/'src/pet_audio_pcm.c', root/'src/pet_audio_selftest.c', root/'src/pet_model.c', root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_world_selftest.c', root/'src/pet_save.c', root/'src/pet_save_selftest.c', root/'src/pet_save_flash.c', root/'src/pet_app.c', root/'tests/pet_save_app_test.c'], 'pet-save-app-test', [root/'tests/save_include'])
+build([root/'src/pet_world.c', root/'src/pet_memory.c', root/'src/pet_save.c', root/'tests/pet_soak_test.c'], 'pet-soak-test')
 if a.sdk:
     lvgl = a.sdk.resolve()/'external/lvgl_v9'
     sources = sorted((lvgl/'src').rglob('*.c'))

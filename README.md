@@ -1,4 +1,4 @@
-# 沙河校园小猫
+﻿# 沙河校园小猫
 
 一款运行在黄山派上的触屏校园电子宠物。带小猫沿校园道路逛宿舍、教室和食堂，给它点餐、布置房间，或在宿舍玩小游戏赚金币。手表按北京时间切换昼夜和作息，23:00 至次日 06:00 进入宿舍宵禁。
 
@@ -151,3 +151,4 @@ type：`feat fix docs test refactor perf build ci chore revert hw`。`feat/fix/r
 **Q：Windows 下钩子不生效？** 使用 Git for Windows，确认 `git config core.hooksPath` 为 `.githooks`；仍有问题时运行 `python scripts/check_commit_msg.py --log` 手动自查，并告知教师。
 
 </details>
+

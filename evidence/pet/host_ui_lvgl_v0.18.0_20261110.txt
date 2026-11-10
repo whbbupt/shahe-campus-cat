@@ -141,6 +141,9 @@
 [host:save-app] actual RTC sync->daily coins/date->pending/saved->reboot same-day denied->next-day income PASS
 [host:save-app] actual RTC-before-navigation guard, night wake/order/congee/save/reboot/pickup and crossing curfew PASS
 
+[host:soak] 7 simulated days, 598 intents, 181 saves, 181 restores PASS
+[host:soak] RAM NOR writes=178 erases=0; physical flash/long-run memory NOT tested
+
 [host:assets] 46 production decoders x10, released each time; peak image allocation=351000 bytes PASS
 [host:render-profile] scene=0 frames=50 large_decodes=0 pixels=7200 peak=359040
 [host:render-profile] scene=1 frames=50 large_decodes=0 pixels=7200 peak=1532415
@@ -152,4 +155,4 @@
 [host:menu-ui] native pointer two scrolls to sixth meals, no charge on selection/cancel, seated confirmation, delivery kind, curfew/wake/close PASS
 [host:shahe-ui] decor, memory rounds, paid life route, glyphs and recreation PASS
 
-Actual LVGL software previews: /tmp/pet-host-ui4
+Actual LVGL software previews: /tmp/pet-host-final2

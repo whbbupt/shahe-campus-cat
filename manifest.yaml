@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.18.0校园图鉴与交互修复软件与目标构建完成；主机123项PASS（含LVGL渲染），main.bin 4,537,068字节，未烧录"
+  milestone: "v0.18.0校园图鉴与交互修复软件与目标构建完成；主机124项PASS（含LVGL渲染），main.bin 4,537,068字节，未烧录"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -1394,8 +1394,16 @@ test_results:
     status: passed_software
     pass: true
 
+  - test_id: TC-275
+    description: 主机7天soak（REQ-223）
+    expected: 7×24h模拟无越界、保存恢复可见状态一致、无重复初始金币
+    actual: WSL gcc通过，598意图、181保存/181恢复、0失败；RAM NOR writes=178 erases=0
+    evidence_path: evidence/pet/host_soak_v0.18.0_20261110.txt
+    status: passed_software
+    pass: true
+
 known_issues:
-  - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机123项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool仍被应用控制策略拦截，未烧录，真实屏幕触摸、Flash迁移与BLE seated未实机。"
+  - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool仍被应用控制策略拦截，未烧录，真实屏幕触摸、Flash迁移与BLE seated未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
   - "当前v0.16.0金币替代手账主循环已软件/构建通过；格式8读旧1–7，旧7拒8，固定布置与付费食物待TC-249实机。用户暂缓提交/上传/交接，价格和实际体验仍需验证。"
@@ -1519,6 +1527,7 @@ human_checkpoints:
 #     executed_at: "2026-11-03T20:15:00+08:00"
 #     evidence_path: "evidence/bt_pan_connect_log.png"
 #     agent_conclusion: "配对成功，ping通外部服务器，联网延迟约800ms"
+
 
 
 
