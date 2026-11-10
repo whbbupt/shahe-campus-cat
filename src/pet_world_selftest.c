@@ -662,6 +662,27 @@ static bool volume_controls(void)
     CHECK(pw_request(&w, PW_VOLUME_UP) == PW_OK && w.volume == 1 && w.sound_mode == 1);
     return true;
 }
+static bool activity_and_workstudy(void)
+{
+    pet_world_t w; pw_init(&w);
+    w.scene = PW_CAMPUS; w.phase = PW_IDLE; w.food = 50; w.mood = 50;
+    CHECK(pw_request(&w, PW_DANCE) == PW_OK);
+    CHECK(w.mood == 55 && w.phase == PW_IDLE);
+    CHECK(pw_request(&w, PW_BADMINTON) == PW_COOLDOWN);
+    w.now += PW_ACTIVITY_COOLDOWN_MS;
+    CHECK(pw_request(&w, PW_BADMINTON) == PW_OK && w.mood == 59);
+    w.scene = PW_CLASSROOM; w.now += 1;
+    unsigned coins = w.wallet.coins;
+    CHECK(pw_request(&w, PW_WORKSTUDY) == PW_OK);
+    CHECK(w.wallet.coins == coins + PW_WORK_COINS);
+    CHECK(pw_request(&w, PW_WORKSTUDY) == PW_COOLDOWN);
+    w.now += PW_WORK_COOLDOWN_MS;
+    w.scene = PW_CAMPUS;
+    CHECK(pw_request(&w, PW_WORKSTUDY) == PW_WRONG_ROOM);
+    w.scene = PW_CLASSROOM; w.mood = 100;
+    CHECK(pw_request(&w, PW_DANCE) == PW_WRONG_ROOM);
+    return true;
+}
 static bool real_time_routine(void)
 {
     pet_world_t w;pw_init(&w);uint32_t utc;
@@ -708,6 +729,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"takeout-delivery-guards-and-once", takeout_cycle},
                  {"album-unlock-once-and-takeout", album_unlock},
                  {"wrong-room-feedback", wrong_room_feedback},
+                 {"activity-and-workstudy", activity_and_workstudy},
                  {"four-room-decor-and-expanded-floor", expanded_room_bounds}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)

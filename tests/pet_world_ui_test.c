@@ -144,6 +144,7 @@ static lv_obj_t *control(const char *name)
 {
     lv_obj_t *l = label_with(lv_screen_active(), name);
     assert(l);
+    if (!l) fprintf(stderr, "MISSING control: %s\n", name);
     lv_obj_t *p = lv_obj_get_parent(l);
     while (p && !lv_obj_check_type(p, &lv_button_class))
         p = lv_obj_get_parent(p);
@@ -186,7 +187,7 @@ static void controls_fit(lv_obj_t *p, bool hidden)
         for (lv_obj_t *q = p; q; q = lv_obj_get_parent(q))
         {
             if (lv_obj_get_width(q) == PW_CAMPUS_WIDTH) map_child = true;
-            if (lv_obj_has_flag(q, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_get_width(q)==322 && lv_obj_get_height(q)==250) scroll_child = true;
+            if (lv_obj_has_flag(q, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_get_width(q)==322 && lv_obj_get_height(q)>=200) scroll_child = true;
         }
         if (!map_child)
         {
@@ -886,11 +887,11 @@ static void scroll_menus_and_curfew(void)
     pw_point_t p=pw_node(PW_CANTEEN,3);world.x=p.x;world.y=p.y;pet_ui_update(&world);
     tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
     assert(world.phase==PW_SEATED && world.wallet.coins==100 && world.food==40);step(550);
-    assert(label_with(lv_screen_active(),"坐下慢慢选餐"));screenshot("shahe-meal-menu-top.ppm");
+    assert(label_with(lv_screen_active(),"学生餐厅 · 选窗口"));screenshot("shahe-meal-menu-top.ppm");
     tap(60,220);assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
     swipe_up();swipe_up();
     lv_obj_t *last=control("红豆小点心");lv_area_t a;lv_obj_get_coords(last,&a);
-    assert(a.y1>=96 && a.y2<346);screenshot("shahe-meal-menu-bottom.ppm");
+    assert(a.y1>=118 && a.y2<346);screenshot("shahe-meal-menu-bottom.ppm");
     press("红豆小点心");assert(world.wallet.coins==100 && world.food==40);
     press("确认用餐 · 3金币");assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
     step(6500);tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
@@ -909,6 +910,38 @@ static void scroll_menus_and_curfew(void)
     puts("[host:menu-ui] native pointer two scrolls to sixth meals, no charge on selection/cancel, seated confirmation, delivery kind, curfew/wake/close PASS");
 }
 
+static void activity_workstudy_windows(void)
+{
+    reset(); world.scene = PW_CAMPUS; world.phase = PW_IDLE; world.mood = 50;
+    pet_ui_update(&world);
+    screenshot("v019-campus.ppm");
+    press("学生活动中心");
+    screenshot("v019-activity.ppm");
+    assert(label_with(lv_screen_active(), "去健身房"));
+    assert(label_with(lv_screen_active(), "跳舞"));
+    assert(label_with(lv_screen_active(), "打羽毛球"));
+    press("跳舞");
+    assert(world.mood == 55);
+    assert(!label_with(lv_screen_active(), "去健身房"));
+    reset(); world.scene = PW_CLASSROOM; world.phase = PW_IDLE; world.wallet.coins = 10;
+    pet_ui_update(&world);
+    press("勤工俭学");
+    assert(world.wallet.coins == 13);
+    press("勤工俭学");
+    assert(world.wallet.coins == 13);
+    reset(); world.scene = PW_CANTEEN; world.wallet.coins = 100; world.food = 40;
+    pw_point_t p = pw_node(PW_CANTEEN, 3); world.x = p.x; world.y = p.y;
+    pet_ui_update(&world); tap(87, 252);
+    for (unsigned i = 0; i < 1000 && world.phase == PW_WALK; i++) step(20);
+    assert(world.phase == PW_SEATED); step(550);
+    press("风味");
+    screenshot("v019-window.ppm");
+    assert(label_with(lv_screen_active(), "番茄鸡蛋饭"));
+    assert(!label_with(lv_screen_active(), "土豆牛肉饭"));
+    press("番茄鸡蛋饭");
+    press("确认用餐 · 6金币");
+    assert(world.wallet.coins == 94 && world.food == 60);
+}
 int main(int argc, char **argv)
 {
     lv_init();
@@ -982,6 +1015,7 @@ int main(int argc, char **argv)
     new_life_and_challenges();
     daily_checkin_ui();
     scroll_menus_and_curfew();
+    activity_workstudy_windows();
     shop_during_walk();
     unsigned expected_timers = timers();
     for (unsigned i = 0; i < 10; i++)

@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "校园地图保留现有道路底图叠加建筑名/施工黄条；活动中心弹窗；餐厅窗口标签；勤工俭学/跳舞/羽毛球即时交互"
+      alternatives_considered: "A 保留底图+弹窗/标签+即时交互；B 重绘扁平地图+新场景+独立餐厅楼；C 只做活动中心弹窗"
+      rationale: "A 兼容旧档/旧测试，最快上板；B 视觉更贴近示意图但重做门位/场景/存档风险大；用户四选一确认A"
+      decided_by: "王焕博（四选一确认，ADR-0021）"
     - decision: "图鉴采用3×4一屏网格，上两行食堂/下两行外卖"
       alternatives_considered: "12行滚动列表；2×6紧凑列表；分页每页4项"
       rationale: "12项一屏看全、接近Catbook收藏感；代价是去掉每项来源第二行，用分区与底注表达"
