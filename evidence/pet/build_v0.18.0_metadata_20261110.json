@@ -1,0 +1,50 @@
+{
+  "version": "0.18.0",
+  "built_at": "2026-11-10",
+  "sdk": {
+    "version": "2.5.1",
+    "commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65"
+  },
+  "board": "sf32lb52-lchspi-ulp",
+  "command": "python -m SCons --board=sf32lb52-lchspi-ulp -j4",
+  "source_commit": "0f9a1a5",
+  "source_build_root": "D:\\\\build\\\\shahe-campus-cat（ASCII路径，仓库本身含中文路径导致Kconfig编码失败）",
+  "rom": {
+    "total": 8388608,
+    "used": 4610718,
+    "free": 3777890
+  },
+  "ram_hcpu": {
+    "total": 523264,
+    "used": 171292,
+    "free": 351972
+  },
+  "lcpu_rom": 6586,
+  "artifacts": [
+    {
+      "name": "bootloader.bin",
+      "size": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "name": "ftab.bin",
+      "size": 11288,
+      "sha256": "71D539B6922380F71E16849E8ADD7B139FAC79F5B90E619BCE8F659E364EE4A5"
+    },
+    {
+      "name": "lcpu.bin",
+      "size": 5336,
+      "sha256": "AC060A33ED7E8B4C48A880B842245B9C063924106A6C8A546A9EECC76B6776F9"
+    },
+    {
+      "name": "main.bin",
+      "size": 4537196,
+      "sha256": "800BD56C3B949F39D782FBF8FA74DDB21F45A08985DA1A13C3287983ED489064"
+    }
+  ],
+  "notes": [
+    "SCons输出done building targets；增量重跑BUILD_EXIT=0",
+    "原7条链接/DFU告警按历史保留，未新增功能错误",
+    "未烧录、未在真实板卡启动"
+  ]
+}
