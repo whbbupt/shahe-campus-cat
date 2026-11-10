@@ -72,7 +72,8 @@ static struct
     lv_obj_t *challenge_track, *challenge_cursor;
     lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
-    lv_obj_t *activity_dialog, *work_button, *canteen_order;
+    lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
+    unsigned building_kind;
     const char *room_override;
     unsigned pending_window;
 } ui;
@@ -244,7 +245,7 @@ static void click(lv_event_t *e)
     if (ui.panel == PANEL_ACTIVITY &&
         (cmd == PW_ENTER_GYM || cmd == PW_DANCE || cmd == PW_BADMINTON))
     {
-        if (cmd == PW_ENTER_GYM) ui.room_override = NULL;
+        if (cmd == PW_ENTER_GYM) { ui.room_override = NULL; ui.building_kind = 9; }
         if (ui.action && ui.action((pw_command_t)cmd) == PW_OK) ui.panel = PANEL_NONE;
         paint();
         return;
@@ -254,18 +255,21 @@ static void click(lv_event_t *e)
         static const char *names[] = {"图书馆 · 自习", "公共教学楼 · 教室",
                                       "教学实验综合楼 · 实验室", "智慧教学楼 · 自习"};
         ui.room_override = names[cmd - TAG_LIBRARY];
+        ui.building_kind = (unsigned)(cmd - TAG_LIBRARY) == 0 ? 2 : (unsigned)(cmd - TAG_LIBRARY) + 2;
         if (ui.action) ui.action(PW_ENTER_CLASSROOM);
         paint(); return;
     }
     if (cmd == TAG_SOUTH)
     {
         ui.room_override = "雁南园 · 宿舍";
+        ui.building_kind = 8;
         if (ui.action) ui.action(PW_ENTER_DORM);
         paint(); return;
     }
     if (cmd == TAG_FLAVOR || cmd == TAG_STAFF)
     {
         ui.room_override = cmd == TAG_FLAVOR ? "风味餐厅 · 窗口" : "教工餐厅 · 窗口";
+        ui.building_kind = cmd == TAG_FLAVOR ? 6 : 7;
         ui.pending_window = cmd == TAG_FLAVOR ? 1 : 2;
         if (ui.action) ui.action(PW_ENTER_CANTEEN);
         paint(); return;
@@ -299,6 +303,9 @@ static void click(lv_event_t *e)
     {
         if (cmd == PW_ENTER_DORM || cmd == PW_ENTER_CLASSROOM || cmd == PW_ENTER_CANTEEN)
             ui.room_override = NULL;
+        if (cmd == PW_ENTER_DORM) ui.building_kind = 0;
+        if (cmd == PW_ENTER_CLASSROOM) ui.building_kind = 1;
+        if (cmd == PW_ENTER_CANTEEN) ui.building_kind = 8;
         if (cmd == PW_ENTER_CANTEEN) ui.pending_window = 0;
         if ((cmd == PW_SIT_MEAL || cmd == PW_EAT) && !ui.pending_window)
         {
@@ -334,6 +341,17 @@ static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
 static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅", "学生活动中心"};
 static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
+
+static void schematic_building(lv_obj_t *parent, int x, int y, int w, int h, uint32_t color, const char *name)
+{
+    lv_obj_t *b = box(parent, x, y, w, h, color, 9);
+    lv_obj_set_style_bg_opa(b, LV_OPA_80, 0);
+    lv_obj_set_style_border_width(b, 2, 0);
+    lv_obj_set_style_border_color(b, lv_color_hex(0x8C7355), 0);
+    lv_obj_t *l = text(b, name, 3, h / 2 - 10, &pet_font_16, HUD_INK);
+    lv_obj_set_width(l, w - 6);
+    lv_obj_set_style_text_align(l, LV_TEXT_ALIGN_CENTER, 0);
+}
 
 static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
 {
@@ -399,6 +417,13 @@ static void build_campus(lv_obj_t *screen)
     construction(ui.campus, 55, 285, 140, 290, "体育馆");
     construction(ui.campus, 55, 1070, 245, 150, "研究生宿舍");
     construction(ui.campus, 395, 285, 150, 95, "北区食堂");
+    schematic_building(ui.campus, 560, 440, 110, 60, 0xD5B7A0, "风味餐厅");
+    schematic_building(ui.campus, 560, 560, 110, 75, 0xCBB79C, "教工餐厅");
+    schematic_building(ui.campus, 600, 860, 100, 70, 0xC9B8A3, "雁南园");
+    schematic_building(ui.campus, 1210, 700, 120, 80, 0xB8CDD0, "网络安全学院");
+    schematic_building(ui.campus, 1210, 820, 120, 80, 0xC9C0D7, "数字媒体学院");
+    schematic_building(ui.campus, 1210, 970, 120, 60, 0xD7C9B4, "人文学院");
+    schematic_building(ui.campus, 1210, 1140, 120, 60, 0xC7D3C1, "工程实验楼");
     static const int16_t trees[][2] = {
         {65,136}, {146,111}, {245,142}, {105,249}, {249,250},
         {590,121}, {691,117}, {875,112}, {996,123}, {1090,150},
@@ -448,11 +473,6 @@ static void build_campus(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(ui.goal, LV_OPA_20, 0);
     lv_obj_set_style_border_width(ui.goal, 2, 0);
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
-    campus_label(ui.campus, 842, 524, 96, "图书馆");
-    campus_label(ui.campus, 560, 800, 126, "公共教学楼");
-    campus_label(ui.campus, 1160, 798, 150, "教学实验综合楼");
-    campus_label(ui.campus, 1160, 1132, 126, "智慧教学楼");
-    campus_label(ui.campus, 376, 850, 100, "学生公寓");
     campus_label(ui.campus, 188, 600, 96, "运动场");
 }
 
@@ -474,21 +494,21 @@ static void build_gates(lv_obj_t *screen)
 }
 static void build_buildings(lv_obj_t *screen)
 {
-    static const struct { int x, y, w, tag; const char *name; } entries[] = {
-        {842, 520, 100, TAG_LIBRARY, "图书馆"},
-        {570, 780, 120, TAG_PUBLIC, "公共教学楼"},
-        {1150, 780, 150, TAG_LAB, "教学实验综合楼"},
-        {1150, 1110, 130, TAG_WISDOM, "智慧教学楼"},
-        {510, 930, 100, TAG_SOUTH, "雁南园"},
-        {555, 440, 100, TAG_FLAVOR, "风味餐厅"},
-        {555, 590, 100, TAG_STAFF, "教工餐厅"}};
+    static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
+        {842, 520, 100, TAG_LIBRARY, 1, "图书馆"},
+        {570, 780, 120, TAG_PUBLIC, 1, "公共教学楼"},
+        {1150, 780, 150, TAG_LAB, 1, "教学实验综合楼"},
+        {1150, 1110, 130, TAG_WISDOM, 1, "智慧教学楼"},
+        {600, 860, 100, TAG_SOUTH, 0, ""},
+        {560, 440, 110, TAG_FLAVOR, 0, ""},
+        {560, 560, 110, TAG_STAFF, 0, ""}};
     for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
     {
         lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
                              entries[i].tag, PAPER, 6);
         lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
         lv_obj_set_style_bg_opa(b, LV_OPA_20, LV_STATE_PRESSED);
-        scene_tag(b, entries[i].name, LV_ALIGN_TOP_MID, 0, 3);
+        if (entries[i].label) scene_tag(b, entries[i].name, LV_ALIGN_TOP_MID, 0, 3);
     }
 }
 
@@ -800,6 +820,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.canteen_order, LV_OPA_80, 0);
     lv_obj_t *order_label = text(ui.canteen_order, "点餐", 0, 0, &pet_font_16, INK);
     lv_obj_center(order_label);
+    ui.context_button = button(screen, 246, 196, 118, 44, PW_STUDY, 0xE6ECDE, 9);
+    lv_obj_set_style_bg_opa(ui.context_button, LV_OPA_80, 0);
+    ui.context_label = text(ui.context_button, "看书", 0, 0, &pet_font_16, INK);
+    lv_obj_center(ui.context_label);
     ui.location = box(screen, 24, 28, 334, 54, HUD_PAPER, 9);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     lv_obj_set_style_border_width(ui.location, 1, 0);
@@ -1096,9 +1120,12 @@ static void paint(void)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
-    visible(ui.blackboard, !campus);
+    visible(ui.blackboard, !campus && (ui.building_kind == 1 || ui.building_kind == 3 || ui.building_kind == 5));
     visible(ui.life_hit, !campus);
-    visible(ui.work_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME);
+    visible(ui.work_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
+                            (ui.building_kind == 1 || ui.building_kind == 4));
+    visible(ui.context_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
+                               (ui.building_kind == 2 || ui.building_kind == 4));
     visible(ui.canteen_order, ui.world.scene == PW_CANTEEN && ui.world.phase != PW_MINIGAME);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
     visible(ui.location, ui.world.phase != PW_MINIGAME);
@@ -1107,6 +1134,7 @@ static void paint(void)
     visible(ui.door, !campus);
     if (!campus)
         set_label(ui.location_text, ui.room_override ? ui.room_override : room_names[ui.scene]);
+    set_label(ui.context_label, ui.building_kind == 4 ? "做实验" : "看书");
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
     int left = (int)lroundf(cx), top = (int)lroundf(cy);
