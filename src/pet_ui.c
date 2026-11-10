@@ -251,7 +251,6 @@ static void click(lv_event_t *e)
         paint();
         return;
     }
-    if (cmd >= TAG_COLLEGE_FIRST && cmd < TAG_COLLEGE_FIRST + 10)
     {
         if (ui.action) ui.action((pw_command_t)(PW_ENTER_COLLEGE_FIRST + (cmd - TAG_COLLEGE_FIRST)));
         paint(); return;
@@ -339,17 +338,6 @@ static const lv_image_dsc_t *const campus_building[] = {
 static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅", "学生活动中心"};
 static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
 
-static void schematic_building(lv_obj_t *parent, int x, int y, int w, int h, uint32_t color, const char *name)
-{
-    lv_obj_t *b = box(parent, x, y, w, h, color, 9);
-    lv_obj_set_style_bg_opa(b, LV_OPA_80, 0);
-    lv_obj_set_style_border_width(b, 2, 0);
-    lv_obj_set_style_border_color(b, lv_color_hex(0x8C7355), 0);
-    lv_obj_t *l = text(b, name, 3, h / 2 - 10, &pet_font_16, HUD_INK);
-    lv_obj_set_width(l, w - 6);
-    lv_obj_set_style_text_align(l, LV_TEXT_ALIGN_CENTER, 0);
-}
-
 static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
 {
     lv_obj_t *label = text(parent, name, x, y, &pet_font_16, HUD_INK);
@@ -411,20 +399,9 @@ static void build_campus(lv_obj_t *screen)
     construction(ui.campus, 55, 285, 140, 290, "体育馆");
     construction(ui.campus, 55, 1070, 245, 150, "研究生宿舍");
     construction(ui.campus, 395, 285, 150, 95, "北区食堂");
-    schematic_building(ui.campus, 560, 100, 120, 80, 0xD9C6A5, "科研楼");
-    schematic_building(ui.campus, 1200, 100, 120, 80, 0xB8CDD0, "智能工程学院");
-    schematic_building(ui.campus, 1200, 290, 120, 90, 0xC9C0D7, "计算机学院");
-    schematic_building(ui.campus, 560, 440, 110, 60, 0xD5B7A0, "风味餐厅");
-    schematic_building(ui.campus, 560, 560, 110, 75, 0xCBB79C, "教工餐厅");
-    schematic_building(ui.campus, 600, 860, 100, 70, 0xC9B8A3, "雁南园");
-    schematic_building(ui.campus, 1050, 900, 100, 70, 0xB8CDD0, "网络安全学院");
-    schematic_building(ui.campus, 900, 700, 100, 70, 0xC9C0D7, "数字媒体学院");
-    schematic_building(ui.campus, 1210, 970, 120, 60, 0xD7C9B4, "人文学院");
-    schematic_building(ui.campus, 900, 1050, 100, 70, 0xC7D3C1, "工程实验楼");
-    schematic_building(ui.campus, 1050, 700, 100, 70, 0xD7BFA9, "马克思主义学院");
-    schematic_building(ui.campus, 1050, 800, 100, 70, 0xBFD0C4, "理学院");
-    schematic_building(ui.campus, 700, 900, 100, 70, 0xC9B8A3, "学生公寓");
-    schematic_building(ui.campus, 760, 400, 80, 55, 0xCBB79C, "综合办公楼");
+    construction(ui.campus, 560, 95, 640, 180, "科研楼");
+    construction(ui.campus, 1210, 95, 125, 180, "智能工程学院");
+    construction(ui.campus, 1210, 290, 125, 130, "计算机学院");
     static const int16_t trees[][2] = {
         {65,136}, {146,111}, {245,142}, {105,249}, {249,250},
         {590,121}, {691,117}, {875,112}, {996,123}, {1090,150},
@@ -511,20 +488,7 @@ static void build_buildings(lv_obj_t *screen)
         {820, 455, 150, TAG_LIBRARY, 1, "图书馆"},
         {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
         {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
-        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
-        {600, 860, 100, TAG_SOUTH, 0, ""},
-        {560, 440, 110, TAG_FLAVOR, 0, ""},
-        {560, 560, 110, TAG_STAFF, 0, ""},
-        {560, 100, 120, TAG_COLLEGE_FIRST + 0, 0, ""},
-        {1200, 100, 120, TAG_COLLEGE_FIRST + 1, 0, ""},
-        {1200, 290, 120, TAG_COLLEGE_FIRST + 2, 0, ""},
-        {1050, 900, 100, TAG_COLLEGE_FIRST + 3, 0, ""},
-        {900, 700, 100, TAG_COLLEGE_FIRST + 4, 0, ""},
-        {1210, 970, 120, TAG_COLLEGE_FIRST + 5, 0, ""},
-        {1050, 700, 100, TAG_COLLEGE_FIRST + 6, 0, ""},
-        {1050, 800, 100, TAG_COLLEGE_FIRST + 7, 0, ""},
-        {900, 1050, 100, TAG_COLLEGE_FIRST + 8, 0, ""},
-        {760, 400, 80, TAG_COLLEGE_FIRST + 9, 0, ""}};
+        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"}};
     for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
     {
         lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
