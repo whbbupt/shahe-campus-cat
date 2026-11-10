@@ -194,6 +194,8 @@ def main():
             foreground(f"shahe_front_{i}", room, masks[i])
         if i == 0:
             foreground("shahe_seat_0", room, ((80,232),(119,230),(121,244),(82,248)))
+    library = Image.open(ART / "library-room.png").convert("RGB")
+    emit("shahe_library_room", ImageOps.fit(library, ROOM_SIZE, method=Image.Resampling.LANCZOS))
     buildings = ("shahe_building_0", "shahe_building_1", "shahe_building_2", "shahe_tree")
     for name, sprite in zip(buildings, sprites("campus-atlas.png", ((150,130),(254,187),(174,135),(82,106)))):
         emit(name, sprite, True)

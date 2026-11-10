@@ -37,3 +37,7 @@ Use case: picture-book smartwatch game background, 390:450 ratio 13:15 portrait 
 ### 四房摆设
 
 Exactly four clean small game props in a 2 by 2 transparent PNG atlas, designed for a 390 px smartwatch warm watercolor gouache Chinese university dorm game. Match the wood, texture, camera and soft directional light of reference. Each prop centered in its separate quadrant, transparent gutters and generous margins, no overlapping, no floor patch, no drop shadow beyond the object, no background, no text. Top left one waist-high leafy campus plant with 5-8 large olive green leaves in a simple honey clay pot; narrow upright silhouette. Top right one low honey-wood two-level classroom cubby with two neat blue books and two paper baskets, front and right sides visible. Bottom left one small wooden cafeteria tray-return rack with a tidy stack of denim-blue trays and one cream bowl, two levels, no lettering. Bottom right one compact gym dumbbell rack with two tiers and three pairs of tidy dark steel/blue hand weights, sturdy muted slate frame. Soft dimensional gouache, clear silhouettes readable at 36–60 px wide, true transparent alpha background around each object.
+
+## 图书馆
+
+`library-room.png` 是按宿舍与教室的暖木、蓝格窗帘和柔和日光生成的室内插画。资源生成脚本把源图转为 390×450 RGB565，使用原 LZ4 工具压缩。书架、阅读桌和花盆的实际地面范围由导航模型定义。

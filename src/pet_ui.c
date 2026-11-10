@@ -54,7 +54,7 @@ static struct
 {
     pet_ui_action_fn action;
     pet_ui_point_fn point;
-    lv_obj_t *campus, *gates, *door, *location, *location_text, *goal, *library;
+    lv_obj_t *campus, *gates, *door, *location, *location_text, *goal;
     pet_world_t world;
     int scene;
     unsigned panel;
@@ -92,8 +92,7 @@ static struct
     bool badminton_active, badminton_finished;
     uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
     unsigned badminton_player, badminton_rival, badminton_rallies;
-    unsigned building_kind;
-    const char *room_override;
+    bool library_layout;
     unsigned pending_window;
 } ui;
 static bool audio_available = true;
@@ -395,7 +394,6 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_ACTIVITY)
     {
-        ui.room_override = NULL;
         if (ui.world.scene == PW_CAMPUS && ui.world.phase != PW_MINIGAME)
             ui.panel = ui.panel == PANEL_ACTIVITY ? PANEL_NONE : PANEL_ACTIVITY;
         paint();
@@ -404,7 +402,6 @@ static void click(lv_event_t *e)
     if (ui.panel == PANEL_ACTIVITY &&
         (cmd == PW_ENTER_GYM || cmd == PW_DANCE || cmd == PW_BADMINTON))
     {
-        if (cmd == PW_ENTER_GYM) { ui.room_override = NULL; ui.building_kind = 9; }
         if (cmd == PW_BADMINTON)
         {
             if (ui.action && ui.action(PW_BADMINTON) == PW_OK) badminton_start();
@@ -449,7 +446,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_LIBRARY_SHELF)
     {
-        if (ui.world.scene == PW_CLASSROOM && ui.world.building_id == 2)
+        if (pw_in_library(&ui.world))
             ui.panel = ui.panel == PANEL_LIBRARY ? PANEL_NONE : PANEL_LIBRARY;
         paint(); return;
     }
@@ -492,11 +489,6 @@ static void click(lv_event_t *e)
     }
     if (!ui.panel && ui.action)
     {
-        if (cmd == PW_ENTER_DORM || cmd == PW_ENTER_CLASSROOM || cmd == PW_ENTER_CANTEEN)
-            ui.room_override = NULL;
-        if (cmd == PW_ENTER_DORM) ui.building_kind = 0;
-        if (cmd == PW_ENTER_CLASSROOM) ui.building_kind = 1;
-        if (cmd == PW_ENTER_CANTEEN) ui.building_kind = 8;
         if (cmd == PW_ENTER_CANTEEN) ui.pending_window = 0;
         if ((cmd == PW_SIT_MEAL || cmd == PW_EAT) && !ui.pending_window)
         {
@@ -530,8 +522,9 @@ static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
 }
 static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
-static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅", "学生活动中心"};
-static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN, PW_GYM};
+static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
+static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN};
+enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477 };
 
 static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
 {
@@ -602,7 +595,7 @@ static void build_campus(lv_obj_t *screen)
         {590,121}, {691,117}, {875,112}, {996,123}, {1090,150},
         {590,321}, {688,338}, {885,318}, {988,327}, {1085,304},
         {116,443}, {93,548}, {279,388}, {282,621}, {450,373},
-        {583,444}, {603,562}, {816,459}, {1102,555}, {1242,475},
+        {583,444}, {603,562}, {843,531}, {1102,555}, {1242,475},
         {107,729}, {288,729}, {444,727}, {696,745}, {816,778},
         {1087,859}, {1273,856}, {418,948}, {574,951}, {894,965},
         {1001,970}, {1262,971}, {253,1096}, {445,1076}, {710,1084},
@@ -614,8 +607,8 @@ static void build_campus(lv_obj_t *screen)
         image(ui.campus, &shahe_tree_shadow, x + 18, y + h - 12);
         image(ui.campus, &shahe_tree, x, y);
     }
-    image(ui.campus, &shahe_library, 868, 472);
-    image(ui.campus, &shahe_center, 690, 566);
+    image(ui.campus, &shahe_library, LIBRARY_X, LIBRARY_Y);
+    image(ui.campus, &shahe_center, CENTER_X, CENTER_Y);
     image(ui.campus, &shahe_lecture, 617, 751);
     image(ui.campus, &shahe_lecture, 1215, 750);
     image(ui.campus, &shahe_lecture, 1213, 1084);
@@ -657,8 +650,8 @@ static void build_gates(lv_obj_t *screen)
     {
         pw_point_t door = pw_node(PW_CAMPUS, pw_campus_door(campus_rooms[room]));
         int y = (int)door.y - (room == PW_DORM ? 66 : 44);
-        int tag = campus_rooms[room] == PW_GYM ? TAG_ACTIVITY : PW_ENTER_DORM + room;
-        int w = campus_rooms[room] == PW_GYM ? 124 : 96;
+        int tag = PW_ENTER_DORM + room;
+        int w = 96;
         lv_obj_t *gate = button(ui.gates, (int)door.x - w / 2, y, w, 70, tag, PAPER, 5);
         lv_obj_set_style_bg_opa(gate, LV_OPA_TRANSP, 0);
         lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
@@ -667,7 +660,11 @@ static void build_gates(lv_obj_t *screen)
     building_hit(ui.gates, 380, 430, 190, 190, PW_ENTER_DORM);
     building_hit(ui.gates, 930, 630, 200, 180, PW_ENTER_CLASSROOM);
     building_hit(ui.gates, 520, 980, 200, 200, PW_ENTER_CANTEEN);
-    building_hit(ui.gates, 650, 500, 170, 170, TAG_ACTIVITY);
+    lv_obj_t *center = button(ui.gates, CENTER_X, CENTER_Y, shahe_center.header.w,
+                              shahe_center.header.h, TAG_ACTIVITY, PAPER, 6);
+    lv_obj_set_style_bg_opa(center, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(center, LV_OPA_20, LV_STATE_PRESSED);
+    scene_tag(center, "学生活动中心", LV_ALIGN_TOP_MID, 0, 3);
 }
 static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
 {
@@ -676,10 +673,17 @@ static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
     lv_obj_set_style_bg_opa(b, LV_OPA_10, LV_STATE_PRESSED);
 }
 
-static void build_buildings(lv_obj_t *screen)
+static void build_buildings(void)
 {
+    pw_point_t door = pw_node(PW_CAMPUS, PW_LIBRARY_DOOR);
+    building_hit(ui.gates, LIBRARY_X, LIBRARY_Y, shahe_library.header.w,
+                 shahe_library.header.h, TAG_LIBRARY);
+    lv_obj_t *library_door = button(ui.gates, (int)door.x - 24, (int)door.y - 28,
+                                    76, 48, TAG_LIBRARY, PAPER, 6);
+    lv_obj_set_style_bg_opa(library_door, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(library_door, LV_OPA_20, LV_STATE_PRESSED);
+    scene_tag(library_door, "图书馆", LV_ALIGN_TOP_MID, 0, 27);
     static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
-        {820, 455, 150, TAG_LIBRARY, 1, "图书馆"},
         {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
         {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
         {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
@@ -724,7 +728,7 @@ static void build_hotspots(void)
             lv_obj_delete(ui.hotspot[i]);
             ui.hotspot[i] = NULL;
         }
-    if (ui.world.scene == PW_CAMPUS)
+    if (ui.world.scene == PW_CAMPUS || pw_in_library(&ui.world))
         return;
     unsigned count = ui.world.scene == PW_DORM ? 2 : 1;
     for (unsigned t = 0; t < count; t++)
@@ -1004,78 +1008,6 @@ static void build_panel(lv_obj_t *screen)
     visible(ui.challenge_track, false);
     visible(ui.layer, false);
 }
-static void build_library(lv_obj_t *screen)
-{
-    ui.library = box(screen, 0, 0, 390, 450, 0xE9D8BC, 0);
-    lv_obj_add_flag(ui.library, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(ui.library, ground_click, LV_EVENT_CLICKED, NULL);
-    box(ui.library, 0, 0, 390, 104, 0xE4D2B4, 0);          /* wall */
-    box(ui.library, 0, 104, 390, 346, 0xC9B08C, 0);        /* floor */
-    for (unsigned i = 0; i < 9; i++) box(ui.library, 0, 112 + (int)i * 38, 390, 2, 0xB89B78, 0);
-    /* left bookcase */
-    box(ui.library, 14, 112, 78, 206, 0x7A553B, 6);
-    box(ui.library, 18, 116, 70, 198, 0x8D6548, 4);
-    for (unsigned i = 0; i < 4; i++)
-    {
-        box(ui.library, 22, 124 + (int)i * 46, 62, 4, 0xC9A77E, 1);
-        for (unsigned j = 0; j < 5; j++)
-            box(ui.library, 25 + (int)j * 12, 130 + (int)i * 46, 7, 32,
-                0x5E7D63 + (int)j * 0x080402, 1);
-    }
-    /* right bookcase, narrowed to leave the exit */
-    box(ui.library, 246, 112, 52, 178, 0x7A553B, 6);
-    box(ui.library, 250, 116, 44, 170, 0x8D6548, 4);
-    for (unsigned i = 0; i < 3; i++)
-    {
-        box(ui.library, 252, 124 + (int)i * 48, 40, 4, 0xC9A77E, 1);
-        for (unsigned j = 0; j < 3; j++)
-            box(ui.library, 255 + (int)j * 12, 130 + (int)i * 48, 6, 34,
-                0x8B6E55 + (int)j * 0x060402, 1);
-    }
-    /* window and curtains */
-    box(ui.library, 104, 116, 124, 96, 0x8D6548, 4);
-    box(ui.library, 110, 122, 112, 84, 0xBFD9D2, 2);
-    box(ui.library, 110, 122, 112, 30, 0x9CC4D0, 0);
-    box(ui.library, 110, 170, 112, 36, 0x7FAE83, 0);
-    box(ui.library, 164, 122, 4, 84, 0x8D6548, 0);
-    box(ui.library, 104, 116, 10, 96, 0xD9B7A2, 2);
-    box(ui.library, 220, 116, 10, 96, 0xD9B7A2, 2);
-    /* rug */
-    box(ui.library, 92, 336, 202, 82, 0x9D7B58, 6);
-    box(ui.library, 98, 342, 190, 70, 0xC9A77E, 4);
-    box(ui.library, 106, 350, 174, 54, 0xE3C9A4, 3);
-    /* reading desk, lamp, books, mug */
-    box(ui.library, 112, 282, 170, 50, 0x7A553B, 5);
-    box(ui.library, 120, 288, 154, 6, 0xA97B55, 2);
-    box(ui.library, 128, 326, 16, 30, 0x5D3E2B, 2);
-    box(ui.library, 252, 326, 16, 30, 0x5D3E2B, 2);
-    box(ui.library, 136, 270, 34, 14, 0x456B77, 2);        /* book */
-    box(ui.library, 140, 266, 26, 6, 0xDCE6CB, 1);
-    box(ui.library, 198, 266, 30, 16, 0xC98B5A, 2);        /* mug */
-    box(ui.library, 226, 252, 8, 30, 0x6D4C36, 1);         /* lamp stem */
-    box(ui.library, 216, 244, 30, 12, 0xE9D8A8, 4);
-    /* plant */
-    box(ui.library, 18, 338, 34, 26, 0x8D6548, 4);
-    box(ui.library, 24, 324, 4, 18, 0x4C6B4C, 1);
-    box(ui.library, 32, 320, 4, 22, 0x4C6B4C, 1);
-    box(ui.library, 40, 326, 4, 16, 0x4C6B4C, 1);
-    /* wall clock and quiet sign */
-    box(ui.library, 166, 70, 30, 30, 0xFFF1D6, 15);
-    box(ui.library, 180, 76, 2, 9, INK, 1);
-    box(ui.library, 180, 84, 7, 2, INK, 1);
-    text(ui.library, "静", 236, 70, &pet_font_20, 0x6B5A47);
-    /* obvious exit door on the right */
-    box(ui.library, 300, 88, 80, 178, 0x5D3E2B, 4);
-    box(ui.library, 306, 94, 68, 166, 0xA97B55, 2);
-    box(ui.library, 310, 100, 60, 154, 0xC9A77E, 1);
-    box(ui.library, 312, 104, 56, 6, 0xE9D8BC, 0);
-    box(ui.library, 336, 172, 6, 6, 0x5D3E2B, 3);
-    text(ui.library, "出口", 318, 112, &pet_font_20, 0x4A2E1E);
-    box(ui.library, 306, 264, 72, 6, 0x5D3E2B, 2);
-    text(ui.library, "图书馆", 24, 18, &pet_font_20, HUD_INK);
-    text(ui.library, "安静自习区", 24, 48, &pet_font_16, 0x6B5A47);
-}
-
 static void build_dorm_items(lv_obj_t *screen)
 {
     ui.decor_entry = button(screen, 203, 279, 70, 58, TAG_SHOP, PAPER, 8);
@@ -1131,11 +1063,6 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_remove_flag(ui.decor, LV_OBJ_FLAG_CLICKABLE);
     build_campus(screen);
     build_furniture(screen);
-    build_library(screen);
-    ui.library_shelf = button(screen, 18, 330, 112, 44, TAG_LIBRARY_SHELF, 0xE9D8A8, 9);
-    lv_obj_set_style_bg_opa(ui.library_shelf, LV_OPA_80, 0);
-    lv_obj_t *shelf_label = text(ui.library_shelf, "借还书", 0, 0, &pet_font_16, INK);
-    lv_obj_center(shelf_label);
     ui.tone = box(screen, 0, 0, 390, 450, 0x17344E, 0);
     ui.lamplight = box(screen, 45, 177, 60, 60, 0xFFE6AA, LV_RADIUS_CIRCLE);
     lv_obj_set_style_bg_opa(ui.lamplight, LV_OPA_TRANSP, 0);
@@ -1157,7 +1084,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
     scene_tag(ui.door, "出门", LV_ALIGN_BOTTOM_MID, 0, -7);
     build_gates(screen);
-    build_buildings(screen);
+    build_buildings();
     ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
     ui.game_entry_label = scene_tag(ui.blackboard, "记忆题", LV_ALIGN_TOP_RIGHT, -3, 3);
@@ -1176,6 +1103,10 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.context_button, LV_OPA_80, 0);
     ui.context_label = text(ui.context_button, "看书", 0, 0, &pet_font_16, INK);
     lv_obj_center(ui.context_label);
+    ui.library_shelf = button(screen, 18, 374, 112, 44, TAG_LIBRARY_SHELF, HUD_PAPER, 9);
+    lv_obj_set_style_bg_opa(ui.library_shelf, LV_OPA_80, 0);
+    lv_obj_t *shelf_label = text(ui.library_shelf, "借还书", 0, 0, &pet_font_16, INK);
+    lv_obj_center(shelf_label);
     ui.location = box(screen, 24, 28, 334, 54, HUD_PAPER, 9);
     lv_obj_set_style_bg_opa(ui.location, LV_OPA_90, 0);
     lv_obj_set_style_border_width(ui.location, 1, 0);
@@ -1255,7 +1186,7 @@ static const char *room_title(const pet_world_t *w)
     {
         switch (w->building_id)
         {
-        case 2: return "图书馆 · 自习";
+        case PW_LIBRARY_BUILDING: return "图书馆 · 自习";
         case 3: return "公共教学楼 · 教室";
         case 4: return "教学实验综合楼 · 实验室";
         case 5: return "智慧教学楼 · 自习";
@@ -1465,9 +1396,13 @@ static void paint_clock(void)
 }
 static void paint(void)
 {
-    if (ui.scene != ui.world.scene)
+    bool library = pw_in_library(&ui.world);
+    if (ui.scene != ui.world.scene || ui.library_layout != library)
     {
         ui.scene = ui.world.scene;
+        ui.library_layout = library;
+        if (!library && ui.panel == PANEL_LIBRARY)
+            ui.panel = PANEL_NONE;
         if (ui.scene != PW_DORM && (ui.panel == PANEL_ORDER || ui.panel == PANEL_SHOP))
             ui.panel = PANEL_NONE;
         build_hotspots();
@@ -1482,10 +1417,12 @@ static void paint(void)
             static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 296}, {0, 0}, {280, 290}};
             lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], life_pos[ui.scene][1]);
             lv_obj_set_height(ui.life_hit, 44);
+            lv_obj_set_pos(ui.door, library ? 307 : 310, library ? 142 : 100);
+            lv_obj_set_size(ui.door, library ? 79 : 69, 143);
         }
         if (ui.scene != PW_CAMPUS)
         {
-            set_image(ui.background, room_art[ui.scene]);
+            set_image(ui.background, library ? &shahe_library_room : room_art[ui.scene]);
             const lv_image_dsc_t *art = room_decor[ui.scene];
             set_image(ui.decor, art);
             lv_obj_set_pos(ui.decor, decor_anchor[ui.scene][0], decor_anchor[ui.scene][1] - art->header.h);
@@ -1493,23 +1430,23 @@ static void paint(void)
     }
     paint_clock();
     bool campus = ui.world.scene == PW_CAMPUS;
-    bool library = !campus && ui.world.scene == PW_CLASSROOM && ui.world.building_id == 2;
-    lv_obj_set_pos(ui.context_button, library ? 132 : 246, library ? 330 : 196);
+    lv_obj_set_pos(ui.context_button, library ? 138 : 246, library ? 374 : 196);
+    lv_obj_set_y(ui.bubble_text, library ? -4 : -18);
     visible(ui.campus, campus);
     visible(ui.background, !campus);
-    visible(ui.decor, !campus);
+    visible(ui.decor, !campus && !library);
     for (unsigned i = 0; i < 3; i++)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
-    visible(ui.blackboard, !campus && (ui.building_kind == 1 || ui.building_kind == 3 || ui.building_kind == 5));
+    visible(ui.blackboard, !campus && (ui.world.building_id == 1 || ui.world.building_id == 3 || ui.world.building_id == 5));
     visible(ui.life_hit, !campus && !library);
-    bool college_lab = ui.building_kind == 10 || ui.building_kind == 11 || ui.building_kind == 12 ||
-                       ui.building_kind == 17 || ui.building_kind == 18;
+    bool college_lab = ui.world.building_id == 10 || ui.world.building_id == 11 || ui.world.building_id == 12 ||
+                       ui.world.building_id == 17 || ui.world.building_id == 18;
     visible(ui.work_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
-                            (ui.building_kind == 1 || ui.building_kind == 4 || college_lab));
+                            (ui.world.building_id == 1 || ui.world.building_id == 4 || college_lab));
     visible(ui.context_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
-                               (ui.building_kind == 2 || ui.building_kind == 4 || ui.building_kind >= 10));
+                               (library || ui.world.building_id == 4 || ui.world.building_id >= 10));
     visible(ui.canteen_order, ui.world.scene == PW_CANTEEN && ui.world.phase != PW_MINIGAME);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
     visible(ui.location, ui.world.phase != PW_MINIGAME);
@@ -1524,10 +1461,10 @@ static void paint(void)
         set_label(b, ui.library_borrowed & (1U << i) ? "归还" : "借阅");
     }
     set_label(ui.context_label,
-              (ui.building_kind == 4 || ui.building_kind == 10 || ui.building_kind == 11 ||
-               ui.building_kind == 17 || ui.building_kind == 18) ? "做实验"
-              : (ui.building_kind == 12 || ui.building_kind == 13) ? "上机"
-              : (ui.building_kind == 2 ? "看书" : "自习"));
+              (ui.world.building_id == 4 || ui.world.building_id == 10 || ui.world.building_id == 11 ||
+               ui.world.building_id == 17 || ui.world.building_id == 18) ? "做实验"
+              : (ui.world.building_id == 12 || ui.world.building_id == 13) ? "上机"
+              : (library ? "看书" : "自习"));
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
     int left = (int)lroundf(cx), top = (int)lroundf(cy);
@@ -1593,7 +1530,6 @@ static void paint(void)
     visible(ui.curfew_dialog, !memory && ui.panel == PANEL_CURFEW);
     visible(ui.album_dialog, !memory && ui.panel == PANEL_ALBUM);
     visible(ui.activity_dialog, !memory && ui.panel == PANEL_ACTIVITY);
-    visible(ui.library, library);
     visible(ui.sports_dialog, !memory && ui.panel == PANEL_SPORTS);
     visible(ui.library_shelf, library && ui.world.phase != PW_MINIGAME);
     visible(ui.library_panel, !memory && ui.panel == PANEL_LIBRARY);
@@ -1640,7 +1576,6 @@ void pet_ui_update(const pet_world_t *world)
         lv_obj_scroll_to_y(ui.menu_list, 0, LV_ANIM_OFF);
     }
     ui.world = *world;
-    ui.building_kind = world->building_id;
     badminton_tick();
     sports_tick();
     paint();

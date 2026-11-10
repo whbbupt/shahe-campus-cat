@@ -4,7 +4,7 @@
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
 #define SCHEMA PS_SCHEMA
-enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
+enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52, LIBRARY_FLAG = 0x10 };
 static uint32_t get32(const uint8_t *p)
 {
     return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
@@ -53,8 +53,13 @@ static bool known_header(const uint8_t *r)
 }
 static uint16_t dish_mask(const uint8_t *r)
 {
-    return r[4] >= 11 ? (uint16_t)((uint16_t)r[5] | (uint16_t)r[7] << 8) : 0;
+    return r[4] >= 11 ? (uint16_t)((uint16_t)r[5] | (uint16_t)(r[7] & 0x0F) << 8) : 0;
 }
+static bool saved_library(const uint8_t *r)
+{
+    return r[4] >= 12 && (r[7] & LIBRARY_FLAG) != 0;
+}
+
 static uint32_t order_code(const uint8_t *r)
 {
     return r[4] >= 10 ? get16(r + ORDER_OFFSET) : r[4] >= 3 ? get32(r + ORDER_OFFSET) : 0;
@@ -88,7 +93,8 @@ static void visible_key(const uint8_t *r, uint8_t key[20])
     put16(key + 13, r[4] >= 9 ? get16(r + 54) : 0);
     key[15] = (uint8_t)order_choice(r);
     put16(key + 16, dish_mask(r));
-    key[18] = key[19] = 0;
+    key[18] = saved_library(r);
+    key[19] = 0;
 }
 static bool checkin_valid(unsigned day)
 {
@@ -98,7 +104,8 @@ static bool valid(const uint8_t *r)
 {
     if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || (r[4] < 5 ? r[15] > 1 : sound_mode(r) > 2) ||
         ((r[4] == 6 && (r[15] & 128)) || (r[4] >= 6 && volume(r) > 10)) ||
-        (r[4] >= 11 && dish_mask(r) > 0x0FFFU) ||
+        (r[4] == 11 && (r[7] & 0xF0)) || (r[4] >= 12 && (r[7] & 0xE0)) ||
+        (saved_library(r) && r[14] != PW_CLASSROOM) ||
         r[14] > (r[4] == 1 ? PW_CANTEEN : r[4] == 2 ? PW_CAMPUS : PW_GYM) ||
         (sleeping(r) && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
@@ -136,7 +143,8 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
 {
     return s->enabled && s->has_saved && snapshot_ready(w) &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
-           s->saved[14] == (uint8_t)w->scene && sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
+           s->saved[14] == (uint8_t)w->scene && saved_library(s->saved) == pw_in_library(w) &&
+           sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
            clock_trusted(s->saved) == w->clock.trusted && order_state(s->saved) == w->order &&
            order_choice(s->saved) == w->order_choice &&
            w->wallet.coins == (s->saved[4] >= 8 ? get32(s->saved + 46) : PE_START_COINS) &&
@@ -160,7 +168,7 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
     r[4] = SCHEMA;
     r[5] = (uint8_t)(w->dishes & 0xFFU);
     r[6] = 64;
-    r[7] = (uint8_t)(w->dishes >> 8);
+    r[7] = (uint8_t)(w->dishes >> 8) | (pw_in_library(w) ? LIBRARY_FLAG : 0);
     put32(r + 8, seq);
     r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = (uint8_t)((w->phase == PW_SLEEP ? 1 : 0) | (w->sound_mode << 1) | (w->volume << 3) | (w->clock.trusted ? 128 : 0));
     put32(r + 16, (uint32_t)w->food_elapsed);
@@ -201,7 +209,12 @@ static void restore(const uint8_t *r, pet_world_t *w)
     w->clock.trusted = clock_trusted(r);
     w->phase = sleeping(r) ? PW_SLEEP : PW_IDLE;
     w->node = w->scene == PW_CAMPUS ? 0 : (sleeping(r) ? 6 : 3);
-    pw_point_t p = pw_node(w->scene, (unsigned)w->node);
+    if (saved_library(r))
+    {
+        w->building_id = PW_LIBRARY_BUILDING;
+        w->return_node = PW_LIBRARY_DOOR;
+    }
+    pw_point_t p = pw_world_node(w, (unsigned)w->node);
     w->x = p.x; w->y = p.y;
     w->food_elapsed = get32(r + 16); w->mood_elapsed = get32(r + 20); w->rest_elapsed = get32(r + 24);
     w->order = order_state(r);

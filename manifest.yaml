@@ -1539,7 +1539,32 @@ test_results:
     status: partial
     pass: false
 
+  - test_id: TC-292
+    description: 图书馆进出及存档回归
+    expected: 始终保留图书馆身份，重启后仍回原门
+    actual: 主机共享模型及存档模拟通过
+    evidence_path: evidence/pet/library_v0191_host_20261110.txt
+    pass: true
+  - test_id: TC-293
+    description: 图书馆和学活界面专项
+    expected: 两楼入口独立，路面只触发走路，借还书和看书可用
+    actual: 生产 LVGL 主机指针专项通过
+    evidence_path: evidence/pet/library_v0191_ui_20261110.txt
+    pass: true
+  - test_id: TC-294
+    description: 图书馆与学活上板复测
+    expected: 真实触摸、出门与保存后重启符合测试计划
+    pass: null
+
+  - test_id: TC-295
+    description: 图书馆绘本画面和导航边界
+    expected: 昼夜插画可辨识，门和家具范围与画面一致
+    actual: 主机模型、生产 LVGL 资源解码和指针专项通过
+    evidence_path: evidence/pet/library_v0191_style_20261110.txt
+    pass: true
+
 known_issues:
+  - "v0.19.1 图书馆与学活主机专项通过，完整 LVGL 仍有基线道路断言，目标构建被 ARM GCC 启动错误阻止，TC-294 待实机。"
   - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool 0.2.5已对COM6常规烧录成功，启动日志70项PASS、真实PET_SAVE区读到格式11记录且旧9/10保留；图鉴实机0/12、外卖后1/12已拍照，食堂菜/复位保持/触摸手感、掉电恢复与BLE seated仍未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"

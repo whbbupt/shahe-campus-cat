@@ -1,0 +1,7 @@
+[host:assets] 46 production decoders x10, released each time; peak image allocation=351000 bytes PASS
+[host:render-profile] scene=0 frames=50 large_decodes=0 pixels=7200 peak=359040
+[host:render-profile] scene=1 frames=50 large_decodes=0 pixels=7200 peak=1532415
+[host:render-profile] scene=2 frames=50 large_decodes=3 pixels=8775000 peak=2017365
+[host:world-ui] campus-library-activity.ppm
+[host:world-ui] library-reading-room.ppm
+[host:world-ui] library and activity entrances PASS

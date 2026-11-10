@@ -13,6 +13,7 @@ extern const lv_image_dsc_t shahe_room_2;
 extern const lv_image_dsc_t shahe_front_2;
 extern const int16_t shahe_front_2_xy[2];
 extern const lv_image_dsc_t shahe_room_3;
+extern const lv_image_dsc_t shahe_library_room;
 extern const lv_image_dsc_t shahe_building_0;
 extern const lv_image_dsc_t shahe_building_1;
 extern const lv_image_dsc_t shahe_building_2;

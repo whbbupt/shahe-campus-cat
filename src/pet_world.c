@@ -4,7 +4,9 @@
 #include <math.h>
 #include <string.h>
 
-static const pw_point_t nodes[PW_GYM + 1][PW_PATH_CAPACITY] = {
+enum { LIBRARY_LAYOUT = PW_GYM + 1 };
+
+static const pw_point_t nodes[LIBRARY_LAYOUT + 1][PW_PATH_CAPACITY] = {
     {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}, [1] = {304, 302}},
     {{343, 242}, [3] = {188, 358}, [6] = {148, 298}},
     {{346, 239}, [3] = {184, 302}, [6] = {152, 300}},
@@ -15,7 +17,8 @@ static const pw_point_t nodes[PW_GYM + 1][PW_PATH_CAPACITY] = {
 #undef SHAHE_NODE
 #undef SHAHE_ROAD
     },
-    [PW_GYM] = {{345, 246}, [3] = {232, 359}, [6] = {187, 329}}};
+    [PW_GYM] = {{345, 246}, [3] = {232, 359}, [6] = {187, 329}},
+    [LIBRARY_LAYOUT] = {{346, 295}, [3] = {312, 342}, [6] = {197, 370}}};
 static const uint8_t campus_edges[][2] = {
 #define SHAHE_NODE(id, x, y)
 #define SHAHE_ROAD(a, b) {a, b},
@@ -31,18 +34,30 @@ typedef struct
 } floor_block_t;
 
 /* These are foot-space obstacles, expanded slightly beyond the painted bases. */
-static const floor_block_t blocks[PW_GYM + 1][4] = {
+static const floor_block_t blocks[LIBRARY_LAYOUT + 1][4] = {
     {{23, 243, 178, 301}, {213, 276, 260, 324}, {22, 390, 59, 409}},
     {{42, 244, 134, 399}, {200, 244, 291, 319}, {314, 359, 371, 385}},
     {{34, 242, 142, 326}, {214, 242, 319, 326}, {89, 326, 202, 419}, {319, 350, 376, 374}},
-    [PW_GYM] = {{34, 241, 168, 322}, {289, 348, 356, 372}}
+    [PW_GYM] = {{34, 241, 168, 322}, {289, 348, 356, 372}},
+    [LIBRARY_LAYOUT] = {{12, 286, 100, 298}, {238, 286, 300, 295},
+                        {88, 280, 275, 356}, {10, 310, 51, 348}}
 };
-static const unsigned block_count[] = {3, 3, 4, [PW_GYM] = 2};
-static const unsigned floor_top[] = {246, 241, 236, [PW_GYM] = 242};
+static const unsigned block_count[] = {3, 3, 4, [PW_GYM] = 2, [LIBRARY_LAYOUT] = 4};
+static const unsigned floor_top[] = {246, 241, 236, [PW_GYM] = 242, [LIBRARY_LAYOUT] = 286};
 
-bool pw_room_ground(pw_scene_t scene, float x, float y)
+bool pw_in_library(const pet_world_t *w)
 {
-    if ((unsigned)scene > PW_GYM || scene == PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
+    return w->scene == PW_CLASSROOM && w->building_id == PW_LIBRARY_BUILDING;
+}
+
+static unsigned room_layout(const pet_world_t *w)
+{
+    return pw_in_library(w) ? LIBRARY_LAYOUT : (unsigned)w->scene;
+}
+
+static bool room_ground(unsigned scene, float x, float y)
+{
+    if (scene > LIBRARY_LAYOUT || scene == PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
         x < 12 || x > 378 || y < floor_top[scene] || y > 440)
         return false;
     for (unsigned i = 0; i < block_count[scene]; i++)
@@ -52,6 +67,11 @@ bool pw_room_ground(pw_scene_t scene, float x, float y)
             return false;
     }
     return true;
+}
+
+bool pw_room_ground(pw_scene_t scene, float x, float y)
+{
+    return (unsigned)scene <= PW_GYM && room_ground((unsigned)scene, x, y);
 }
 
 static bool clip_axis(float start, float delta, float lo, float hi, float *enter, float *exit)
@@ -64,7 +84,7 @@ static bool clip_axis(float start, float delta, float lo, float hi, float *enter
     return *enter <= *exit;
 }
 
-static bool clear_segment(pw_scene_t scene, pw_point_t a, pw_point_t b)
+static bool clear_segment(unsigned scene, pw_point_t a, pw_point_t b)
 {
     for (unsigned i = 0; i < block_count[scene]; i++)
     {
@@ -138,6 +158,12 @@ pw_point_t pw_node(pw_scene_t s, unsigned n)
 {
     return (unsigned)s <= PW_GYM && n < PW_PATH_CAPACITY ? nodes[s][n] : (pw_point_t){0, 0};
 }
+pw_point_t pw_world_node(const pet_world_t *w, unsigned node)
+{
+    unsigned layout = room_layout(w);
+    return layout <= LIBRARY_LAYOUT && node < PW_PATH_CAPACITY ? nodes[layout][node] : (pw_point_t){0, 0};
+}
+
 uint32_t pw_duration(pw_command_t a)
 {
     return a >= PW_EAT && a < PW_ACTION_COUNT ? durations[a] : 0;
@@ -386,10 +412,10 @@ static pw_point_t point(const pet_world_t *w, int n)
     if (n >= ROOM_CORNERS)
     {
         unsigned k = (unsigned)(n - ROOM_CORNERS);
-        floor_block_t b = blocks[w->scene][k / 4];
+        floor_block_t b = blocks[room_layout(w)][k / 4];
         return (pw_point_t){k & 1 ? b.right + 1 : b.left - 1, k & 2 ? b.bottom + 1 : b.top - 1};
     }
-    return pw_node(w->scene, (unsigned)n);
+    return pw_world_node(w, (unsigned)n);
 }
 unsigned pw_road_count(void)
 {
@@ -413,6 +439,7 @@ void pw_camera(const pet_world_t *w, float *x, float *y)
 static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, unsigned *len, float *cost)
 {
     pw_scene_t s = w->scene;
+    unsigned layout = room_layout(w);
     float dist[PW_PATH_CAPACITY];
     int8_t prev[PW_PATH_CAPACITY];
     bool done[PW_PATH_CAPACITY] = {false};
@@ -451,11 +478,11 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
             {
                 next = e;
                 bool corner = next >= ROOM_CORNERS &&
-                              next < ROOM_CORNERS + (int)block_count[s] * 4;
+                              next < ROOM_CORNERS + (int)block_count[layout] * 4;
                 if (done[next] || (next != goal && !corner))
                     continue;
                 pw_point_t a = point(w, at), b = point(w, next);
-                if (!pw_room_ground(s, b.x, b.y) || !clear_segment(s, a, b))
+                if (!room_ground(layout, b.x, b.y) || !clear_segment(layout, a, b))
                     continue;
             }
             if (next < 0 || done[next])
@@ -602,7 +629,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
 {
     if (w->scene != PW_CAMPUS)
     {
-        if (!pw_room_ground(w->scene, x, y))
+        if (!room_ground(room_layout(w), x, y))
             return PW_INVALID;
         if (pw_busy(w))
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
@@ -680,7 +707,7 @@ static int exit_door(const pet_world_t *w)
 {
     if (w->scene == PW_CLASSROOM)
     {
-        static const int doors[] = {14, 14, 56, 54, 16, 24, 9, 43, 15, 52, 32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
+        static const int doors[] = {14, 14, PW_LIBRARY_DOOR, 54, 16, 24, 9, 43, 15, 52, 32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
         unsigned id = w->building_id <= 19 ? w->building_id : 1;
         return doors[id];
     }
@@ -878,7 +905,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
         static const int goals[] = {32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
         unsigned i = (unsigned)(cmd - PW_ENTER_COLLEGE_FIRST);
-        w->building_id = (uint8_t)(10 + i);
+        w->destination_building_id = (uint8_t)(10 + i);
         w->destination = PW_CLASSROOM;
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;
@@ -892,12 +919,11 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->phase != PW_IDLE)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
-        static const int goals[] = {56, 54, 16, 24, 9, 43};
+        static const int goals[] = {PW_LIBRARY_DOOR, 54, 16, 24, 9, 43};
         static const pw_scene_t scenes[] = {PW_CLASSROOM, PW_CLASSROOM, PW_CLASSROOM,
                                             PW_CLASSROOM, PW_CANTEEN, PW_CANTEEN};
         unsigned i = (unsigned)(cmd - PW_ENTER_LIBRARY);
-        w->building_id = (uint8_t)(i + 2);
-        w->return_node = (uint8_t)goals[i];
+        w->destination_building_id = (uint8_t)(i + PW_LIBRARY_BUILDING);
         w->destination = (int8_t)scenes[i];
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;
@@ -916,8 +942,8 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
                           : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
         int exit_node = cmd == PW_EXIT ? (w->return_node ? (int)w->return_node : exit_door(w)) : 0;
-        w->building_id = cmd == PW_EXIT ? 0 : cmd == PW_ENTER_DORM ? 0 : cmd == PW_ENTER_CLASSROOM ? 1 : cmd == PW_ENTER_CANTEEN ? 8 : 9;
-        w->return_node = cmd == PW_EXIT ? 0 : (uint8_t)pw_campus_door(next);
+        w->destination_building_id = cmd == PW_EXIT || cmd == PW_ENTER_DORM ? 0
+                                   : cmd == PW_ENTER_CLASSROOM ? 1 : cmd == PW_ENTER_CANTEEN ? 8 : 9;
         int goal = cmd == PW_EXIT ? 0 : (int)pw_campus_door(next);
         w->entry_node = (int8_t)exit_node;
         w->destination = (int8_t)next;
@@ -946,6 +972,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if (w->scene == PW_DORM && pw_curfew(w)) return reject(w, PW_CURFEW);
         w->destination = (int8_t)next;
+        w->destination_building_id = next == PW_DORM ? 0 : next == PW_CLASSROOM ? 1 : 8;
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;
         if (!move(w, 0, 2))
@@ -1140,7 +1167,10 @@ void pw_advance(pet_world_t *w, uint32_t ms)
             {
                 if (w->scene == PW_DORM && w->destination != PW_DORM && pw_curfew(w))
                 { w->destination = -1; idle(w); reject(w, PW_CURFEW); continue; }
+                w->return_node = w->scene == PW_CAMPUS && w->destination != PW_CAMPUS
+                               ? (uint8_t)w->node : 0;
                 w->scene = (pw_scene_t)w->destination;
+                w->building_id = w->destination_building_id;
                 w->node = w->scene == PW_CAMPUS ? w->entry_node : 0;
                 w->x = point(w, w->node).x;
                 w->y = point(w, w->node).y;
@@ -1203,6 +1233,12 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     if (w->phase == PW_ACTION && w->action == PW_TAKEOUT)
     {
         v->frame = (uint8_t)(16 + w->now / 210 % 2);
+        return;
+    }
+    if (pw_in_library(w) && w->phase == PW_ACTION && w->action == PW_STUDY)
+    {
+        v->facing = 4;
+        v->frame = (uint8_t)(16 + w->now / 500 % 2);
         return;
     }
     bool furniture = w->phase == PW_SLEEP || w->phase == PW_SEATED || (w->phase == PW_ACTION && w->action != PW_TOUCH);

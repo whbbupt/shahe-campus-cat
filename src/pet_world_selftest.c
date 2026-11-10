@@ -342,6 +342,39 @@ static bool campus_doors(void)
     }
     return true;
 }
+static bool library_round_trip(void)
+{
+    pet_world_t w;
+    campus_spawn(&w);
+    CHECK(pw_request(&w, PW_ENTER_LIBRARY) == PW_OK);
+    pw_advance(&w, 10000);
+    CHECK(pw_in_library(&w) && w.phase == PW_IDLE);
+    CHECK(pw_walk_to(&w, 47, 294) == PW_INVALID);
+    CHECK(pw_walk_to(&w, 24, 332) == PW_INVALID);
+    CHECK(pw_walk_to(&w, 180, 302) == PW_INVALID);
+    CHECK(pw_walk_to(&w, 75, 402) == PW_OK);
+    for (int i = 0; i < 500 && w.phase == PW_WALK; i++)
+    {
+        CHECK(!(w.x >= 88 && w.x <= 275 && w.y >= 280 && w.y <= 356));
+        pw_advance(&w, 20);
+    }
+    CHECK(w.phase == PW_IDLE && w.x == 75 && w.y == 402);
+    CHECK(pw_request(&w, PW_STUDY) == PW_OK);
+    pw_advance(&w, 12000);
+    CHECK(pw_in_library(&w) && w.phase == PW_IDLE && w.settlements[PW_STUDY] == 1);
+    CHECK(pw_request(&w, PW_EXIT) == PW_OK);
+    CHECK(pw_in_library(&w));
+    for (int i = 0; i < 500 && w.scene == PW_CLASSROOM; i++)
+    {
+        CHECK(pw_in_library(&w));
+        pw_advance(&w, 20);
+    }
+    pw_advance(&w, 500);
+    pw_point_t door = pw_node(PW_CAMPUS, PW_LIBRARY_DOOR);
+    CHECK(w.scene == PW_CAMPUS && w.phase == PW_IDLE && w.building_id == 0);
+    CHECK(w.x == door.x && w.y == door.y);
+    return true;
+}
 static bool campus_guards(void)
 {
     pet_world_t w;
@@ -632,6 +665,7 @@ bool pw_campus_selftest(void (*report)(const char *, bool))
         bool (*run)(void);
     } cases[] = {{"campus-point-retarget-road", campus_point_routes},
                  {"campus-three-building-doors", campus_doors},
+                 {"library-stays-visible-until-campus", library_round_trip},
                  {"campus-guards-no-wander", campus_guards},
                  {"campus-clock-camera", campus_clock_camera},
                  {"campus-all-road-endpoints", campus_all_roads_connected}};

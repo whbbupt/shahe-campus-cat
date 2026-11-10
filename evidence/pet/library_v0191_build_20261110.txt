@@ -1,0 +1,20 @@
+scons: Reading SConscript files ...
+Board: sf32lb52-lchspi-ulp_hcpu
+Error: 系统无法执行指定的程序。
+
+
+RuntimeError: GCC command failed: arm-none-eabi-gcc:
+  File "C:\temp\shahe-pr1\project\SConstruct", line 17:
+    AddBootLoader(SIFLI_SDK,rtconfig.CHIP)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\building.py", line 4591:
+    AddChildProj(proj_name, proj_path, False)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\building.py", line 2277:
+    objs = PrepareBuilding(proj_env)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\building.py", line 2955:
+    GenCconfigFile(env, BuildOptions)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\building.py", line 142:
+    gcc.GenerateGCCConfig(rtconfig, path)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\gcc.py", line 199:
+    cc_header += GCCResult(rtconfig, str)
+  File "D:\development\sifli\SiFli-SDK\v2.5.1\tools\build\gcc.py", line 100:
+    raise RuntimeError("GCC command failed: " + gcc_cmd)

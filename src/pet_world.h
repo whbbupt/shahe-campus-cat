@@ -12,6 +12,8 @@ enum
     PW_CAMPUS_WIDTH = 1400,
     PW_CAMPUS_HEIGHT = 1300,
     PW_ROAD_RADIUS = 32,
+    PW_LIBRARY_BUILDING = 2,
+    PW_LIBRARY_DOOR = 56,
     PW_PATH_CAPACITY = 64
 };
 
@@ -156,6 +158,7 @@ typedef struct
     int message, gain, mood_gain;
     pt_clock_t clock;
     uint8_t building_id; /* 0=dorm, 1=teaching, 2=library, 3=public, 4=lab, 5=wisdom, 6=flavor, 7=staff, 8=student canteen, 9=activity */
+    uint8_t destination_building_id;
     uint8_t return_node; /* last entered campus door node */
     uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack, 3=dance, 4=badminton, 5=work */
     uint64_t activity_start;
@@ -200,6 +203,8 @@ pw_wish_t pw_journal_wish(const pet_world_t *world, unsigned slot);
 const char *pw_wish_text(pw_wish_t wish);
 unsigned pw_campus_door(pw_scene_t scene);
 pw_point_t pw_node(pw_scene_t scene, unsigned node);
+bool pw_in_library(const pet_world_t *w);
+pw_point_t pw_world_node(const pet_world_t *w, unsigned node);
 uint32_t pw_duration(pw_command_t action);
 bool pw_selftest(void (*report)(const char *, bool));
 bool pw_economy_selftest(void (*report)(const char *, bool));
