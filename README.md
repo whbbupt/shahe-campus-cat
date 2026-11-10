@@ -13,6 +13,7 @@
 | 第一次在电脑上配置项目 | [从零开始配置本地环境](docs/local-setup.md) |
 | 烧录后怎么玩、怎么连手机 | [上手与手机校时](docs/pet-quickstart.md) |
 | 点餐、外卖、签到、摆家具 | [校园生活与菜品](docs/pet-v017-life.md) |
+| 已有功能、未闭环项与同类产品调研 | [功能盘点与市场调研](docs/pet-feature-audit.md) |
 | 打包安卓 APK | [安卓校时工具](android-clock/README.md) |
 | 查看需求、架构和验证记录 | [需求](docs/01-需求规格说明.md) · [设计](docs/02-方案设计说明.md) · [测试报告](docs/04-测试报告.md) |
 
