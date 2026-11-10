@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "图鉴采用3×4一屏网格，上两行食堂/下两行外卖"
+      alternatives_considered: "12行滚动列表；2×6紧凑列表；分页每页4项"
+      rationale: "12项一屏看全、接近Catbook收藏感；代价是去掉每项来源第二行，用分区与底注表达"
+      decided_by: "用户要求聚焦项目设计；agent据实际LVGL预览提出，ADR-0020"
     - decision: "校园图鉴复用64字节存档的保留字节r[5]/r[7]，存档格式升到11"
       alternatives_considered: "新增独立图鉴分区；记录扩到128字节；只在本次开机记录"
       rationale: "12位刚好两个字节，不改分区、记录大小和轮转；旧1–10可读且图鉴视为空，旧10遇11保护"
