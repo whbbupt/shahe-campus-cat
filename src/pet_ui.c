@@ -168,7 +168,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_SHOP)
     {
-        if (ui.world.scene == PW_DORM && ui.world.phase == PW_IDLE) ui.panel = PANEL_SHOP;
+        if (ui.world.scene == PW_DORM && (ui.world.phase == PW_IDLE || ui.world.phase == PW_SLEEP)) ui.panel = PANEL_SHOP;
         paint(); return;
     }
     if (cmd >= TAG_FOOD_FIRST && cmd < TAG_FOOD_FIRST + PE_MENU_COUNT)
@@ -498,7 +498,7 @@ static void build_panel(lv_obj_t *screen)
     ui.album_list = box(ui.album_dialog, 12, 76, 322, 296, PAPER, 0);
     lv_obj_add_flag(ui.album_list, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(ui.album_list, LV_DIR_VER);
-    lv_obj_set_scrollbar_mode(ui.album_list, LV_SCROLLBAR_MODE_AUTO);
+    lv_obj_set_scrollbar_mode(ui.album_list, LV_SCROLLBAR_MODE_ON);
     for (unsigned i = 0; i < 12; i++)
     {
         ui.album_row[i] = box(ui.album_list, 2, i * 68, 310, 64, 0xE6ECDE, 9);
@@ -654,9 +654,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     box(book, 3, 4, 8, 1, HUD_PAPER, 0);
     box(book, 3, 8, 6, 1, HUD_PAPER, 0);
     text(ui.status_button, "状态", 15, 28, &pet_font_16, HUD_INK);
-    ui.album_button = button(screen, 296, 94, 62, 40, TAG_ALBUM, HUD_PAPER, 8);
+    ui.album_button = button(screen, 296, 94, 62, 44, TAG_ALBUM, HUD_PAPER, 8);
     lv_obj_set_style_bg_opa(ui.album_button, LV_OPA_80, 0);
-    text(ui.album_button, "图鉴", 15, 9, &pet_font_16, HUD_INK);
+    text(ui.album_button, "图鉴", 15, 11, &pet_font_16, HUD_INK);
 }
 static int limit(int x, int lo, int hi)
 {

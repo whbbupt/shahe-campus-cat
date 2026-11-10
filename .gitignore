@@ -36,3 +36,6 @@ build_*/
 *.pyc
 sifli_sdk/
 project/src/
+
+# 主机 UI 测试用的临时 LVGL 源码（按 docs/04 的命令本地克隆，不入库）
+_sdk/
