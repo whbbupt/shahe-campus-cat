@@ -897,6 +897,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
                                             PW_CLASSROOM, PW_CANTEEN, PW_CANTEEN};
         unsigned i = (unsigned)(cmd - PW_ENTER_LIBRARY);
         w->building_id = (uint8_t)(i + 2);
+        w->return_node = (uint8_t)goals[i];
         w->destination = (int8_t)scenes[i];
         w->target = PW_NONE;
         w->challenge.kind = PG_NONE;
@@ -914,8 +915,9 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->scene == PW_DORM && cmd == PW_EXIT && pw_curfew(w)) return reject(w, PW_CURFEW);
         pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
                           : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
-        int exit_node = cmd == PW_EXIT ? exit_door(w) : 0;
+        int exit_node = cmd == PW_EXIT ? (w->return_node ? (int)w->return_node : exit_door(w)) : 0;
         w->building_id = cmd == PW_EXIT ? 0 : cmd == PW_ENTER_DORM ? 0 : cmd == PW_ENTER_CLASSROOM ? 1 : cmd == PW_ENTER_CANTEEN ? 8 : 9;
+        w->return_node = cmd == PW_EXIT ? 0 : (uint8_t)pw_campus_door(next);
         int goal = cmd == PW_EXIT ? 0 : (int)pw_campus_door(next);
         w->entry_node = (int8_t)exit_node;
         w->destination = (int8_t)next;

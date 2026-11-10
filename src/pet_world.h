@@ -156,6 +156,7 @@ typedef struct
     int message, gain, mood_gain;
     pt_clock_t clock;
     uint8_t building_id; /* 0=dorm, 1=teaching, 2=library, 3=public, 4=lab, 5=wisdom, 6=flavor, 7=staff, 8=student canteen, 9=activity */
+    uint8_t return_node; /* last entered campus door node */
     uint8_t activity_kind; /* 0=original, 1=self-study, 2=snack, 3=dance, 4=badminton, 5=work */
     uint64_t activity_start;
     uint64_t activity_until;
