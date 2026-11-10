@@ -144,7 +144,6 @@ static lv_obj_t *control(const char *name)
 {
     lv_obj_t *l = label_with(lv_screen_active(), name);
     assert(l);
-    if (!l) fprintf(stderr, "MISSING control: %s\n", name);
     lv_obj_t *p = lv_obj_get_parent(l);
     while (p && !lv_obj_check_type(p, &lv_button_class))
         p = lv_obj_get_parent(p);

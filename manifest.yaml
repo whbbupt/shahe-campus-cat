@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.18.0校园图鉴与交互修复软件/构建/烧录启动完成；图鉴实机0/12、外卖后1/12已拍照，真实Flash格式11；主机124项PASS，食堂/复位/手机待测"
+  milestone: "v0.19.0沙河校园地图/活动中心/餐厅窗口/勤工俭学实现；已烧录启动，71项自检PASS；主机逻辑/存档118项PASS，真实屏幕与手机待测"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -148,6 +148,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "v0.19.0 sftool烧录与启动自检"
+    required_action: "用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；抓v0.19.0启动日志"
+    executed_at: "2026-11-10 17:35（本机文件时间戳）"
+    evidence_path: "evidence/pet/serial_v019_boot_20261110.txt"
+    agent_conclusion: "烧录退出0；启动[pet] v0.19.0 boot ok，71项PASS/0 FAIL，activity-and-workstudy PASS，旧档seq4526可读；真实屏幕/触摸和手机未验证，TC-276–282不能全部记通过。"
   - item: "v0.18.0 sftool烧录、启动与真实Flash格式11"
     required_action: "用户授权后，用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；只读读PET_SAVE 0x12DA8000 8192字节"
     executed_at: "2026-11-10 16:09（本机文件时间戳，精确操作时刻未逐秒记录）"
@@ -1414,6 +1419,56 @@ test_results:
     evidence_path: evidence/pet/host_soak_v0.18.0_20261110.txt
     status: passed_software
     pass: true
+
+  - test_id: TC-276
+    description: 校园地图分布与施工区（REQ-224）
+    expected: 建筑名/至少6处黄色施工区可读，施工区不覆盖门/主路
+    actual: 代码已实现建筑标签与7处施工区；真实屏幕与触摸照片待用户回传
+    evidence_path: build/firmware-v0.19.0/main.bin
+    status: pending_physical
+    pass: false
+  - test_id: TC-277
+    description: 活动中心入口（REQ-225）
+    expected: 先弹窗三键，再点健身房进入原健身房；关闭不改状态
+    actual: 启动自检PASS；主机UI回归未取得最终通过，真实触摸待测
+    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    status: partial
+    pass: false
+  - test_id: TC-278
+    description: 餐厅窗口（REQ-226）
+    expected: 四标签、三个窗口各两道、确认只扣一次
+    actual: 主机菜单截图显示四标签/两道菜；完整UI回归待修，真实触摸待测
+    evidence_path: evidence/pet/previews/album-v0.18.0/v019_canteen_menu.png
+    status: partial
+    pass: false
+  - test_id: TC-279
+    description: 勤工俭学（REQ-227）
+    expected: 教室+3币/60秒冷却/错误房间拒绝
+    actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
+    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    status: partial
+    pass: false
+  - test_id: TC-280
+    description: 活动中心跳舞/羽毛球（REQ-228）
+    expected: +5/+4心情、30秒共享冷却、满值/错误房间拒绝
+    actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
+    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    status: partial
+    pass: false
+  - test_id: TC-281
+    description: 原功能回归（REQ-224–228）
+    expected: 四房间/菜单/图鉴/宵禁/存档/BLE不回归
+    actual: 主机逻辑/存档/音频/BLE 118项PASS；实际LVGL UI回归未取得最终通过
+    evidence_path: evidence/pet/build_v0.19.0_20261110.txt
+    status: partial
+    pass: false
+  - test_id: TC-282
+    description: v0.19板端验收（REQ-224–228）
+    expected: 烧录启动v0.19.0、自检PASS、实拍新界面
+    actual: sftool烧录COM6 exit0；启动v0.19.0、71项PASS；实拍待用户
+    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    status: partial
+    pass: false
 
 known_issues:
   - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool 0.2.5已对COM6常规烧录成功，启动日志70项PASS、真实PET_SAVE区读到格式11记录且旧9/10保留；图鉴实机0/12、外卖后1/12已拍照，食堂菜/复位保持/触摸手感、掉电恢复与BLE seated仍未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
