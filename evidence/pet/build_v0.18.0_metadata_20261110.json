@@ -6,13 +6,13 @@
     "commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65"
   },
   "board": "sf32lb52-lchspi-ulp",
-  "command": "python -m SCons --board=sf32lb52-lchspi-ulp -j4",
-  "source_commit": "0f9a1a5",
-  "source_build_root": "D:\\\\build\\\\shahe-campus-cat（ASCII路径，仓库本身含中文路径导致Kconfig编码失败）",
+  "command": "python -m SCons --board=sf32lb52-lchspi-ulp -j4（先-c清空）",
+  "source_commit": "2f415b4",
+  "source_build_root": "D:\\\\build\\\\shahe-campus-cat（ASCII路径；仓库中文路径会使Kconfig报Malformed utf-8）",
   "rom": {
     "total": 8388608,
-    "used": 4610718,
-    "free": 3777890
+    "used": 4610526,
+    "free": 3778082
   },
   "ram_hcpu": {
     "total": 523264,
@@ -29,7 +29,7 @@
     {
       "name": "ftab.bin",
       "size": 11288,
-      "sha256": "71D539B6922380F71E16849E8ADD7B139FAC79F5B90E619BCE8F659E364EE4A5"
+      "sha256": "40C75495CCDA74FA8B6990658A9DC5D8C14557CC544CC49D4FF10EF8A0BD594E"
     },
     {
       "name": "lcpu.bin",
@@ -38,13 +38,13 @@
     },
     {
       "name": "main.bin",
-      "size": 4537196,
-      "sha256": "800BD56C3B949F39D782FBF8FA74DDB21F45A08985DA1A13C3287983ED489064"
+      "size": 4537068,
+      "sha256": "14E1C14393C5AD505D16EADC54214347441D076D3218F92178086D5F3834DF54"
     }
   ],
   "notes": [
-    "SCons输出done building targets；增量重跑BUILD_EXIT=0",
-    "原7条链接/DFU告警按历史保留，未新增功能错误",
+    "图鉴3x4网格+字体重生成后的干净全量构建",
+    "scons输出done building targets；BUILD_EXIT=0",
     "未烧录、未在真实板卡启动"
   ]
 }
