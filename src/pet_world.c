@@ -1249,8 +1249,9 @@ const char *pw_need_text(const pet_world_t *w)
 {
     if (w->phase == PW_SLEEP) return "正在休息，点床可以叫醒";
     if (pw_busy(w)) return pw_state_text(w);
+    if (w->scene == PW_CAMPUS) return "点建筑进入，或散散步";
     if (w->food < 20 && w->wallet.coins < pe_price(PE_MEAL)) return "先玩小游戏赚生活费，再买饭";
-    if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点窗口选餐" : "肚子饿啦，去食堂吃饭吧";
+    if (w->food < 20) return w->scene == PW_CANTEEN ? "肚子饿啦，点“点餐”选窗口" : "肚子饿啦，去食堂吃饭吧";
     if (w->clock.valid && pt_bedtime(w->clock.utc))
         return pt_bedtime(w->clock.utc) == 2 ? "有点困，回床上休息吧" : "准备睡觉啦 · 23点前休息";
     if (w->order == PW_ORDER_READY) return "外卖到了，回宿舍取餐";

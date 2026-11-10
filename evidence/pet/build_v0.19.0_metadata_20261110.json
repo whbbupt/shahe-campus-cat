@@ -1,17 +1,42 @@
 {
   "version": "0.19.0",
-  "source_commit": "52714b6",
-  "build_time": "2026-11-10T17:35:22+08:00",
+  "source_commit": "52714b6（+工作树建筑直达/点餐修复）",
+  "build_time": "2026-11-10T18:08:00+08:00",
   "board": "sf32lb52-lchspi-ulp",
-  "sdk": {"version": "2.5.1", "commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65", "gcc": "arm-none-eabi-gcc 14.2.1"},
-  "artifacts": {
-    "main.bin": {"size": 4551972, "sha256": "79428B57F814ABFAEC9E4CDE5A7678B7F49D2F79C9221EA042C1126229005DF6"},
-    "bootloader.bin": {"size": 58496, "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"},
-    "ftab.bin": {"size": 11288, "sha256": "97EC1D31F09A622E927A23140941FB926ADD3CF8CAC3538DE6A0D707C0FE052F"},
-    "lcpu.bin": {"size": 5336, "sha256": "AC060A33ED7E8B4C48A880B842245B9C063924106A6C8A546A9EECC76B6776F9"},
-    "shahe-campus-cat-v0.19.0-firmware.zip": {"size": 3009583, "sha256": "F4973BCE3F92003C655ACB6DB117177679CB1B3C61A68F0E404F1D3172C4CAB9"}
+  "sdk": {
+    "version": "2.5.1",
+    "commit": "421126d9f476ed8e2a6f0b0ca28a9f241c182e65",
+    "gcc": "arm-none-eabi-gcc 14.2.1"
   },
-  "memory": {"rom_used": 4625874, "rom_total": 8388608, "ram_used": 171324, "ram_total": 523264, "lcpu_rom": 6586},
+  "artifacts": {
+    "main.bin": {
+      "size": 4554164,
+      "sha256": "C5486EF367429915B11B37E8168CDCB04F63A2D213FB0F1583E4F6DF23F3B982"
+    },
+    "bootloader.bin": {
+      "size": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    "ftab.bin": {
+      "size": 11288,
+      "sha256": "7134BAEE43C56210CE86165F7781E6E764F0C484D01F8D94C76144D87144BD23"
+    },
+    "lcpu.bin": {
+      "size": 5336,
+      "sha256": "AC060A33ED7E8B4C48A880B842245B9C063924106A6C8A546A9EECC76B6776F9"
+    },
+    "shahe-campus-cat-v0.19.0-firmware.zip": {
+      "size": 3010606,
+      "sha256": "C36EF68F1718A79B4765E65D2BC2493DEF71510952F6DCFEAD33D79EF3887B60"
+    }
+  },
+  "memory": {
+    "rom_used": 4628314,
+    "rom_total": 8388608,
+    "ram_used": 171332,
+    "ram_total": 523264,
+    "lcpu_rom": 6586
+  },
   "build_log": "evidence/pet/build_v0.19.0_20261110.txt",
-  "note": "目标构建与板端启动均通过；真实屏幕/触摸照片和手机证据未包含在此元数据中。"
+  "note": "目标构建与板端启动均通过；建筑直达/食堂点餐修复已烧录，真实屏幕/触摸照片和手机证据未包含。"
 }

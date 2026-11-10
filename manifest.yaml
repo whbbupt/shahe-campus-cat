@@ -148,11 +148,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
-  - item: "v0.19.0 sftool烧录与启动自检"
+  - item: "v0.19.0 sftool烧录与启动自检（含建筑直达/点餐修复）"
     required_action: "用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；抓v0.19.0启动日志"
     executed_at: "2026-11-10 17:35（本机文件时间戳）"
-    evidence_path: "evidence/pet/serial_v019_boot_20261110.txt"
-    agent_conclusion: "烧录退出0；启动[pet] v0.19.0 boot ok，71项PASS/0 FAIL，activity-and-workstudy PASS，旧档seq4526可读；真实屏幕/触摸和手机未验证，TC-276–282不能全部记通过。"
+    evidence_path: "evidence/pet/serial_v019c_boot_20261110.txt"
+    agent_conclusion: "烧录退出0；启动[pet] v0.19.0 boot ok，71项PASS/0 FAIL，activity-and-workstudy PASS，旧档seq4526可读；建筑直达/食堂点餐修复已烧录，真实屏幕/触摸和手机未验证，TC-276–282不能全部记通过。"
   - item: "v0.18.0 sftool烧录、启动与真实Flash格式11"
     required_action: "用户授权后，用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；只读读PET_SAVE 0x12DA8000 8192字节"
     executed_at: "2026-11-10 16:09（本机文件时间戳，精确操作时刻未逐秒记录）"
@@ -1431,7 +1431,7 @@ test_results:
     description: 活动中心入口（REQ-225）
     expected: 先弹窗三键，再点健身房进入原健身房；关闭不改状态
     actual: 启动自检PASS；主机UI回归未取得最终通过，真实触摸待测
-    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019c_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-278
@@ -1445,14 +1445,14 @@ test_results:
     description: 勤工俭学（REQ-227）
     expected: 教室+3币/60秒冷却/错误房间拒绝
     actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
-    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019c_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-280
     description: 活动中心跳舞/羽毛球（REQ-228）
     expected: +5/+4心情、30秒共享冷却、满值/错误房间拒绝
     actual: 启动自检activity-and-workstudy PASS；真实按钮/气泡待测
-    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019c_boot_20261110.txt
     status: partial
     pass: false
   - test_id: TC-281
@@ -1466,7 +1466,22 @@ test_results:
     description: v0.19板端验收（REQ-224–228）
     expected: 烧录启动v0.19.0、自检PASS、实拍新界面
     actual: sftool烧录COM6 exit0；启动v0.19.0、71项PASS；实拍待用户
-    evidence_path: evidence/pet/serial_v019_boot_20261110.txt
+    evidence_path: evidence/pet/serial_v019c_boot_20261110.txt
+    status: partial
+    pass: false
+
+  - test_id: TC-283
+    description: 建筑直达（REQ-229）
+    expected: 图书馆/公共教学楼/教学实验综合楼/智慧教学楼/雁北/雁南/风味/教工/学生餐厅/活动中心点击后进入对应场景或弹窗，标题正确
+    actual: 代码增加建筑入口/room_override/风味教工窗口预设；板端启动PASS；真实触摸与各楼画面待用户复测
+    evidence_path: evidence/pet/serial_v019c_boot_20261110.txt
+    status: partial
+    pass: false
+  - test_id: TC-284
+    description: 食堂点餐与价格（REQ-229）
+    expected: 点餐/桌台只坐下开菜单，确认前不扣费不加饱食，确认后按菜品扣一次；校园idle不反复提示买饭
+    actual: 桌台标签改PW_SIT_MEAL、新增点餐按钮、校园idle改中性；板端启动PASS；真实菜单/扣费待用户复测
+    evidence_path: evidence/pet/flash_v0.19c_20261110.txt
     status: partial
     pass: false
 
@@ -1595,6 +1610,7 @@ human_checkpoints:
 #     executed_at: "2026-11-03T20:15:00+08:00"
 #     evidence_path: "evidence/bt_pan_connect_log.png"
 #     agent_conclusion: "配对成功，ping通外部服务器，联网延迟约800ms"
+
 
 
 

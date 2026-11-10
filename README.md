@@ -20,7 +20,7 @@
 
 固件基于 SiFli SDK v2.5.1、RT-Thread 和 LVGL v9，目标板型为 `sf32lb52-lchspi-ulp`。固件源码在 [`src/`](src/)，板级工程在 [`project/`](project/)，安卓工具在 [`android-clock/`](android-clock/)。
 
-v0.19.0 按沙河示意图更新校园：建筑名/7 处黄条施工区、学生活动中心弹窗（先中心再健身房/跳舞/羽毛球）、餐厅四窗口、教综楼勤工俭学；目标固件 `main.bin` 4,551,972 字节，ROM 4,625,874/8,388,608，主机逻辑/存档 118 项 PASS，已烧录并启动 v0.19.0（71 项自检 PASS）。**真实屏幕画面/触摸与手机仍待验证**。iPhone 自动校时在 v0.14.2 有用户实测记录，安卓联调仍待 TC-268。
+v0.19.0 按沙河示意图更新校园：建筑名/7 处黄条施工区、学生活动中心弹窗（先中心再健身房/跳舞/羽毛球）、餐厅四窗口、教综楼勤工俭学；目标固件 `main.bin` 4,554,164 字节，ROM 4,628,314/8,388,608，主机逻辑/存档 118 项 PASS，已烧录并启动 v0.19.0（71 项自检 PASS）。**真实屏幕画面/触摸与手机仍待验证**。iPhone 自动校时在 v0.14.2 有用户实测记录，安卓联调仍待 TC-268。
 
 <details>
 <summary>课程脚手架与训练参考</summary>
@@ -152,6 +152,7 @@ type：`feat fix docs test refactor perf build ci chore revert hw`。`feat/fix/r
 **Q：Windows 下钩子不生效？** 使用 Git for Windows，确认 `git config core.hooksPath` 为 `.githooks`；仍有问题时运行 `python scripts/check_commit_msg.py --log` 手动自查，并告知教师。
 
 </details>
+
 
 
 
