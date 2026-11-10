@@ -3,7 +3,7 @@
 #include <string.h>
 #define MAGIC 0x31544143U
 #define COMMIT 0x5A17C0DEU
-#define SCHEMA 10U
+#define SCHEMA PS_SCHEMA
 enum { ORDER_OFFSET = 28, WORKOUT_OFFSET = 40, TAKEOUT_OFFSET = 52 };
 static uint32_t get32(const uint8_t *p)
 {
@@ -47,7 +47,13 @@ static bool committed(const uint8_t *r)
 }
 static bool known_header(const uint8_t *r)
 {
-    return r[4] >= 1 && r[4] <= SCHEMA && !r[5] && r[6] == PS_RECORD_SIZE && !r[7];
+    if (r[4] < 1 || r[4] > SCHEMA || r[6] != PS_RECORD_SIZE) return false;
+    /* Before schema 11 bytes 5/7 were reserved zero; 11 uses them for the album. */
+    return r[4] >= 11 || (!r[5] && !r[7]);
+}
+static uint16_t dish_mask(const uint8_t *r)
+{
+    return r[4] >= 11 ? (uint16_t)((uint16_t)r[5] | (uint16_t)r[7] << 8) : 0;
 }
 static uint32_t order_code(const uint8_t *r)
 {
@@ -69,7 +75,7 @@ static unsigned volume(const uint8_t *r)
 }
 static bool clock_trusted(const uint8_t *r) { return r[4]>=7 && (r[15]&128)!=0; }
 static bool sleeping(const uint8_t *r) { return (r[15] & 1) != 0; }
-static void visible_key(const uint8_t *r, uint8_t key[16])
+static void visible_key(const uint8_t *r, uint8_t key[20])
 {
     memcpy(key, r + 12, 4);
     key[3] = (uint8_t)((sleeping(r) ? 1 : 0) | (sound_mode(r) << 1) | (volume(r) << 3) | (clock_trusted(r) ? 128 : 0));
@@ -81,7 +87,8 @@ static void visible_key(const uint8_t *r, uint8_t key[16])
     if (r[4] >= 4) memcpy(key + 11, r + 52, 2);
     put16(key + 13, r[4] >= 9 ? get16(r + 54) : 0);
     key[15] = (uint8_t)order_choice(r);
-
+    put16(key + 16, dish_mask(r));
+    key[18] = key[19] = 0;
 }
 static bool checkin_valid(unsigned day)
 {
@@ -91,6 +98,7 @@ static bool valid(const uint8_t *r)
 {
     if (!committed(r) || !known_header(r) || r[12] > 100 || r[13] > 100 || (r[4] < 5 ? r[15] > 1 : sound_mode(r) > 2) ||
         ((r[4] == 6 && (r[15] & 128)) || (r[4] >= 6 && volume(r) > 10)) ||
+        (r[4] >= 11 && dish_mask(r) > 0x0FFFU) ||
         r[14] > (r[4] == 1 ? PW_CANTEEN : r[4] == 2 ? PW_CAMPUS : PW_GYM) ||
         (sleeping(r) && r[14] != PW_DORM) || get32(r + 16) >= 300000 || get32(r + 20) >= 600000 ||
         get32(r + 24) >= 60000)
@@ -135,7 +143,8 @@ bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
            w->wallet.owned == (s->saved[4] >= 8 ? s->saved[50] : 0) &&
            w->wallet.equipped == (s->saved[4] >= 8 ? s->saved[51] : 0) &&
            w->memory_wins == (s->saved[4] >= 4 ? get16(s->saved + 52) : 0) &&
-           w->checkin_day == (s->saved[4] >= 9 ? get16(s->saved + 54) : 0);
+           w->checkin_day == (s->saved[4] >= 9 ? get16(s->saved + 54) : 0) &&
+           (w->dishes & 0x0FFFU) == dish_mask(s->saved);
 }
 static uint32_t remaining(const pet_world_t *w, pw_command_t action)
 {
@@ -145,11 +154,13 @@ static bool capture(const pet_world_t *w, uint8_t *r, uint32_t seq)
 {
     /* Never persist an unfinished business intent or a half-swapped scene. */
     if (!snapshot_ready(w) || w->sound_mode > 2 || w->volume > 10 || !pe_valid(&w->wallet) || !checkin_valid(w->checkin_day) ||
-        w->order_choice > PE_MENU_COUNT || (w->order == PW_ORDER_NONE && w->order_choice)) return false;
+        w->order_choice > PE_MENU_COUNT || w->dishes > 0x0FFFU || (w->order == PW_ORDER_NONE && w->order_choice)) return false;
     memset(r, 0, 64);
     put32(r, MAGIC);
     r[4] = SCHEMA;
+    r[5] = (uint8_t)(w->dishes & 0xFFU);
     r[6] = 64;
+    r[7] = (uint8_t)(w->dishes >> 8);
     put32(r + 8, seq);
     r[12] = w->food; r[13] = w->mood; r[14] = (uint8_t)w->scene; r[15] = (uint8_t)((w->phase == PW_SLEEP ? 1 : 0) | (w->sound_mode << 1) | (w->volume << 3) | (w->clock.trusted ? 128 : 0));
     put32(r + 16, (uint32_t)w->food_elapsed);
@@ -205,6 +216,7 @@ static void restore(const uint8_t *r, pet_world_t *w)
         else { w->journal_page = get32(r + 46); w->journal_stamps = get16(r + 50); }
         w->memory_wins = get16(r + 52);
         if (r[4] >= 9) w->checkin_day = get16(r + 54);
+        if (r[4] >= 11) w->dishes = dish_mask(r);
         if (r[4] < 8) { w->journal_progress = r[54]; w->journal_badges = r[55]; }
     }
     else
@@ -260,7 +272,8 @@ ps_result_t ps_save(pet_save_t *s, const pet_world_t *w)
     s->has_saved = probe.has_saved; s->sector = probe.sector; s->sequence = probe.sequence;
     memcpy(s->saved, probe.saved, 64);
     if (!capture(w, r, s->sequence + 1)) return PS_WAIT;
-    if (s->has_saved && s->saved[4] == SCHEMA && !memcmp(r + 12, s->saved + 12, 44)) return PS_UNCHANGED;
+    if (s->has_saved && s->saved[4] == SCHEMA && r[5] == s->saved[5] && r[7] == s->saved[7] &&
+        !memcmp(r + 12, s->saved + 12, 44)) return PS_UNCHANGED;
     unsigned sector = s->sector < 0 ? 0U : 1U - (unsigned)s->sector;
     uint32_t address = sector * PS_SECTOR_SIZE, slot;
     for (slot = 0; slot < PS_SECTOR_SIZE; slot += 64)
@@ -290,7 +303,7 @@ ps_result_t ps_poll(pet_save_t *s, const pet_world_t *w)
     uint8_t r[64];
     if (!s->enabled) return PS_IO_ERROR;
     if (!capture(w, r, 0)) { s->pending = false; return PS_WAIT; }
-    uint8_t key[16], saved[16];
+    uint8_t key[20], saved[20];
     visible_key(r, key);
     visible_key(s->saved, saved);
     bool changed = !s->has_saved || memcmp(key, saved, sizeof(key)) != 0;

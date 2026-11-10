@@ -1,4 +1,4 @@
-#include "pet_save.h"
+﻿#include "pet_save.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +17,7 @@ int main(void)
     assert(ps_open(&s,io,&w)==PS_OK && w.wallet.coins==123 && w.checkin_day==20000);
     assert(w.order==PW_ORDER_DELIVERING && !w.order_choice && !strcmp(pe_order(0)->name,"暖饭便当"));
     pw_advance(&w,12000);assert(w.order==PW_ORDER_READY);
-    assert(ps_save(&s,&w)==PS_OK && s.saved[4]==10);
+    assert(ps_save(&s,&w)==PS_OK && s.saved[4]==PS_SCHEMA);
     assert(ps_open(&s,io,&w)==PS_OK && w.order==PW_ORDER_READY && !w.order_choice && w.wallet.coins==123);
     w.order=PW_ORDER_NONE;assert(ps_save(&s,&w)==PS_OK);memcpy(baseline,bytes,sizeof(bytes));
     for(unsigned dish=0;dish<PE_MENU_COUNT;dish++)
@@ -46,3 +46,4 @@ int main(void)
     assert(pw_request(&w,PW_TOUCH)==PW_COOLDOWN);pw_advance(&w,PW_TOUCH_COOLDOWN_MS);assert(pw_request(&w,PW_TOUCH)==PW_OK);
     puts("[host:menu-save] actual9 legacy meal migration; six kinds x65 transaction cuts; ready/reboot/pickup; invalid kinds PASS");return 0;
 }
+

@@ -134,13 +134,13 @@ void pet_ble_finish_time_request(uint32_t token)
 void pet_ble_set_phone_status(const pet_phone_status_t *status)
 {
     if (!status || status->food>100 || status->mood>100 || status->scene>4 ||
-        status->phase>5 || status->volume>10 || status->sound_mode>2) return;
+        status->phase>6 || status->volume>10 || status->sound_mode>2) return;
     rt_base_t level=rt_hw_interrupt_disable();
     bool same=phone_status_ready && !memcmp(status,&published_status,sizeof(*status));
     rt_hw_interrupt_enable(level);
     if (same) return;
     static const char *scenes[]={"dorm","classroom","canteen","campus","gym"};
-    static const char *phases[]={"idle","walking","activity","sleeping","entering","minigame"};
+    static const char *phases[]={"idle","walking","activity","sleeping","entering","minigame","seated"};
     char value[96];
     int count=rt_snprintf(value,sizeof(value),"food=%u;mood=%u;scene=%s;phase=%s;volume=%u;music=%s",
         status->food,status->mood,scenes[status->scene],phases[status->phase],

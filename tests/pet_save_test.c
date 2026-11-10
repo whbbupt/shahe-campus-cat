@@ -1,4 +1,4 @@
-#include "pet_save.h"
+﻿#include "pet_save.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -72,7 +72,7 @@ int main(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
     uint8_t *campus = flash + PS_SECTOR_SIZE;
     campus[4] = 2;
     campus[15] &= 1;
@@ -85,7 +85,7 @@ int main(void)
     assert(fwrite(flash, sizeof(flash), 1, fixture) == 1);
     fclose(fixture);
     w.food = 69;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
     assert(ps_open(&s, io, &w) == PS_OK && w.journal_page == 1);
     uint8_t *latest = flash + PS_RECORD_SIZE;
     latest[4] = 3;
@@ -104,7 +104,7 @@ int main(void)
     assert(w.cooldown[PW_EAT] == 1200 && w.cooldown[PW_TOUCH] == 2300 && w.cooldown[PW_WORKOUT] == 14000);
     assert(w.cooldown[PW_STUDY] == 7000 && w.cooldown[PW_CODE] == 9000 && w.cooldown[PW_TAKEOUT] == 50000);
     w.food = 68;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
     assert(ps_open(&s, io, &w) == PS_OK && w.cooldown[PW_STUDY] == 7000 && w.cooldown[PW_TAKEOUT] == 50000);
     /* Compact v4 retains journal and cooldowns and defaults to music. */
     memset(flash, 255, sizeof(flash));
@@ -117,8 +117,8 @@ int main(void)
     assert(ps_open(&s, io, &w) == PS_OK && w.sound_mode == 2 && w.journal_page == 7);
     assert(w.journal_stamps == 6 && w.journal_progress == 3 && w.cooldown[PW_TAKEOUT] == 50000);
     w.sound_mode = 0;
-    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
-    fixture = fopen("campus-v10-nor.bin", "wb");
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
+    fixture = fopen("campus-v11-nor.bin", "wb");
     assert(fixture && fwrite(flash, sizeof(flash), 1, fixture) == 1);
     fclose(fixture);
     /* Legacy v5 keeps mute via zero volume; other modes default to five. */
@@ -129,11 +129,25 @@ int main(void)
         memcpy(flash, old, 64); flash[4]=5; flash[15]=(uint8_t)(mode<<1);
         put(flash+56, crc(flash, 56));
         assert(ps_open(&s, io, &w)==PS_OK && w.sound_mode==mode && w.volume==(mode?5:0));
-        assert(ps_save(&s, &w)==PS_OK && s.saved[4]==10);
+        assert(ps_save(&s, &w)==PS_OK && s.saved[4]==PS_SCHEMA);
         assert(ps_open(&s, io, &w)==PS_OK && w.volume==(mode?5:0));
     }
     puts("[host:save] legacy v5 sound migration and v6 volume PASS");
     puts("[host:save] schema-v1-v2-v3-v4-to-v8-preserves-life-and-initializes-wallet PASS");
+    /* A schema-10 save has no album bits; reading it must not invent unlocks. */
+    memset(flash, 255, sizeof(flash));
+    pw_init(&w);
+    assert(ps_open(&s, io, &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    memcpy(flash, s.saved, 64);
+    flash[4] = 10; flash[5] = flash[7] = 0;
+    put(flash + 56, crc(flash, 56));
+    assert(ps_open(&s, io, &w) == PS_OK && w.dishes == 0);
+    w.food = 61;
+    assert(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA && s.saved[5] == 0 && s.saved[7] == 0);
+    w.dishes = 0x0ABC;
+    assert(ps_save(&s, &w) == PS_OK && s.saved[5] == 0xBC && s.saved[7] == 0x0A);
+    assert(ps_open(&s, io, &w) == PS_OK && w.dishes == 0x0ABC);
+    puts("[host:save] schema10 album-empty migration and schema11 round-trip PASS");
     memset(flash,255,sizeof(flash));pw_init(&w);assert(ps_open(&s,io,&w)==PS_EMPTY);
     w.clock.trusted=true;w.clock.valid=true;w.clock.utc=1704038400U;
     assert(ps_save(&s,&w)==PS_OK && (s.saved[15]&128));
@@ -145,3 +159,6 @@ int main(void)
     puts("[host:save] RTC trust flag, unchanged clock not dirty, and v6 migration PASS");
     puts("[host:save] all PASS (RAM NOR simulation; not physical flash)"); return 0;
 }
+
+
+

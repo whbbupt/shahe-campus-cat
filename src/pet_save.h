@@ -5,6 +5,8 @@
 #define PS_RECORD_SIZE 64U
 #define PS_SECTOR_SIZE 4096U
 #define PS_AREA_SIZE (2U * PS_SECTOR_SIZE)
+/* Current on-flash schema. 1..10 records remain readable; 11 adds the 12-bit album. */
+#define PS_SCHEMA 11U
 typedef enum { PS_OK, PS_EMPTY, PS_WAIT, PS_UNCHANGED, PS_IO_ERROR, PS_INVALID, PS_VERSION } ps_result_t;
 typedef struct
 {
@@ -16,7 +18,7 @@ typedef struct
 typedef struct
 {
     ps_io_t io;
-    uint8_t saved[PS_RECORD_SIZE], pending_key[16];
+    uint8_t saved[PS_RECORD_SIZE], pending_key[20];
     uint32_t sequence;
     int sector;
     bool enabled, has_saved, pending, attempted;

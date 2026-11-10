@@ -249,6 +249,16 @@ void pw_init(pet_world_t *w)
     w->y = nodes[0][3].y;
     w->facing = 1;
 }
+unsigned pw_dish_count(const pet_world_t *w)
+{
+    unsigned mask = w ? w->dishes & 0x0FFFU : 0, count = 0;
+    while (mask)
+    {
+        count += mask & 1U;
+        mask >>= 1;
+    }
+    return count;
+}
 static void clock_step(pet_world_t *w, uint64_t dt)
 {
     if (w->order == PW_ORDER_DELIVERING && w->now + dt >= w->order_due)
@@ -783,7 +793,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (pw_busy(w))
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if ((cmd == PW_EXIT) == (w->scene == PW_CAMPUS))
-            return PW_WRONG_ROOM;
+            return reject(w, PW_WRONG_ROOM);
         if (w->scene == PW_DORM && cmd == PW_EXIT && pw_curfew(w)) return reject(w, PW_CURFEW);
         pw_scene_t next = cmd == PW_EXIT ? PW_CAMPUS
                           : cmd == PW_ENTER_GYM ? PW_GYM : (pw_scene_t)(cmd - PW_ENTER_DORM);
@@ -909,6 +919,11 @@ static void finish(pet_world_t *w)
 {
     pw_command_t a = w->action;
     w->action = PW_NONE;
+    /* Album unlocks only after a successful action completes, never on order/cancel. */
+    if (a == PW_EAT && w->meal_choice < PE_MENU_COUNT)
+        w->dishes |= (uint16_t)(1U << w->meal_choice);
+    else if (a == PW_TAKEOUT && w->order_choice >= 1 && w->order_choice <= PE_MENU_COUNT)
+        w->dishes |= (uint16_t)(1U << (PE_MENU_COUNT + w->order_choice - 1));
     if (a == PW_REST)
     {
         w->phase = PW_SLEEP;

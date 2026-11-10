@@ -1,4 +1,4 @@
-#include "pet_save.h"
+﻿#include "pet_save.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +17,7 @@ int main(void)
     assert(ps_open(&s,io,&w)==PS_OK&&w.food==42&&w.mood==38&&w.scene==PW_GYM);
     assert(w.wallet.coins==30&&!w.wallet.owned&&w.memory_wins==11&&w.volume==4&&w.clock.trusted);
     assert(w.order==PW_ORDER_DELIVERING&&w.order_due==12000&&w.cooldown[PW_MEMORY]==45000);
-    assert(ps_save(&s,&w)==PS_OK&&s.saved[4]==10);
+    assert(ps_save(&s,&w)==PS_OK&&s.saved[4]==PS_SCHEMA);
     w.wallet=(pe_wallet_t){0,7,5};assert(ps_save(&s,&w)==PS_OK);
     for(unsigned i=0;i<3;i++)assert(ps_open(&s,io,&w)==PS_OK&&w.wallet.coins==0&&w.wallet.owned==7&&w.wallet.equipped==5);
     w.wallet.coins=10000;assert(ps_save(&s,&w)==PS_INVALID);
@@ -35,3 +35,4 @@ int main(void)
     }
     puts("[host:economy-save] real schema7 migration, no repeated starter grant, invalid wallet rejection,65 transaction cut points PASS");return 0;
 }
+

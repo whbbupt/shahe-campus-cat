@@ -149,6 +149,7 @@ typedef struct
     uint8_t meal_choice, order_choice;
     bool selected_meal;
     uint32_t curfew_events;
+    uint16_t dishes; /* bit0-5 canteen menu, bit6-11 delivery menu; see pw_dish_count */
 } pet_world_t;
 typedef struct
 {
@@ -162,6 +163,8 @@ pw_result_t pw_request(pet_world_t *w, pw_command_t cmd);
 void pw_visual(const pet_world_t *w, pw_visual_t *v);
 bool pw_busy(const pet_world_t *w);
 bool pw_curfew(const pet_world_t *w);
+/* Number of unlocked dishes in the 12-bit album mask (0..12). */
+unsigned pw_dish_count(const pet_world_t *w);
 const char *pw_state_text(const pet_world_t *w);
 const char *pw_message_text(const pet_world_t *w);
 const char *pw_need_text(const pet_world_t *w);

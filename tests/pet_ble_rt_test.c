@@ -119,6 +119,8 @@ int main(int argc,char **argv)
  unsigned previous_formats=formats;pet_ble_set_phone_status(&pet);assert(formats==previous_formats);
  pet.food=82;pet.scene=3;pet.phase=1;pet.volume=7;pet.sound_mode=1;pet_ble_set_phone_status(&pet);
  assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=82;mood=60;scene=campus;phase=walking;volume=7;music=off"));
+ pet.scene=2;pet.phase=6;pet.volume=5;pet.sound_mode=2;pet_ble_set_phone_status(&pet);
+ assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"scene=canteen;phase=seated;volume=5;music=on"));
  pet.food=101;pet_ble_set_phone_status(&pet);
  assert(read_value(0,ATTR_PHONE,&n)&&strstr(phone_read_buffer,"food=82;"));
  assert(!read_value(2,ATTR_PHONE,&n)&&n==0);

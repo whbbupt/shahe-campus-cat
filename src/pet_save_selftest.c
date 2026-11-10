@@ -1,4 +1,4 @@
-/* Shared deterministic NOR simulator. No production driver is reachable here. */
+﻿/* Shared deterministic NOR simulator. No production driver is reachable here. */
 #include "pet_save.h"
 #include <string.h>
 static struct
@@ -172,7 +172,7 @@ static bool campus_restore(void)
     w.node = 0;
     w.x = 560;
     w.y = 560;
-    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
     w.x = 960;
     w.y = 900;
     CHECK(ps_open(&s, io(), &w) == PS_OK && w.scene == PW_CAMPUS);
@@ -326,12 +326,27 @@ static bool challenges_restore(void)
             }
         }
         if (k != 3) CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK);
-        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == 10);
+        CHECK(ps_save(&s, &w) == PS_OK && s.saved[4] == PS_SCHEMA);
         CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.mood == (k == 3 ? 62 : 63));
         CHECK(restored.memory_wins == (k == 3 ? 0 : 1) && restored.challenge.kind == PG_NONE && restored.phase == PW_IDLE);
         CHECK(restored.cooldown[PW_MEMORY] > 0 && pw_request(&restored, PW_LIFE) == PW_COOLDOWN);
         CHECK(ps_visible_saved(&s, &restored));
     }
+    return true;
+}
+static bool album_restore(void)
+{
+    blank(); pet_save_t s; pet_world_t w, restored;
+    pw_init(&w);
+    CHECK(ps_open(&s, io(), &w) == PS_EMPTY && ps_save(&s, &w) == PS_OK);
+    CHECK(s.saved[4] == PS_SCHEMA && s.saved[5] == 0 && s.saved[7] == 0);
+    w.dishes = 0x0A5A;
+    CHECK(!ps_visible_saved(&s, &w));
+    CHECK(ps_save(&s, &w) == PS_OK && s.saved[5] == 0x5A && s.saved[7] == 0x0A);
+    CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.dishes == 0x0A5A && ps_visible_saved(&s, &restored));
+    w.dishes = 0x1000;
+    CHECK(ps_save(&s, &w) == PS_WAIT);
+    CHECK(ps_open(&s, io(), &restored) == PS_OK && restored.dishes == 0x0A5A);
     return true;
 }
 bool ps_selftest(void (*report)(const char *, bool))
@@ -347,7 +362,8 @@ bool ps_selftest(void (*report)(const char *, bool))
         {"takeout-autosave-phase-key", takeout_autosave},
         {"wallet-furniture-atomic-autosave-no-repeat-gift", economy_restore},
         {"sound-mode-autosave-and-reboot", sound_restore},
-        {"challenge-life-no-half-replay-and-shared-cooldown", challenges_restore}};
+        {"challenge-life-no-half-replay-and-shared-cooldown", challenges_restore},
+        {"album-bits-roundtrip-and-range", album_restore}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
     {
@@ -355,3 +371,4 @@ bool ps_selftest(void (*report)(const char *, bool))
     }
     memset(&ram, 0, sizeof(ram)); return all;
 }
+

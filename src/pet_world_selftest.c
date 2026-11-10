@@ -513,6 +513,56 @@ static bool expanded_room_bounds(void)
     return true;
 }
 
+static bool album_unlock(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    w.now = 10000;
+    w.scene = PW_CANTEEN;
+    w.phase = PW_SEATED;
+    w.action_start = w.now - 1000;
+    w.wallet.coins = 200;
+    pw_point_t seat = pw_node(PW_CANTEEN, 3);
+    w.x = seat.x; w.y = seat.y;
+    CHECK(pw_dish_count(&w) == 0 && w.dishes == 0);
+    CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_FIRST + 2)) == PW_OK);
+    CHECK(w.phase == PW_ACTION && w.dishes == 0);
+    pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
+    CHECK(w.dishes == (1U << 2) && pw_dish_count(&w) == 1);
+    /* A second helping unlocks nothing new and does not corrupt the mask. */
+    pw_advance(&w, 2100);
+    w.food = 50;
+    w.phase = PW_SEATED;
+    w.action_start = w.now - 1000;
+    CHECK(pw_request(&w, (pw_command_t)(PW_MEAL_FIRST + 2)) == PW_OK);
+    pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
+    CHECK(w.dishes == (1U << 2) && pw_dish_count(&w) == 1);
+    /* Delivery uses bits 6..11 and unlocks only after pickup. */
+    w.scene = PW_DORM;
+    pw_point_t room = pw_node(PW_DORM, 3);
+    w.x = room.x; w.y = room.y;
+    w.phase = PW_IDLE; w.order = PW_ORDER_READY; w.order_choice = 3; w.food = 40;
+    CHECK(pw_request(&w, PW_TAKEOUT) == PW_OK);
+    CHECK(w.dishes == (1U << 2));
+    for (unsigned i = 0; i < 500 && w.phase == PW_WALK; i++) pw_advance(&w, 20);
+    pw_advance(&w, (uint32_t)(w.action_end - w.now) + 10);
+    CHECK((w.dishes == ((1U << 2) | (1U << 8))) && pw_dish_count(&w) == 2);
+    return true;
+}
+
+static bool wrong_room_feedback(void)
+{
+    pet_world_t w;
+    pw_init(&w);
+    CHECK(pw_request(&w, PW_ENTER_CLASSROOM) == PW_WRONG_ROOM);
+    CHECK(w.scene == PW_DORM && w.phase == PW_IDLE && w.message != 0 && *pw_message_text(&w));
+    w.scene = PW_CAMPUS;
+    w.message = 0;
+    CHECK(pw_request(&w, PW_EXIT) == PW_WRONG_ROOM);
+    CHECK(w.scene == PW_CAMPUS && w.message != 0 && *pw_message_text(&w));
+    return true;
+}
+
 static bool retired_journal(void)
 {
     pet_world_t w; pw_init(&w); w.journal_progress = 7;
@@ -644,6 +694,8 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"rebalanced-actions-and-sleep-clamp", rebalanced_actions},
                  {"gym-access-workout-and-return", gym_cycle},
                  {"takeout-delivery-guards-and-once", takeout_cycle},
+                 {"album-unlock-once-and-takeout", album_unlock},
+                 {"wrong-room-feedback", wrong_room_feedback},
                  {"four-room-decor-and-expanded-floor", expanded_room_bounds}};
     bool all = true;
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)

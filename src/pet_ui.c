@@ -29,9 +29,10 @@ enum
     TAG_SHOP_FOOD,
     TAG_SHOP_DECOR,
     TAG_CONFIRM,
+    TAG_ALBUM,
     TAG_FOOD_FIRST = 320
 };
-enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW };
+enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM };
 static struct
 {
     pet_ui_action_fn action;
@@ -59,6 +60,8 @@ static struct
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit;
     lv_obj_t *challenge_track, *challenge_cursor;
+    lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
+    lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
 } ui;
 static bool audio_available = true;
 static pet_link_t link_status = {PET_LINK_STARTING, "ShaheCat", 0};
@@ -165,7 +168,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_SHOP)
     {
-        if (ui.world.scene == PW_DORM) ui.panel = PANEL_SHOP;
+        if (ui.world.scene == PW_DORM && ui.world.phase == PW_IDLE) ui.panel = PANEL_SHOP;
         paint(); return;
     }
     if (cmd >= TAG_FOOD_FIRST && cmd < TAG_FOOD_FIRST + PE_MENU_COUNT)
@@ -189,6 +192,13 @@ static void click(lv_event_t *e)
     if (cmd == TAG_STATUS)
     {
         ui.panel = ui.panel == PANEL_STATUS ? PANEL_NONE : PANEL_STATUS;
+        paint();
+        return;
+    }
+    if (cmd == TAG_ALBUM)
+    {
+        if (ui.world.phase != PW_MINIGAME)
+            ui.panel = ui.panel == PANEL_ALBUM ? PANEL_NONE : PANEL_ALBUM;
         paint();
         return;
     }
@@ -478,6 +488,29 @@ static void build_panel(lv_obj_t *screen)
     }
     ui.shop_hint = text(ui.shop_dialog, "", 18, 342, &pet_font_16, BLUE);
     lv_obj_set_width(ui.shop_hint, 298); lv_label_set_long_mode(ui.shop_hint, LV_LABEL_LONG_CLIP);
+    /* Read-only dish album; it never sends a model command. */
+    ui.album_dialog = box(ui.layer, 22, 18, 346, 414, PAPER, 18);
+    text(ui.album_dialog, "校园图鉴", 18, 12, &pet_font_20, INK);
+    lv_obj_t *album_close = button(ui.album_dialog, 294, 2, 44, 44, TAG_CLOSE, PAPER, 12);
+    lv_obj_t *album_x = text(album_close, "×", 0, 0, &pet_font_20, BLUE);
+    lv_obj_center(album_x);
+    ui.album_note = text(ui.album_dialog, "", 18, 48, &pet_font_16, BLUE);
+    ui.album_list = box(ui.album_dialog, 12, 76, 322, 296, PAPER, 0);
+    lv_obj_add_flag(ui.album_list, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scroll_dir(ui.album_list, LV_DIR_VER);
+    lv_obj_set_scrollbar_mode(ui.album_list, LV_SCROLLBAR_MODE_AUTO);
+    for (unsigned i = 0; i < 12; i++)
+    {
+        ui.album_row[i] = box(ui.album_list, 2, i * 68, 310, 64, 0xE6ECDE, 9);
+        lv_obj_t *clip = box(ui.album_row[i], 8, 0, 64, 64, PAPER, 6);
+        ui.album_image[i] = lv_image_create(clip);
+        lv_image_set_src(ui.album_image[i], &pet_food_atlas);
+        lv_obj_set_pos(ui.album_image[i], -(int)(i % 3) * 64, -(int)(i / 3) * 64);
+        lv_obj_remove_flag(ui.album_image[i], LV_OBJ_FLAG_CLICKABLE);
+        ui.album_name[i] = text(ui.album_row[i], "", 80, 8, &pet_font_16, INK);
+        ui.album_status[i] = text(ui.album_row[i], "", 80, 32, &pet_font_16, BLUE);
+    }
+    ui.album_footer = text(ui.album_dialog, "", 18, 382, &pet_font_16, 0x62736B);
     ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
     text(ui.curfew_dialog, "宿舍宵禁", 22, 20, &pet_font_20, INK);
     text(ui.curfew_dialog, "23:00至06:00，宿舍门已关闭。", 22, 65, &pet_font_16, BLUE);
@@ -621,6 +654,9 @@ void pet_ui_create(pet_ui_action_fn callback)
     box(book, 3, 4, 8, 1, HUD_PAPER, 0);
     box(book, 3, 8, 6, 1, HUD_PAPER, 0);
     text(ui.status_button, "状态", 15, 28, &pet_font_16, HUD_INK);
+    ui.album_button = button(screen, 296, 94, 62, 40, TAG_ALBUM, HUD_PAPER, 8);
+    lv_obj_set_style_bg_opa(ui.album_button, LV_OPA_80, 0);
+    text(ui.album_button, "图鉴", 15, 9, &pet_font_16, HUD_INK);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -665,15 +701,16 @@ static void paint_order(void)
     bool active = ui.delivery && w->order != PW_ORDER_NONE;
     const pe_food_t *dish = pe_menu(ui.delivery, ui.selected);
     set_label(ui.menu_title, ui.delivery ? "宿舍外卖" : "坐下慢慢选餐");
-    set_label_fmt(ui.order_note, "生活费 %u 金币 · 向上滑动看更多", w->wallet.coins);
     visible(ui.menu_list, !active); visible(ui.menu_tracking, active);
     if (active)
     {
+        set_label(ui.order_note, "订单进行中 · 菜品列表已收起");
         const pe_food_t *order = pe_order(w->order_choice);
         if (w->order == PW_ORDER_DELIVERING)
             set_label_fmt(ui.menu_tracking, "%s\n配送中 · 约 %u 秒\n送到宿舍门旁", order->name, (unsigned)((w->order_due - w->now + 999) / 1000));
         else set_label_fmt(ui.menu_tracking, "%s\n已经送到\n点门旁纸袋取餐", order->name);
     }
+    else set_label_fmt(ui.order_note, "生活费 %u 金币 · 向上滑动看更多", w->wallet.coins);
     for (unsigned i=0; i<PE_MENU_COUNT; i++)
     {
         const pe_food_t *food = pe_menu(ui.delivery, i);
@@ -692,7 +729,8 @@ static void paint_order(void)
         : ui.delivery && pw_busy(w) ? "等当前动作结束再下单"
         : (ui.delivery ? w->cooldown[PW_TAKEOUT] : w->cooldown[PW_EAT]) > w->now ? "稍等一下再来"
         : ui.delivery ? "确认才扣费 · 约30秒送达" : "选好再付款，取消不花钱";
-    set_label(ui.order_save, reason);
+    if (active) set_label(ui.order_save, w->order == PW_ORDER_DELIVERING ? "配送中，可先在屋里活动" : "已送达，点门旁纸袋取餐");
+    else set_label(ui.order_save, reason);
     if (enabled) lv_obj_remove_state(ui.order_button, LV_STATE_DISABLED); else lv_obj_add_state(ui.order_button, LV_STATE_DISABLED);
     set_label_fmt(ui.menu_confirm_text, "%s · %u金币", ui.delivery ? "确认下单" : "确认用餐", dish->price);
     lv_obj_center(ui.menu_confirm_text); visible(ui.order_button, !active);
@@ -716,6 +754,23 @@ static void paint_shop(void)
         set_label(ui.shop_action[i],label);lv_obj_center(ui.shop_action[i]);
     }
     set_label(ui.shop_hint, "买后永久拥有，收起再摆上免费");
+}
+static void paint_album(void)
+{
+    const pet_world_t *w = &ui.world;
+    unsigned got = pw_dish_count(w);
+    set_label_fmt(ui.album_note, "已尝 %u / 12 道 · 吃过才会点亮", got);
+    for (unsigned i = 0; i < 12; i++)
+    {
+        bool seen = (w->dishes & (1U << i)) != 0;
+        const pe_food_t *dish = pe_menu(i >= PE_MENU_COUNT, i % PE_MENU_COUNT);
+        set_label(ui.album_name[i], seen ? dish->name : "");
+        set_label(ui.album_status[i], seen ? (i < PE_MENU_COUNT ? "食堂 · 已尝" : "外卖 · 已尝")
+                                           : "未解锁 · 去食堂或点外卖");
+        lv_obj_set_style_opa(ui.album_image[i], seen ? LV_OPA_COVER : LV_OPA_20, 0);
+        lv_obj_set_style_bg_color(ui.album_row[i], lv_color_hex(seen ? 0xE6ECDE : 0xEFEDE3), 0);
+    }
+    set_label(ui.album_footer, got >= 12 ? "校园美食家：12 道全部尝过" : "在食堂点餐，或在宿舍点外卖");
 }
 static void paint_memory(void)
 {
@@ -820,7 +875,7 @@ static void paint(void)
     if (ui.scene != ui.world.scene)
     {
         ui.scene = ui.world.scene;
-        if (ui.scene != PW_DORM && ui.panel == PANEL_ORDER)
+        if (ui.scene != PW_DORM && (ui.panel == PANEL_ORDER || ui.panel == PANEL_SHOP))
             ui.panel = PANEL_NONE;
         build_hotspots();
         if (ui.scene != PW_CAMPUS)
@@ -924,11 +979,14 @@ static void paint(void)
     visible(ui.order_dialog, !memory && ui.panel == PANEL_ORDER);
     visible(ui.shop_dialog, !memory && ui.panel == PANEL_SHOP);
     visible(ui.curfew_dialog, !memory && ui.panel == PANEL_CURFEW);
+    visible(ui.album_dialog, !memory && ui.panel == PANEL_ALBUM);
+    visible(ui.album_button, ui.world.phase != PW_MINIGAME);
     paint_checkin();
     set_label_fmt(ui.wallet_text, "%u", ui.world.wallet.coins);
     visible(ui.memory_dialog, memory);
     if (memory) { if (ui.world.challenge.kind == PG_NONE) paint_memory(); else paint_challenge(); }
     if (ui.panel == PANEL_SHOP) paint_shop();
+    if (ui.panel == PANEL_ALBUM) paint_album();
     if (ui.panel == PANEL_ORDER)
         paint_order();
     const char *msg = pw_message_text(&ui.world);
@@ -951,6 +1009,7 @@ static void paint(void)
 void pet_ui_update(const pet_world_t *world)
 {
     if (world->curfew_events != ui.world.curfew_events) ui.panel = PANEL_CURFEW;
+    else if (world->phase == PW_MINIGAME && ui.panel == PANEL_ALBUM) ui.panel = PANEL_NONE;
     else if (world->phase == PW_SEATED && ui.panel == PANEL_NONE && world->now - world->action_start >= 500)
     {
         ui.panel = PANEL_ORDER; ui.delivery = false; ui.selected = 0;
