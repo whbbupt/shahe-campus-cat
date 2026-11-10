@@ -677,8 +677,8 @@ static int exit_door(const pet_world_t *w)
 {
     if (w->scene == PW_CLASSROOM)
     {
-        static const int doors[] = {14, 14, 10, 54, 16, 24};
-        unsigned id = w->building_id <= 5 ? w->building_id : 1;
+        static const int doors[] = {14, 14, 10, 54, 16, 24, 9, 43, 15, 52, 32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
+        unsigned id = w->building_id <= 19 ? w->building_id : 1;
         return doors[id];
     }
     if (w->scene == PW_CANTEEN)
@@ -846,6 +846,22 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         pw_result_t r = eligible(w, PW_MEMORY);
         if (r != PW_OK) { w->challenge.kind = previous; return reject(w, r); }
         cmd = PW_MEMORY;
+    }
+    if (cmd >= PW_ENTER_COLLEGE_FIRST && cmd <= PW_ENTER_COLLEGE_LAST)
+    {
+        if (w->phase != PW_IDLE)
+            return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
+        if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
+        static const int goals[] = {32, 34, 38, 55, 0, 24, 3, 4, 4, 10};
+        unsigned i = (unsigned)(cmd - PW_ENTER_COLLEGE_FIRST);
+        w->building_id = (uint8_t)(10 + i);
+        w->destination = PW_CLASSROOM;
+        w->target = PW_NONE;
+        w->challenge.kind = PG_NONE;
+        w->entry_node = 0;
+        if (!move(w, goals[i], 2)) return reject(w, PW_INVALID);
+        say(w, MSG_TRAVEL);
+        return PW_OK;
     }
     if (cmd >= PW_ENTER_LIBRARY && cmd <= PW_ENTER_STAFF)
     {

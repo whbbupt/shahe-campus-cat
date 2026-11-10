@@ -80,7 +80,9 @@ typedef enum
     PW_ENTER_LAB,
     PW_ENTER_WISDOM,
     PW_ENTER_FLAVOR,
-    PW_ENTER_STAFF
+    PW_ENTER_STAFF,
+    PW_ENTER_COLLEGE_FIRST = 150,
+    PW_ENTER_COLLEGE_LAST = PW_ENTER_COLLEGE_FIRST + 9
 } pw_command_t;
 typedef enum
 {

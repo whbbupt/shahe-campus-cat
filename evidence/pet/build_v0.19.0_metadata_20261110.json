@@ -1,7 +1,7 @@
 {
   "version": "0.19.0",
   "source_commit": "52714b6（+工作树建筑直达/点餐修复）",
-  "build_time": "2026-11-10T20:25:00+08:00",
+  "build_time": "2026-11-10T20:30:00+08:00",
   "board": "sf32lb52-lchspi-ulp",
   "sdk": {
     "version": "2.5.1",
@@ -10,8 +10,8 @@
   },
   "artifacts": {
     "main.bin": {
-      "size": 4561804,
-      "sha256": "7A192BDEBA02B7886C526C221FDBB1D6F25C725B95240948CF8137D454E0C00A"
+      "size": 4562532,
+      "sha256": "C58D35D9F2ADDDBE47179B39764497CC0865DD8B370A8D0011866CFA2DB09E27"
     },
     "bootloader.bin": {
       "size": 58496,
@@ -26,12 +26,12 @@
       "sha256": "AC060A33ED7E8B4C48A880B842245B9C063924106A6C8A546A9EECC76B6776F9"
     },
     "shahe-campus-cat-v0.19.0-firmware.zip": {
-      "size": 3015168,
-      "sha256": "0BCF6EF74F7852475F612E4315BB0B6EB5EE140D5F5334DD7C08D120F2226C97"
+      "size": 3015610,
+      "sha256": "E0BD6AE1447B170F56B1E8865610C1B67F6B42DF2D04623EFFD3DE88EB57D263"
     }
   },
   "memory": {
-    "rom_used": 4636142,
+    "rom_used": 4637162,
     "rom_total": 8388608,
     "ram_used": 171396,
     "ram_total": 523264,

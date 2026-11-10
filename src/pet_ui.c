@@ -39,6 +39,7 @@ enum
     TAG_SOUTH,
     TAG_FLAVOR,
     TAG_STAFF,
+    TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
 enum { PANEL_NONE, PANEL_STATUS, PANEL_ORDER, PANEL_SHOP, PANEL_CURFEW, PANEL_ALBUM, PANEL_ACTIVITY };
@@ -250,6 +251,11 @@ static void click(lv_event_t *e)
         paint();
         return;
     }
+    if (cmd >= TAG_COLLEGE_FIRST && cmd < TAG_COLLEGE_FIRST + 10)
+    {
+        if (ui.action) ui.action((pw_command_t)(PW_ENTER_COLLEGE_FIRST + (cmd - TAG_COLLEGE_FIRST)));
+        paint(); return;
+    }
     if (cmd == TAG_LIBRARY || cmd == TAG_PUBLIC || cmd == TAG_LAB || cmd == TAG_WISDOM)
     {
         if (ui.action) ui.action((pw_command_t)(PW_ENTER_LIBRARY + (cmd - TAG_LIBRARY)));
@@ -402,19 +408,19 @@ static void build_campus(lv_obj_t *screen)
             image(ui.campus, shahe_ground[y * (PW_CAMPUS_WIDTH / 280) + x], x * 280, y * 260);
     /* Schematic distribution from the BUPT Shahe map; yellow areas are off-limits. */
     construction(ui.campus, 395, 95, 150, 180, "学生宿舍IV区");
-    construction(ui.campus, 560, 95, 640, 180, "科研楼");
-    construction(ui.campus, 1210, 95, 125, 180, "智能工程学院");
-    construction(ui.campus, 1210, 290, 125, 130, "计算机学院");
     construction(ui.campus, 55, 285, 140, 290, "体育馆");
     construction(ui.campus, 55, 1070, 245, 150, "研究生宿舍");
     construction(ui.campus, 395, 285, 150, 95, "北区食堂");
+    schematic_building(ui.campus, 560, 100, 120, 80, 0xD9C6A5, "科研楼");
+    schematic_building(ui.campus, 1200, 100, 120, 80, 0xB8CDD0, "智能工程学院");
+    schematic_building(ui.campus, 1200, 290, 120, 90, 0xC9C0D7, "计算机学院");
     schematic_building(ui.campus, 560, 440, 110, 60, 0xD5B7A0, "风味餐厅");
     schematic_building(ui.campus, 560, 560, 110, 75, 0xCBB79C, "教工餐厅");
     schematic_building(ui.campus, 600, 860, 100, 70, 0xC9B8A3, "雁南园");
-    schematic_building(ui.campus, 1210, 700, 120, 80, 0xB8CDD0, "网络安全学院");
-    schematic_building(ui.campus, 1210, 820, 120, 80, 0xC9C0D7, "数字媒体学院");
+    schematic_building(ui.campus, 1050, 900, 100, 70, 0xB8CDD0, "网络安全学院");
+    schematic_building(ui.campus, 900, 700, 100, 70, 0xC9C0D7, "数字媒体学院");
     schematic_building(ui.campus, 1210, 970, 120, 60, 0xD7C9B4, "人文学院");
-    schematic_building(ui.campus, 1210, 1140, 120, 60, 0xC7D3C1, "工程实验楼");
+    schematic_building(ui.campus, 900, 1050, 100, 70, 0xC7D3C1, "工程实验楼");
     schematic_building(ui.campus, 1050, 700, 100, 70, 0xD7BFA9, "马克思主义学院");
     schematic_building(ui.campus, 1050, 800, 100, 70, 0xBFD0C4, "理学院");
     schematic_building(ui.campus, 700, 900, 100, 70, 0xC9B8A3, "学生公寓");
@@ -508,7 +514,17 @@ static void build_buildings(lv_obj_t *screen)
         {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
         {600, 860, 100, TAG_SOUTH, 0, ""},
         {560, 440, 110, TAG_FLAVOR, 0, ""},
-        {560, 560, 110, TAG_STAFF, 0, ""}};
+        {560, 560, 110, TAG_STAFF, 0, ""},
+        {560, 100, 120, TAG_COLLEGE_FIRST + 0, 0, ""},
+        {1200, 100, 120, TAG_COLLEGE_FIRST + 1, 0, ""},
+        {1200, 290, 120, TAG_COLLEGE_FIRST + 2, 0, ""},
+        {1050, 900, 100, TAG_COLLEGE_FIRST + 3, 0, ""},
+        {900, 700, 100, TAG_COLLEGE_FIRST + 4, 0, ""},
+        {1210, 970, 120, TAG_COLLEGE_FIRST + 5, 0, ""},
+        {1050, 700, 100, TAG_COLLEGE_FIRST + 6, 0, ""},
+        {1050, 800, 100, TAG_COLLEGE_FIRST + 7, 0, ""},
+        {900, 1050, 100, TAG_COLLEGE_FIRST + 8, 0, ""},
+        {760, 400, 80, TAG_COLLEGE_FIRST + 9, 0, ""}};
     for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
     {
         lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
@@ -904,6 +920,34 @@ static void paint_checkin(void)
     if (enabled) lv_obj_remove_state(ui.checkin, LV_STATE_DISABLED); else lv_obj_add_state(ui.checkin, LV_STATE_DISABLED);
     set_label_fmt(ui.status_coins, "生活费 %u 金币", w->wallet.coins);
 }
+static const char *room_title(const pet_world_t *w)
+{
+    if (w->scene == PW_CLASSROOM)
+    {
+        switch (w->building_id)
+        {
+        case 2: return "图书馆 · 自习";
+        case 3: return "公共教学楼 · 教室";
+        case 4: return "教学实验综合楼 · 实验室";
+        case 5: return "智慧教学楼 · 自习";
+        case 10: return "科研楼 · 实验室";
+        case 11: return "智能工程学院 · 实验室";
+        case 12: return "计算机学院 · 机房";
+        case 13: return "网络安全学院 · 机房";
+        case 14: return "数字媒体学院 · 工作室";
+        case 15: return "人文学院 · 教室";
+        case 16: return "马克思主义学院 · 教室";
+        case 17: return "理学院 · 实验室";
+        case 18: return "工程实验楼 · 实验室";
+        case 19: return "综合办公楼 · 办公室";
+        default: return "教综楼 · 教室";
+        }
+    }
+    if (w->scene == PW_CANTEEN)
+        return w->building_id == 6 ? "风味餐厅 · 窗口" : w->building_id == 7 ? "教工餐厅 · 窗口" : "学生餐厅 · 食堂";
+    return room_names[w->scene];
+}
+
 static void paint_order(void)
 {
     const pet_world_t *w = &ui.world;
@@ -1129,10 +1173,12 @@ static void paint(void)
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
     visible(ui.blackboard, !campus && (ui.building_kind == 1 || ui.building_kind == 3 || ui.building_kind == 5));
     visible(ui.life_hit, !campus);
+    bool college_lab = ui.building_kind == 10 || ui.building_kind == 11 || ui.building_kind == 12 ||
+                       ui.building_kind == 17 || ui.building_kind == 18;
     visible(ui.work_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
-                            (ui.building_kind == 1 || ui.building_kind == 4));
+                            (ui.building_kind == 1 || ui.building_kind == 4 || college_lab));
     visible(ui.context_button, ui.world.scene == PW_CLASSROOM && ui.world.phase != PW_MINIGAME &&
-                               (ui.building_kind == 2 || ui.building_kind == 4));
+                               (ui.building_kind == 2 || ui.building_kind == 4 || ui.building_kind >= 10));
     visible(ui.canteen_order, ui.world.scene == PW_CANTEEN && ui.world.phase != PW_MINIGAME);
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
     visible(ui.location, ui.world.phase != PW_MINIGAME);
@@ -1140,16 +1186,12 @@ static void paint(void)
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
     if (!campus)
-        set_label(ui.location_text,
-                  ui.world.scene == PW_CLASSROOM
-                      ? (ui.world.building_id == 2 ? "图书馆 · 自习" : ui.world.building_id == 3 ? "公共教学楼 · 教室"
-                         : ui.world.building_id == 4 ? "教学实验综合楼 · 实验室" : ui.world.building_id == 5 ? "智慧教学楼 · 自习"
-                         : "教综楼 · 教室")
-                  : ui.world.scene == PW_CANTEEN
-                      ? (ui.world.building_id == 6 ? "风味餐厅 · 窗口" : ui.world.building_id == 7 ? "教工餐厅 · 窗口"
-                         : "学生餐厅 · 食堂")
-                  : room_names[ui.scene]);
-    set_label(ui.context_label, ui.building_kind == 4 ? "做实验" : "看书");
+        set_label(ui.location_text, room_title(&ui.world));
+    set_label(ui.context_label,
+              (ui.building_kind == 4 || ui.building_kind == 10 || ui.building_kind == 11 ||
+               ui.building_kind == 17 || ui.building_kind == 18) ? "做实验"
+              : (ui.building_kind == 12 || ui.building_kind == 13) ? "上机"
+              : (ui.building_kind == 2 ? "看书" : "自习"));
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
     int left = (int)lroundf(cx), top = (int)lroundf(cy);
