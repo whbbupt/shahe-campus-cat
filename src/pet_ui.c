@@ -252,11 +252,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_LIBRARY || cmd == TAG_PUBLIC || cmd == TAG_LAB || cmd == TAG_WISDOM)
     {
-        static const char *names[] = {"图书馆 · 自习", "公共教学楼 · 教室",
-                                      "教学实验综合楼 · 实验室", "智慧教学楼 · 自习"};
-        ui.room_override = names[cmd - TAG_LIBRARY];
-        ui.building_kind = (unsigned)(cmd - TAG_LIBRARY) == 0 ? 2 : (unsigned)(cmd - TAG_LIBRARY) + 2;
-        if (ui.action) ui.action(PW_ENTER_CLASSROOM);
+        if (ui.action) ui.action((pw_command_t)(PW_ENTER_LIBRARY + (cmd - TAG_LIBRARY)));
         paint(); return;
     }
     if (cmd == TAG_SOUTH)
@@ -266,10 +262,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_FLAVOR || cmd == TAG_STAFF)
     {
-        ui.room_override = cmd == TAG_FLAVOR ? "风味餐厅 · 窗口" : "教工餐厅 · 窗口";
-        ui.building_kind = cmd == TAG_FLAVOR ? 6 : 7;
-        ui.pending_window = cmd == TAG_FLAVOR ? 1 : 2;
-        if (ui.action) ui.action(PW_ENTER_CANTEEN);
+        if (ui.action) ui.action(cmd == TAG_FLAVOR ? PW_ENTER_FLAVOR : PW_ENTER_STAFF);
         paint(); return;
     }
     if (cmd == TAG_CLOSE)
@@ -1143,7 +1136,15 @@ static void paint(void)
                     ui.world.action != PW_TAKEOUT);
     visible(ui.door, !campus);
     if (!campus)
-        set_label(ui.location_text, ui.room_override ? ui.room_override : room_names[ui.scene]);
+        set_label(ui.location_text,
+                  ui.world.scene == PW_CLASSROOM
+                      ? (ui.world.building_id == 2 ? "图书馆 · 自习" : ui.world.building_id == 3 ? "公共教学楼 · 教室"
+                         : ui.world.building_id == 4 ? "教学实验综合楼 · 实验室" : ui.world.building_id == 5 ? "智慧教学楼 · 自习"
+                         : "教综楼 · 教室")
+                  : ui.world.scene == PW_CANTEEN
+                      ? (ui.world.building_id == 6 ? "风味餐厅 · 窗口" : ui.world.building_id == 7 ? "教工餐厅 · 窗口"
+                         : "学生餐厅 · 食堂")
+                  : room_names[ui.scene]);
     set_label(ui.context_label, ui.building_kind == 4 ? "做实验" : "看书");
     float cx, cy;
     pw_camera(&ui.world, &cx, &cy);
@@ -1245,11 +1246,12 @@ void pet_ui_update(const pet_world_t *world)
     else if (world->phase == PW_SEATED && ui.panel == PANEL_NONE && world->now - world->action_start >= 500)
     {
         ui.panel = PANEL_ORDER; ui.delivery = false;
-        ui.menu_window = ui.pending_window;
+        ui.menu_window = world->building_id == 6 ? 1 : world->building_id == 7 ? 2 : ui.pending_window;
         ui.selected = ui.menu_window ? (ui.menu_window - 1) * 2 : 0;
         ui.pending_window = 0;
         lv_obj_scroll_to_y(ui.menu_list, 0, LV_ANIM_OFF);
     }
     ui.world = *world;
+    ui.building_kind = world->building_id;
     paint();
 }
