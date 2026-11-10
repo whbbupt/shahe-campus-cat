@@ -495,20 +495,20 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_t *album_x = text(album_close, "×", 0, 0, &pet_font_20, BLUE);
     lv_obj_center(album_x);
     ui.album_note = text(ui.album_dialog, "", 18, 48, &pet_font_16, BLUE);
+    /* 3x4 grid: all twelve dishes fit without scrolling (Catbook-style). */
     ui.album_list = box(ui.album_dialog, 12, 76, 322, 296, PAPER, 0);
-    lv_obj_add_flag(ui.album_list, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_scroll_dir(ui.album_list, LV_DIR_VER);
-    lv_obj_set_scrollbar_mode(ui.album_list, LV_SCROLLBAR_MODE_ON);
     for (unsigned i = 0; i < 12; i++)
     {
-        ui.album_row[i] = box(ui.album_list, 2, i * 68, 310, 64, 0xE6ECDE, 9);
-        lv_obj_t *clip = box(ui.album_row[i], 8, 0, 64, 64, PAPER, 6);
+        ui.album_row[i] = box(ui.album_list, 2 + (int)(i % 3) * 106, (int)(i / 3) * 74,
+                              104, 74, 0xE6ECDE, 9);
+        lv_obj_t *clip = box(ui.album_row[i], 28, 1, 48, 48, PAPER, 6);
         ui.album_image[i] = lv_image_create(clip);
         lv_image_set_src(ui.album_image[i], &pet_food_atlas);
-        lv_obj_set_pos(ui.album_image[i], -(int)(i % 3) * 64, -(int)(i / 3) * 64);
+        lv_obj_set_pos(ui.album_image[i], -(int)(i % 3) * 64 - 8, -(int)(i / 3) * 64 - 8);
         lv_obj_remove_flag(ui.album_image[i], LV_OBJ_FLAG_CLICKABLE);
-        ui.album_name[i] = text(ui.album_row[i], "", 80, 8, &pet_font_16, INK);
-        ui.album_status[i] = text(ui.album_row[i], "", 80, 32, &pet_font_16, BLUE);
+        ui.album_name[i] = text(ui.album_row[i], "", 2, 50, &pet_font_16, INK);
+        lv_obj_set_width(ui.album_name[i], 100);
+        lv_obj_set_style_text_align(ui.album_name[i], LV_TEXT_ALIGN_CENTER, 0);
     }
     ui.album_footer = text(ui.album_dialog, "", 18, 382, &pet_font_16, 0x62736B);
     ui.curfew_dialog = box(ui.layer, 38, 105, 314, 240, PAPER, 18);
@@ -764,13 +764,12 @@ static void paint_album(void)
     {
         bool seen = (w->dishes & (1U << i)) != 0;
         const pe_food_t *dish = pe_menu(i >= PE_MENU_COUNT, i % PE_MENU_COUNT);
-        set_label(ui.album_name[i], seen ? dish->name : "");
-        set_label(ui.album_status[i], seen ? (i < PE_MENU_COUNT ? "食堂 · 已尝" : "外卖 · 已尝")
-                                           : "未解锁 · 去食堂或点外卖");
+        set_label(ui.album_name[i], seen ? dish->name : "未解锁");
+        lv_obj_set_style_text_color(ui.album_name[i], lv_color_hex(seen ? INK : 0x8A8578), 0);
         lv_obj_set_style_opa(ui.album_image[i], seen ? LV_OPA_COVER : LV_OPA_20, 0);
         lv_obj_set_style_bg_color(ui.album_row[i], lv_color_hex(seen ? 0xE6ECDE : 0xEFEDE3), 0);
     }
-    set_label(ui.album_footer, got >= 12 ? "校园美食家：12 道全部尝过" : "在食堂点餐，或在宿舍点外卖");
+    set_label(ui.album_footer, got >= 12 ? "校园美食家：12 道全部尝过" : "上两行食堂 · 下两行外卖");
 }
 static void paint_memory(void)
 {

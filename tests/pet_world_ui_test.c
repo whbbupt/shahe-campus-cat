@@ -504,18 +504,6 @@ static void shop_while_asleep(void)
     tap(100,126); step(600); assert(world.phase == PW_IDLE && world.wallet.coins == coins);
     assert(!label_with(lv_screen_active(), "手账"));
 }
-static lv_obj_t *find_scrollable_box(lv_obj_t *p, int w, int h)
-{
-    for (unsigned i = 0; i < lv_obj_get_child_count(p); i++)
-    {
-        lv_obj_t *o = lv_obj_get_child(p, i);
-        if (lv_obj_has_flag(o, LV_OBJ_FLAG_SCROLLABLE) && lv_obj_get_width(o) == w && lv_obj_get_height(o) == h)
-            return o;
-        lv_obj_t *f = find_scrollable_box(o, w, h);
-        if (f) return f;
-    }
-    return NULL;
-}
 static void album_demo(void)
 {
     char progress[64];
@@ -523,15 +511,9 @@ static void album_demo(void)
     press("图鉴");
     assert(label_with(lv_screen_active(), "校园图鉴"));
     assert(label_with(lv_screen_active(), progress));
-    assert(label_with(lv_screen_active(), "未解锁 · 去食堂或点外卖"));
-    assert(label_with(lv_screen_active(), "在食堂点餐，或在宿舍点外卖"));
+    assert(label_with(lv_screen_active(), "未解锁"));
+    assert(label_with(lv_screen_active(), "上两行食堂 · 下两行外卖"));
     screenshot("shahe-album.ppm");
-    lv_obj_t *list = find_scrollable_box(lv_screen_active(), 322, 296);
-    assert(list && lv_obj_get_scroll_y(list) == 0);
-    lv_obj_scroll_to_y(list, 300, LV_ANIM_OFF);
-    step(40);
-    assert(lv_obj_get_scroll_y(list) > 0);
-    screenshot("shahe-album-scrolled.ppm");
     press("×");
     assert(!label_with(lv_screen_active(), "校园图鉴"));
     assert(world.phase == PW_IDLE);
