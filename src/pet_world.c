@@ -120,7 +120,8 @@ enum
     MSG_CURFEW,
     MSG_DANCE,
     MSG_BADMINTON,
-    MSG_WORK
+    MSG_WORK,
+    MSG_NO_KEY
 };
 static float distance(float ax, float ay, float bx, float by)
 {
@@ -674,6 +675,12 @@ pw_checkin_t pw_checkin_status(const pet_world_t *w)
 }
 static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
 {
+    if (cmd == PW_SOUTH_LOCK)
+    {
+        if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
+        say(w, MSG_NO_KEY);
+        return PW_INVALID;
+    }
     if (cmd == PW_DANCE || cmd == PW_BADMINTON)
     {
         if (w->phase != PW_IDLE)
@@ -1253,7 +1260,8 @@ const char *pw_message_text(const pet_world_t *w)
                                   "宵禁中，早上6点再出门",
                                   "跳一支舞，心情松快",
                                   "打一局羽毛球，活动一下",
-                                  "勤工俭学 +3 金币"};
+                                  "勤工俭学 +3 金币",
+                                  "未带宿舍楼钥匙，无权入内"};
     return w->message >= 0 && w->message < (int)(sizeof(texts) / sizeof(texts[0])) ? texts[w->message] : "";
 }
 const char *pw_life_text(pw_scene_t scene)

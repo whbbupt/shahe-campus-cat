@@ -261,9 +261,7 @@ static void click(lv_event_t *e)
     }
     if (cmd == TAG_SOUTH)
     {
-        ui.room_override = "雁南园 · 宿舍";
-        ui.building_kind = 8;
-        if (ui.action) ui.action(PW_ENTER_DORM);
+        if (ui.action) ui.action(PW_SOUTH_LOCK);
         paint(); return;
     }
     if (cmd == TAG_FLAVOR || cmd == TAG_STAFF)
@@ -476,6 +474,7 @@ static void build_campus(lv_obj_t *screen)
     campus_label(ui.campus, 188, 600, 96, "运动场");
 }
 
+static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag);
 static void build_gates(lv_obj_t *screen)
 {
     ui.gates = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, PAPER, 0);
@@ -491,7 +490,18 @@ static void build_gates(lv_obj_t *screen)
         lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
         scene_tag(gate, campus_names[room], LV_ALIGN_TOP_MID, 0, 3);
     }
+    building_hit(ui.gates, 380, 430, 190, 190, PW_ENTER_DORM);
+    building_hit(ui.gates, 930, 630, 200, 180, PW_ENTER_CLASSROOM);
+    building_hit(ui.gates, 520, 980, 200, 200, PW_ENTER_CANTEEN);
+    building_hit(ui.gates, 650, 500, 170, 170, TAG_ACTIVITY);
 }
+static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
+{
+    lv_obj_t *b = button(parent, x, y, w, h, tag, PAPER, 6);
+    lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(b, LV_OPA_10, LV_STATE_PRESSED);
+}
+
 static void build_buildings(lv_obj_t *screen)
 {
     static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
