@@ -1,0 +1,20 @@
+# port=COM6 baud=1000000 started=2026-11-10T16:16:40.0934948+08:00
+# 默认只读采集；如指定 -Send，只发送一次该命令。
+# sent: tp_ctrl
+[6121262] I/TOUCH tshell: tp_ctrl [OPTION] [VALUE]
+
+
+[6121285] I/TOUCH tshell: Example:
+
+[6121299] I/TOUCH tshell:     tp_ctrl on      - Power on tp
+
+[6121322] I/TOUCH tshell:     tp_ctrl off     - Power off tp
+
+[6121345] I/TOUCH tshell:     tp_ctrl log     - Toggle log
+
+[6121368] I/TOUCH tshell:     tp_ctrl click <x> <y>  - Click at specified coordinates <x> <y>
+
+[6121403] I/TOUCH tshell:     tp_ctrl slide <x1> <y1> <x2> <y2>  - Slide from <x1> <y1> to <x2> <y2>
+
+msh />msh />
+# stopped=2026-11-10T16:16:43.6522471+08:00

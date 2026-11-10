@@ -1,0 +1,84 @@
+# port=COM6 baud=1000000 started=2026-11-10T16:16:23.0001480+08:00
+# 默认只读采集；如指定 -Send，只发送一次该命令。
+# sent: help
+RT-Thread shell commands:
+aw32001          - aw32001 test cmd
+get_cc_volt      - get battery voltage
+apa_set_mode     - set analog pa mode
+fal              - FAL (Flash Abstraction Layer) operate.
+kvdb_assert      - kvdb_flash_assert
+kvdb_debug       - kvdb_flash_log
+mp3              - mp3 commnad
+ae_log           - ae_log
+audio_data       - audio_data
+btdm_dbg         - btdm debug config
+sible            - Sifli BLE command
+cm_cmd           - cm command
+nvds             - Sifli NVDS command
+mem_usage        - mem_usage: open or close memory usage log
+fps2             - fps2: open or close fps log
+app_mem          - app_mem: open or close app_mem log
+gif_log          - gif_log: open or close gif_log log
+sysinfo          - Show system information
+lcpu             - forward lcpu command
+pin              - pin gpio functions
+uart             - uart setting
+aprc_debug       - aprc_debug r / w idx value
+mic_gain         - mic_gain
+lcd_ctrl         - lcd control
+lcd_wreg         - lcd_wreg
+lcd_rreg         - lcd_rreg
+get_lcd_pwm_bglit - get_lcd_pwm_bglit
+drv_lcd_test     - drv lcd test
+tp_ctrl          - Touch panel driver cmd
+en_drvtp_log     - enable touch panel log
+drv_epic_cfg     - drv_epic configuration
+reboot           - Reboot System
+dbguart2jlink    - Switch debug uart to jlink
+assert           - Force ULOG_ASSERT
+pwr_ctrl         - BT TX power adjust
+regop            - Register read / write
+pet_ble_status   - Read pet BLE diagnostic snapshot
+list_mem         - list memory usage information
+list_fd          - list file descriptor
+cpdir            - cpdir src dst
+opendir          - opendir dir
+lsmatch          - lsmatch dir match_file
+delmatch         - delmatch dir match_file
+deldir           - deldir file or dir
+dirsize          - dirsize dir
+list_device      - list device in system
+list_timer       - list timer in system
+list_mempool     - list memory pool in system
+list_memheap     - list memory heap in system
+list_msgqueue    - list message queue in system
+list_mailbox     - list mail box in system
+list_mutex       - list mutex in system
+list_event       - list event in system
+list_sem         - list semaphore in system
+list_thread      - list thread
+version          - show RT - Thread version information
+help             - RT - Thread shell help.
+console          - Change MSH / FINSH console device.
+free             - Show the memory usage in the system.
+time             - Execute command with time.
+ps               - List threads in the system.
+echo             - echo string to file
+df               - disk free
+unmountfs        - unmount device to file system
+mountfs          - mount device to file system
+mkfs             - format disk with file system
+mkdir            - Create the DIRECTORY.
+pwd              - Print the name of the current working directory.
+cd               - Change the shell working directory.
+rm               - Remove(unlink) the FILE(s).
+cat              - Concatenate FILE(s)
+mv               - Rename SOURCE to DEST.
+cp               - Copy SOURCE to DEST.
+ls               - List information about the FILEs.
+adc              - adc function
+show_date        - get date and time or set [year month day hour min sec]
+list_date        - show date and time.
+
+msh />msh />
+# stopped=2026-11-10T16:16:29.5456119+08:00

@@ -1,0 +1,7 @@
+# port=COM6 baud=1000000 started=2026-11-10T16:17:12.4188341+08:00
+# 默认只读采集；如指定 -Send，只发送一次该命令。
+# sent: tp_ctrl click 195 260
+[7180791] I/TOUCH tshell: Clicked at 195,260
+msh />msh />[pet:WALK] x=800 y=720 result=0
+
+# stopped=2026-11-10T16:17:17.9715070+08:00
