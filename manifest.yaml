@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "手表录音播报，蓝牙 PAN 借手机上网，经小智云端对话"
+      alternatives_considered: "A 手表直接语音对话；B 手机 App 处理音频，手表同步状态"
+      rationale: "A 保留对着小猫说话的体验；需验证演示手机、云端和 BLE 校时共存"
+      decided_by: "王焕博明确选择 A 并确认独立场景、小猫稍放大居中，ADR-0022"
     - decision: "校园地图保留现有道路底图叠加建筑名/施工黄条；活动中心弹窗；餐厅窗口标签；勤工俭学/跳舞/羽毛球即时交互"
       alternatives_considered: "A 保留底图+弹窗/标签+即时交互；B 重绘扁平地图+新场景+独立餐厅楼；C 只做活动中心弹窗"
       rationale: "A 兼容旧档/旧测试，最快上板；B 视觉更贴近示意图但重做门位/场景/存档风险大；用户四选一确认A"
