@@ -1,0 +1,94 @@
+{
+  "version": "0.19.2",
+  "board": "sf32lb52-lchspi-ulp_hcpu",
+  "sdk": "2.5.1",
+  "compiler": "arm-none-eabi-gcc 14.2.1",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit": 0,
+  "download_images": [
+    {
+      "address": "0x12010000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "address": "0x12020000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 5322820,
+      "sha256": "F03EE1143C5DFCC5BC14D09314380FA81A14EA8BF2104536B717F15A3FEB5CD9"
+    },
+    {
+      "address": "0x12000000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "AD5892DCE7D4BC6C531B1FA35FDE82C811406F7515C10A665957CA790AA519B2"
+    }
+  ],
+  "download_config": {
+    "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+    "bytes": 382,
+    "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+  },
+  "changed_inputs_and_host_test": [
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 82164,
+      "sha256": "F09423AE9C3A746D9DB9A11CE305A5EFAD025CA3A9EC89EAF2DBB47E4B9F2942"
+    },
+    {
+      "path": "src/pet_world.c",
+      "bytes": 55476,
+      "sha256": "3D7209F88426BAE77AE93783BD9F309ADB7CA71F2A8C7C7C0F2A206871F3F5F8"
+    },
+    {
+      "path": "src/pet_world.h",
+      "bytes": 6357,
+      "sha256": "45975327CB27F646AC2A0B61F69BA6BCCE48F61278F5A937CD9413A4B92B3AD8"
+    },
+    {
+      "path": "src/pet_world_selftest.c",
+      "bytes": 30173,
+      "sha256": "55774BA0DFEB0CE7BD6EB7296F8438F8FEA042DAEB73A55752BD281AB296267A"
+    },
+    {
+      "path": "src/pet_version.h",
+      "bytes": 93,
+      "sha256": "9AA0809FAC18A0EFBE369D79F99D8EDB3870BF488A0225E06578AAE99B14C9B0"
+    },
+    {
+      "path": "src/pet_shahe_assets.c",
+      "bytes": 16252798,
+      "sha256": "33FB93F2E57A4AEEDB58FB28D05D3C2F179DB5D840DC6B737E79DE7E46468C07"
+    },
+    {
+      "path": "src/pet_shahe_assets.h",
+      "bytes": 2503,
+      "sha256": "67B504F0D465E3D1E19136392D5E2C6A3E03D789E05AB351F7BC73296D33E721"
+    },
+    {
+      "path": "assets/pet-shahe/smart-room.png",
+      "bytes": 2245531,
+      "sha256": "571B4F1207B0AF3DC2F8F93B1EBACF4A4F7EDCD76DAF3B021FA8AC82CBBB8BE6"
+    },
+    {
+      "path": "assets/pet-shahe/lab-room.png",
+      "bytes": 1973122,
+      "sha256": "E422F684934DEA9E983AEB56FFD2FEC2055C28A66424327DACCFB636674487B5"
+    },
+    {
+      "path": "assets/pet-shahe/public-room.png",
+      "bytes": 1953956,
+      "sha256": "20A5D3B4AE5134E5EE46FC5095B67A5C4A86C55D1F46FD5593C9BCE632FDF3B1"
+    },
+    {
+      "path": "tests/pet_world_ui_test.c",
+      "bytes": 49541,
+      "sha256": "71F3B5A32CE101B053EC61FED3A17CEB492A9DAD45E870681A946BF49DE3D011"
+    }
+  ],
+  "host_teaching_exit": 0,
+  "host_full_exit": 1,
+  "board_verified": false,
+  "source_commit": "7ea7a2737fa627dc87c8c0cf419fc436ebd7d6c8"
+}

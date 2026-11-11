@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.19.0沙河校园地图/活动中心/餐厅窗口/勤工俭学实现；已烧录启动，71项自检PASS；主机逻辑/存档118项PASS，真实屏幕与手机待测"
+  milestone: "v0.19.2 三栋教学楼独立室内，主机专项与目标构建通过，TC-298 待板端验证"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -137,7 +137,7 @@ code:
   repo_url: "https://github.com/whbbupt/shahe-campus-cat.git" # 公开仓库；本轮从该仓库恢复缺失的.git
   local_path: "shahe-campus-cat-feat-pet-core"
   commit_range: "faf9e74..HEAD" # v0.17.4基线到当前分支头；具体提交见git log
-  implementation_commit: "0f9a1a5" # v0.18.0图鉴/交互修复/UI回归；目标构建基于该提交
+  implementation_commit: "7ea7a27" # v0.19.2 三栋教学楼独立室内固件源码
 
 practice_completion:
   scope: "个人可观察修改、编译、烧录、屏幕/串口与RGB/复位、证据、本人解释、本地Git"
@@ -148,6 +148,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "TC-298 v0.19.2 三栋教学楼实机"
+    required_action: "常规下载新版，在智慧、实验、公共教学楼分别进门、走动、点互动和出门，留启动版本及照片或视频。"
+    executed_at: null
+    evidence_path: null
+    agent_conclusion: "软件与构建通过，板上待验证。"
   - item: "v0.19.0 sftool烧录与启动自检（含建筑直达/点餐修复）"
     required_action: "用sftool 0.2.5对COM6常规write_flash bootloader/main/ftab；msh reboot；抓v0.19.0启动日志"
     executed_at: "2026-11-10 17:35（本机文件时间戳）"
@@ -1563,8 +1568,27 @@ test_results:
     evidence_path: evidence/pet/library_v0191_style_20261110.txt
     pass: true
 
+  - test_id: TC-296
+    description: 三栋教学楼路径、桌台避障与原门
+    expected: 独立避障、一次活动结算、退出回各自的门
+    actual: 共享模型自检和存档回归通过
+    evidence_path: evidence/pet/teaching_v0192_host_20261111.txt
+    pass: true
+  - test_id: TC-297
+    description: 三栋教学楼生产 LVGL 与目标构建
+    expected: 独立底图与触区、目标固件成功构建
+    actual: 三楼日夜、指针专项和固件构建通过；完整套件有旧道路点击断言
+    evidence_path: evidence/pet/teaching_v0192_ui_20261111.txt
+    pass: true
+  - test_id: TC-298
+    description: 三栋教学楼实机触摸和体验
+    expected: 板上画面、路径、互动、退出符合用例
+    actual: 待用户实机
+    pass: null
+
 known_issues:
-  - "v0.19.1 图书馆与学活主机专项通过，完整 LVGL 仍有基线道路断言，目标构建被 ARM GCC 启动错误阻止，TC-294 待实机。"
+  - "v0.19.2 三栋教学楼专项与构建通过，完整 LVGL 仍有基线道路点击断言，TC-298 待实机。"
+  - "v0.19.1 图书馆与学活主机专项通过，2026-11-11 已完成目标构建，TC-294 待实机。"
   - "v0.18.0新增校园图鉴（REQ-221）与四项交互修复（REQ-222），存档升到格式11、复用r[5]/r[7]保存12位图鉴；主机124项PASS（含LVGL 9.4渲染），SDK v2.5.1+arm-none-eabi-gcc 14.2.1经ASCII路径构建成功（main.bin 4,537,068字节，ROM 4,610,526/8,388,608）；sftool 0.2.5已对COM6常规烧录成功，启动日志70项PASS、真实PET_SAVE区读到格式11记录且旧9/10保留；图鉴实机0/12、外卖后1/12已拍照，食堂菜/复位保持/触摸手感、掉电恢复与BLE seated仍未实机。另加7天主机soak（598意图/181保存恢复）通过，但不等于真实Flash寿命或板端长时运行。"
   - "v0.17.0当前入口已撤商店、改坐席图文菜单及宿舍布置，格式10/64字节读取1至9，旧9拒10；软件/构建通过但TC260待实机。具体菜价/平衡待体验，历史商店文档仅代表旧版本。"
   - "v0.16.1每日6金币/同日与日期原子保存已软件通过，TC-254仍待实机；格式9读1–8，旧8拒9，不将设备时钟当服务器验真，原完整金币闭环TC-249仍待。"
