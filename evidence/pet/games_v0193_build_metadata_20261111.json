@@ -1,0 +1,109 @@
+{
+  "version": "0.19.3",
+  "source_commit": "7259e71893e2fe5d71bce2635944be4f6da499c3",
+  "board": "sf32lb52-lchspi-ulp_hcpu",
+  "sdk": "2.5.1",
+  "compiler": "arm-none-eabi-gcc 14.2.1",
+  "build_command": "python scripts/build_firmware.py",
+  "build_exit": 0,
+  "download_images": [
+    {
+      "address": "0x12010000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/bootloader/bootloader.bin",
+      "bytes": 58496,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "address": "0x12020000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/main.bin",
+      "bytes": 5334340,
+      "sha256": "3302F462A09AB7DBDF643AEBBED0BBB22B6C77A3D65276C243CFFA65641FFBD0"
+    },
+    {
+      "address": "0x12000000",
+      "path": "project/build_sf32lb52-lchspi-ulp_hcpu/ftab/ftab.bin",
+      "bytes": 11288,
+      "sha256": "B36389011F6CEB6E4C31CFDDE4737A516F8C8A46C644C17402BEFC3202AEDF3F"
+    }
+  ],
+  "download_config": {
+    "path": "project/build_sf32lb52-lchspi-ulp_hcpu/sftool_param.json",
+    "bytes": 382,
+    "sha256": "AC1FAC7A2E52B46F7C96DDC7892CEE7806C4233F16CBD155F7EE133C7DE325F0"
+  },
+  "changed_inputs_and_tests": [
+    {
+      "path": "assets/pet-world/font-conversion.json",
+      "bytes": 2001,
+      "sha256": "457A84F36AEAF3374FAD51CEB190CEAB23AF636CDD1A6084F225CCDD4AC0E31C"
+    },
+    {
+      "path": "src/pet_challenge.c",
+      "bytes": 5259,
+      "sha256": "7089A28D96D73A3A332036BD515791CFC9326B89EB8537E3930EDBA5497CBD32"
+    },
+    {
+      "path": "src/pet_challenge.h",
+      "bytes": 1084,
+      "sha256": "585EEDD34046031893182ABD7B86D1EBAD8848A71BA5DB3A4A2E97FFF41535F0"
+    },
+    {
+      "path": "src/pet_challenge_selftest.c",
+      "bytes": 4556,
+      "sha256": "0C38541205497DB407FA7D776D5BE7F97DAA33A8E035846ED447FF8C98735A32"
+    },
+    {
+      "path": "src/pet_memory.c",
+      "bytes": 2209,
+      "sha256": "1057C30A759FC7D3C52BAF0FA4186187D6C998D3E1C5B856DFA4AC7293C59907"
+    },
+    {
+      "path": "src/pet_memory.h",
+      "bytes": 582,
+      "sha256": "8A69C4713C9E0BAC14EF3F52F4C37470382599E23B09561EB0BB08AE377B947B"
+    },
+    {
+      "path": "src/pet_ui.c",
+      "bytes": 89495,
+      "sha256": "123E24E379E7ED390EE28B8F5B3B99A9521A34F7BDB19C8BE04A9F6ADCED5607"
+    },
+    {
+      "path": "src/pet_version.h",
+      "bytes": 93,
+      "sha256": "D96A610A2EE1CED8E539D075B68AF847E306409456E6F6DB47A96DCCB572F244"
+    },
+    {
+      "path": "src/pet_world.c",
+      "bytes": 56392,
+      "sha256": "2864995C2D08D9BC3F9CDF02AA252BEF5FBBB4E8500F023E9B170471077A7E19"
+    },
+    {
+      "path": "src/pet_world.h",
+      "bytes": 6438,
+      "sha256": "846A77C6481BA283270156FC9787111F844353B794DFBF17AE8DF235B6FA8038"
+    },
+    {
+      "path": "src/pet_world_font.c",
+      "bytes": 591163,
+      "sha256": "3AE248FE1A6DA212699C6606927D7AF72536B8DFF06BCCC2313C59CB893028EF"
+    },
+    {
+      "path": "src/pet_world_selftest.c",
+      "bytes": 30821,
+      "sha256": "638B2DC830ACFC4909D779FCB1F0390B5BE7E5FF68B45716078E1390E54FBB75"
+    },
+    {
+      "path": "tests/pet_save_app_test.c",
+      "bytes": 13333,
+      "sha256": "4298BD1C38854E9F6BA3DE7215CDF1ED325C7003E22B89440F12121321EF26B4"
+    },
+    {
+      "path": "tests/pet_world_ui_test.c",
+      "bytes": 52216,
+      "sha256": "D7A07C391E4BCDB8FB0286304C738A3F82ED2763B588CB6CCBF4EBB4FE201309"
+    }
+  ],
+  "host_teaching_exit": 0,
+  "host_full_exit": 1,
+  "board_verified": false
+}

@@ -1,0 +1,25 @@
+[host:assets] 50 production decoders x10, released each time; peak image allocation=351000 bytes PASS
+[host:render-profile] scene=0 frames=50 large_decodes=0 pixels=7200 peak=359040
+[host:render-profile] scene=1 frames=50 large_decodes=0 pixels=7200 peak=1532415
+[host:render-profile] scene=2 frames=50 large_decodes=3 pixels=8775000 peak=2017365
+[host:world-ui] campus-library-activity.ppm
+[host:world-ui] library-reading-room.ppm
+[host:world-ui] library-reading-room-night.ppm
+[host:world-ui] smart-classroom-day.ppm
+[host:world-ui] smart-classroom-night.ppm
+[host:world-ui] calibration-game.ppm
+[host:world-ui] teaching-lab-day.ppm
+[host:world-ui] teaching-lab-night.ppm
+[host:world-ui] circuit-game.ppm
+[host:world-ui] circuit-won.ppm
+[host:world-ui] public-classroom-day.ppm
+[host:world-ui] public-classroom-night.ppm
+[host:world-ui] projection-game.ppm
+[host:world-ui] shahe-memory-show.ppm
+[host:world-ui] shahe-memory-retry.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-input.ppm
+[host:world-ui] shahe-memory-won.ppm
+[host:world-ui] library and activity entrances PASS
+[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS
