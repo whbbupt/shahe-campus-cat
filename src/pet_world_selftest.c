@@ -676,7 +676,8 @@ static bool memory_rounds_and_guards(void)
     for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
     for (unsigned round = 0; round < 3; round++)
     {
-        CHECK(w.memory.length == 3 + round);
+        CHECK(w.memory.length == 4 + round);
+        CHECK(pm_remaining(&w.memory) == (4 + round) * (650 - 50 * round));
         pw_advance(&w, pm_remaining(&w.memory));
         CHECK(w.memory.phase == PM_INPUT);
         unsigned length = w.memory.length;
@@ -694,6 +695,17 @@ static bool memory_rounds_and_guards(void)
     CHECK(pw_request(&w, PW_MEMORY_START) == PW_OK);
     for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
     CHECK(pw_request(&w, PW_MEMORY_CANCEL) == PW_OK && w.phase == PW_IDLE && w.memory_wins == 1);
+    CHECK(pw_request(&w, PW_MEMORY_START) == PW_OK);
+    for (unsigned i = 0; i < 1000 && w.phase == PW_WALK; i++) pw_advance(&w, 10);
+    CHECK(w.memory.phase == PM_SHOW);
+    pw_advance(&w, pm_remaining(&w.memory));
+    unsigned coins = w.wallet.coins;
+    pw_advance(&w, PM_INPUT_MS - 1);
+    CHECK(w.memory.phase == PM_INPUT && w.wallet.coins == coins);
+    pw_advance(&w, 1);
+    CHECK(w.memory.phase == PM_LOST && w.wallet.coins == coins + 2 && w.memory_wins == 1);
+    pw_advance(&w, 1500);
+    CHECK(w.phase == PW_IDLE && w.wallet.coins == coins + 2);
     return true;
 }
 

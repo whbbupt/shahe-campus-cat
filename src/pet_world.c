@@ -888,14 +888,15 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         idle(w);
         return PW_OK;
     }
-    if (cmd >= PW_MEMORY_0 && cmd <= PW_MEMORY_3)
+    bool grid_input = cmd >= PW_GRID_FIRST && cmd <= PW_GRID_LAST;
+    if ((cmd >= PW_MEMORY_0 && cmd <= PW_MEMORY_3) || grid_input)
     {
-        if (w->phase != PW_MINIGAME)
+        if (w->phase != PW_MINIGAME || (grid_input && w->challenge.kind < PG_CALIBRATION))
             return PW_INVALID;
         if (w->challenge.kind != PG_NONE)
         {
             pg_phase_t before = w->challenge.phase;
-            pg_press(&w->challenge, (unsigned)(cmd - PW_MEMORY_0));
+            pg_press(&w->challenge, (unsigned)(cmd - (grid_input ? PW_GRID_FIRST : PW_MEMORY_0)));
             if (before == PG_INPUT && (w->challenge.phase == PG_WON || w->challenge.phase == PG_LOST))
                 game_result(w, w->challenge.phase == PG_WON);
             return PW_OK;
@@ -912,6 +913,15 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (pw_busy(w)) return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         pg_kind_t previous = w->challenge.kind;
         w->challenge.kind = PG_NONE;
+        if (w->scene == PW_CLASSROOM)
+        {
+            switch (w->building_id)
+            {
+            case PW_PUBLIC_BUILDING: w->challenge.kind = PG_PROJECTION; break;
+            case PW_SMART_BUILDING: w->challenge.kind = PG_CALIBRATION; break;
+            case PW_LAB_BUILDING: w->challenge.kind = PG_CIRCUIT; break;
+            }
+        }
         pw_result_t r = eligible(w, PW_MEMORY);
         if (r != PW_OK) { w->challenge.kind = previous; return reject(w, r); }
         cmd = PW_MEMORY;
@@ -1165,7 +1175,10 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         {
             if (w->challenge.kind == PG_NONE)
             {
+                pm_phase_t before = w->memory.phase;
                 pm_advance(&w->memory, (uint32_t)dt);
+                if (before == PM_INPUT && w->memory.phase == PM_LOST)
+                    game_result(w, false);
                 if (w->memory.phase == PM_OFF) idle(w);
             }
             else
@@ -1333,8 +1346,18 @@ const char *pw_state_text(const pet_world_t *w)
     if(w->phase==PW_ACTION && w->action==PW_STUDY && w->activity_kind==1)return "安静自习中";
     if(w->phase==PW_ACTION && w->action==PW_EAT && w->activity_kind==2)return "吃份暖暖的简餐";
     if (w->phase == PW_MINIGAME)
-        return w->challenge.kind == PG_MEAL ? "配餐中" : w->challenge.kind == PG_RHYTHM ? "跟着节拍动一动"
-            : w->challenge.kind == PG_FIND ? "找东西中" : "记忆题中";
+    {
+        switch (w->challenge.kind)
+        {
+        case PG_MEAL: return "配餐中";
+        case PG_RHYTHM: return "跟着节拍动一动";
+        case PG_FIND: return "找东西中";
+        case PG_PROJECTION: return "投影抢答";
+        case PG_CALIBRATION: return "互动屏校准";
+        case PG_CIRCUIT: return "修电路";
+        default: return "记忆题中";
+        }
+    }
     if (w->phase == PW_SLEEP)
         return "睡觉中";
     if (w->phase == PW_TRANSITION)

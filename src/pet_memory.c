@@ -1,9 +1,14 @@
 #include "pet_memory.h"
 #include <string.h>
 
+static uint32_t beat_ms(const pm_game_t *game)
+{
+    return 650U - 50U * game->round;
+}
+
 static void show_round(pm_game_t *game)
 {
-    game->length = (uint8_t)(3 + game->round);
+    game->length = (uint8_t)(4 + game->round);
     game->input_at = 0;
     game->elapsed = 0;
     game->phase = PM_SHOW;
@@ -22,23 +27,31 @@ void pm_start(pm_game_t *game, uint32_t seed)
 uint32_t pm_remaining(const pm_game_t *game)
 {
     if (game->phase == PM_SHOW)
-        return game->length * 750U - game->elapsed;
+        return game->length * beat_ms(game) - game->elapsed;
+    if (game->phase == PM_INPUT)
+        return PM_INPUT_MS - game->elapsed;
     if (game->phase == PM_WON || game->phase == PM_LOST)
         return 1500U - game->elapsed;
     return UINT32_MAX;
 }
 void pm_advance(pm_game_t *game, uint32_t ms)
 {
-    if (game->phase == PM_OFF || game->phase == PM_INPUT)
-        return;
-    uint32_t remaining = pm_remaining(game);
-    if (ms < remaining)
+    while (ms && game->phase != PM_OFF)
     {
-        game->elapsed += ms;
-        return;
+        uint32_t remaining = pm_remaining(game);
+        uint32_t dt = ms < remaining ? ms : remaining;
+        game->elapsed += dt;
+        ms -= dt;
+        if (dt < remaining)
+            break;
+        game->elapsed = 0;
+        if (game->phase == PM_SHOW)
+            game->phase = PM_INPUT;
+        else if (game->phase == PM_INPUT)
+            game->phase = PM_LOST;
+        else
+            game->phase = PM_OFF;
     }
-    game->elapsed = 0;
-    game->phase = game->phase == PM_SHOW ? PM_INPUT : PM_OFF;
 }
 void pm_press(pm_game_t *game, unsigned symbol)
 {
@@ -53,7 +66,7 @@ void pm_press(pm_game_t *game, unsigned symbol)
     game->input_at++;
     if (game->input_at != game->length)
         return;
-    if (game->round == 2)
+    if (game->round + 1 == PM_ROUNDS)
     {
         game->phase = PM_WON;
         game->elapsed = 0;
@@ -64,7 +77,10 @@ void pm_press(pm_game_t *game, unsigned symbol)
 }
 int pm_highlight(const pm_game_t *game)
 {
-    if (game->phase != PM_SHOW || game->elapsed % 750 >= 500)
+    if (game->phase != PM_SHOW)
         return -1;
-    return game->sequence[game->elapsed / 750];
+    uint32_t beat = beat_ms(game);
+    if (game->elapsed % beat >= beat * 2 / 3)
+        return -1;
+    return game->sequence[game->elapsed / beat];
 }

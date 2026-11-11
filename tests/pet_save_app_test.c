@@ -165,7 +165,12 @@ int main(void)
     assert(action(PW_MEMORY_START) == PW_OK); step(6000);
     for (unsigned round=0; round<3; round++)
     {
-        if(snapshot.memory.phase == PM_SHOW) step(pm_remaining(&snapshot.memory));
+        if (snapshot.memory.phase == PM_SHOW)
+        {
+            step(pm_remaining(&snapshot.memory));
+            /* The view snapshot can lag the model by one 40 ms refresh. */
+            if (snapshot.memory.phase == PM_SHOW) step(40);
+        }
         assert(snapshot.memory.phase == PM_INPUT);
         unsigned count=snapshot.memory.length;
         for(unsigned i=0;i<count;i++) assert(action((pw_command_t)(PW_MEMORY_0+snapshot.memory.sequence[i]))==PW_OK);

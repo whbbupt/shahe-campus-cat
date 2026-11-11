@@ -1005,6 +1005,55 @@ static void library_and_activity(void)
     puts("[host:world-ui] library and activity entrances PASS");
 }
 
+static void finish_teaching_game(unsigned building)
+{
+    for (unsigned i = 0; i < 500 && world.phase == PW_WALK; i++) step(40);
+    assert(world.phase == PW_MINIGAME);
+    pg_game_t *game = &world.challenge;
+    unsigned balance = world.wallet.coins;
+    if (building == PW_PUBLIC_BUILDING)
+    {
+        assert(game->kind == PG_PROJECTION && label_with(lv_screen_active(), "按规律选下一个"));
+        screenshot("projection-game.ppm");
+        for (unsigned i = 0; i < 3; i++)
+        {
+            uint8_t pattern[PG_PROJECTION_STEPS], options[3];
+            unsigned answer = pg_projection(game, pattern, options);
+            tap(95 + (int)answer * 100, 278);
+        }
+    }
+    else if (building == PW_SMART_BUILDING)
+    {
+        assert(game->kind == PG_CALIBRATION && label_with(lv_screen_active(), "让九格全部点亮"));
+        screenshot("calibration-game.ppm");
+        static const unsigned flips[] = {11, 23, 38, 89, 186, 308, 200, 464, 416};
+        unsigned solution = 0;
+        for (unsigned candidate = 1; candidate < 512; candidate++)
+        {
+            unsigned grid = game->grid;
+            for (unsigned i = 0; i < PG_GRID_CELLS; i++)
+                if (candidate & (1U << i)) grid ^= flips[i];
+            if (grid == 511) { solution = candidate; break; }
+        }
+        assert(solution);
+        for (unsigned i = 0; i < PG_GRID_CELLS; i++)
+            if (solution & (1U << i))
+                tap(95 + (int)(i % 3) * 100, 205 + (int)(i / 3) * 54);
+    }
+    else
+    {
+        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "依次点两个端点"));
+        screenshot("circuit-game.ppm");
+        static const char *const wiring[] = {"电源 +", "开关入", "开关出", "灯泡入", "灯泡出", "电源 -"};
+        for (unsigned i = 0; i < sizeof(wiring) / sizeof(wiring[0]); i++) press(wiring[i]);
+        assert(label_with(lv_screen_active(), "灯亮了，通电成功"));
+        screenshot("circuit-won.ppm");
+    }
+    assert(game->phase == PG_WON && world.wallet.coins == balance + 10 && world.memory_wins == 1);
+    press("×");
+    assert(world.phase == PW_IDLE && world.wallet.coins == balance + 10);
+}
+
 static void teaching_buildings(void)
 {
     static const struct
@@ -1054,21 +1103,20 @@ static void teaching_buildings(void)
         tap(330, 410);
         assert(result == PW_OK && world.phase == PW_WALK && world.purpose == 3);
         idle(PW_CLASSROOM);
+        const char *game_entry = cases[i].id == PW_LAB_BUILDING ? "修电路" :
+            cases[i].id == PW_SMART_BUILDING ? "互动屏校准" : "投影抢答";
+        unsigned before_cancel = world.wallet.coins;
+        press(game_entry);
+        for (unsigned j = 0; j < 500 && world.phase == PW_WALK; j++) step(40);
+        assert(world.phase == PW_MINIGAME);
+        press("×");
+        assert(world.phase == PW_IDLE && world.wallet.coins == before_cancel);
+        press(game_entry);
+        finish_teaching_game(cases[i].id);
         if (cases[i].id == PW_LAB_BUILDING)
         {
-            assert(!label_with(lv_screen_active(), "记忆题"));
-            press("做实验");
-            until_action(PW_STUDY);
-            step(8500);
             press("勤工俭学");
             assert(result == PW_OK);
-        }
-        else
-        {
-            press("记忆题");
-            for (unsigned j = 0; j < 500 && world.phase == PW_WALK; j++) step(40);
-            assert(world.phase == PW_MINIGAME);
-            press("×");
         }
         assert(world.phase == PW_IDLE);
         press("出门");
@@ -1076,7 +1124,16 @@ static void teaching_buildings(void)
         idle(PW_CAMPUS);
         assert(world.node == cases[i].door && world.x == gate.x && world.y == gate.y);
     }
-    puts("[host:world-ui] three teaching room plates, day/night, pointer interactions and original exits PASS");
+    reset();
+    world.scene = PW_CAMPUS;
+    world.node = (int8_t)pw_campus_door(PW_CLASSROOM);
+    pw_point_t gate = pw_node(PW_CAMPUS, (unsigned)world.node);
+    world.x = gate.x;
+    world.y = gate.y;
+    step(40);
+    enter("教综楼", PW_CLASSROOM);
+    memory_demo();
+    puts("[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS");
 }
 
 int main(int argc, char **argv)
