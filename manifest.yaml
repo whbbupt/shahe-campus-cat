@@ -152,6 +152,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "TC-304 黄山派语音链路"
+    required_action: "使用演示用手机共享网络，激活小智设备，确认对话键收音和扬声器播报并保存一段实机证据。"
+    executed_at: null
+    evidence_path: null
+    agent_conclusion: "待验证。外设实验的 PAN 与录音历史只作为集成参考。"
   - item: "TC-302 v0.19.3 教学楼小游戏实机"
     required_action: "烧录 v0.19.3，确认启动版本，逐楼点记忆题、投影抢答、互动屏校准、修电路，记录题目、触摸、结果和退出。"
     executed_at: null
@@ -1617,6 +1622,21 @@ test_results:
     description: 教学楼小游戏真机操作
     expected: 真实黄山派上四栋楼小游戏可进入、操作、结算并退出
     actual: 待用户实机
+    pass: null
+  - test_id: TC-303
+    description: 手表语音场景的布局和触摸
+    expected: 小猫放大居中，进入和退出可重复，退出后回原场景
+    actual: 待集成
+    pass: null
+  - test_id: TC-304
+    description: 板载录音和小智云端多轮语音
+    expected: 三轮中文对话可播报并接住追问
+    actual: 待板端与云端实测
+    pass: null
+  - test_id: TC-305
+    description: 语音取消、断网和游戏回归
+    expected: 可取消并返回，恢复原游戏声音，BLE 校时和旧存档可用
+    actual: 待集成
     pass: null
 
 known_issues:

@@ -1,0 +1,8 @@
+独立小智示例验证（2026-11-11，未烧录）
+
+- 黄山派目标 sf32lb52-lchspi-ulp，SiFli SDK v2.5.1（421126d9），GNU Arm 14.2.1。
+- SDK export 首次因 uv 不在 PATH 退出。复用已有 SDK Python 与编译器，显式设置 SIFLI_SDK、RTT_CC=gcc、RTT_EXEC_PATH。初次并行构建缺 ptab.h，使用 SDK 的独立 SCons 目标生成主工程及三个子工程的头文件，再构建。
+- TinyTTF 原生成步骤在 CRLF 源上报 “TinyTTF kerning comparator changed”。在小智示例 app/project/sdk_compat.py 用 Path.read_text 读取 SDK 源。用同一 CRLF 文件复现旧失败，并验证新读取方式仍生成既有字距和空位图修复。
+- 重跑 python -m SCons --board=sf32lb52-lchspi-ulp --board_search_path=../boards -j8，退出 0。构建生成的共享 SDK 证书副作用已恢复，SDK 工作区干净。
+- 产物六个 Flash 镜像。字体 ER_IROM2.bin 为 3,939,852 字节，写入 [0x12AE0000, 0x12EA1E0C)，覆盖校园小猫存档 [0x12DA8000, 0x12DAA000) 和旧 BLE 配对分区。只用空闲测试板验证。校园小猫 v0.19.3 三个下载镜像 SHA-256 与原元数据相同。
+- 本地备用板测试 ZIP 8,309,776 字节，SHA-256 7f91dc54e44f1d13a25ede650a5a48eeb944dc83c318d3f414dffa7600ccdc01。ZIP CRC 和所有打包文件逐字节通过。未执行烧录、PAN 激活或实际语音对话。
