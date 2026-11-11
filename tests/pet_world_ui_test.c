@@ -1147,6 +1147,25 @@ int main(int argc, char **argv)
     lv_indev_t *input = lv_indev_create();
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
+    if (argc > 1 && !strcmp(argv[1], "--voice"))
+    {
+        reset();
+        pw_scene_t scene = world.scene;
+        for (unsigned round = 0; round < 3; round++)
+        {
+            press("语音");
+            assert(label_with(lv_screen_active(), "和小猫说话"));
+            assert(label_with(lv_screen_active(), "语音服务未连接"));
+            tap(195, 396);
+            assert(world.scene == scene && world.phase == PW_IDLE);
+            if (round == 0) screenshot("voice-page.ppm");
+            press("返回");
+            assert(!label_with(lv_screen_active(), "和小猫说话"));
+            assert(world.scene == scene && label_with(lv_screen_active(), "语音"));
+        }
+        puts("[host:voice-ui] three entries/exits, disabled microphone and scene preserved PASS");
+        return 0;
+    }
     bool measure=argc>1 && !strcmp(argv[1],"--measure");
     render_profile(!measure);
     if(measure)return 0;

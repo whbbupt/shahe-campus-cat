@@ -44,6 +44,8 @@ enum
     TAG_BADMINTON_CLOSE,
     TAG_LIBRARY_SHELF = 360,
     TAG_BOOK_FIRST,
+    TAG_VOICE = 370,
+    TAG_VOICE_BACK,
     TAG_SPORTS_ACTION = 350,
     TAG_SPORTS_CLOSE,
     TAG_COLLEGE_FIRST = 340,
@@ -62,6 +64,8 @@ static struct
     lv_obj_t *tone, *lamplight, *clock_text, *clock_date;
     int light_scene, light_band;
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
+    lv_obj_t *voice_entry, *voice_page;
+    bool voice_open;
     lv_obj_t *status_button, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
@@ -329,6 +333,12 @@ static void click(lv_event_t *e)
     if (lv_obj_has_state(o, LV_STATE_DISABLED))
         return;
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
+    if (cmd == TAG_VOICE || cmd == TAG_VOICE_BACK)
+    {
+        ui.voice_open = cmd == TAG_VOICE;
+        paint();
+        return;
+    }
     if (cmd == TAG_MEMORY_CLOSE || (cmd == TAG_CLOSE && ui.world.phase == PW_MINIGAME))
     {
         if (ui.action) ui.action(PW_MEMORY_CANCEL);
@@ -1080,6 +1090,38 @@ static void build_furniture(lv_obj_t *screen)
         ui.furniture[i] = prop;
     }
 }
+static void build_voice(lv_obj_t *screen)
+{
+    ui.voice_entry = button(screen, 24, 94, 76, 44, TAG_VOICE, HUD_PAPER, 8);
+    lv_obj_set_style_bg_opa(ui.voice_entry, LV_OPA_90, 0);
+    lv_obj_center(text(ui.voice_entry, "语音", 0, 0, &pet_font_16, HUD_INK));
+
+    ui.voice_page = box(screen, 0, 0, 390, 450, 0x192B3C, 0);
+    lv_obj_add_flag(ui.voice_page, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_t *back = button(ui.voice_page, 22, 23, 64, 44, TAG_VOICE_BACK, 0x2B4357, 12);
+    lv_obj_center(text(back, "返回", 0, 0, &pet_font_16, 0xFCF1DA));
+    lv_obj_align(text(ui.voice_page, "和小猫说话", 0, 0, &pet_font_20, 0xFCF1DA),
+                 LV_ALIGN_TOP_MID, 0, 36);
+
+    lv_obj_t *cat = lv_image_create(ui.voice_page);
+    set_image(cat, pw_frames[0]);
+    lv_obj_remove_flag(cat, LV_OBJ_FLAG_CLICKABLE);
+    lv_image_set_pivot(cat, 36, 38);
+    lv_image_set_scale(cat, 384);
+    lv_obj_align(cat, LV_ALIGN_CENTER, 0, -12);
+
+    const uint8_t heights[] = {4, 7, 11, 16, 11, 7, 4};
+    for (unsigned i = 0; i < sizeof(heights); i++)
+        box(ui.voice_page, 148 + 15 * i, 283 - heights[i] / 2,
+            5, heights[i], 0xEAB07B, 3);
+
+    lv_obj_align(text(ui.voice_page, "语音服务未连接", 0, 0, &pet_font_16, 0xD2E2E9),
+                 LV_ALIGN_BOTTOM_MID, 0, -95);
+    lv_obj_t *mic = box(ui.voice_page, 118, 370, 154, 52, 0x2B4357, 26);
+    lv_obj_center(text(mic, "按住说话", 0, 0, &pet_font_20, 0xB8CCD8));
+    visible(ui.voice_page, false);
+}
+
 void pet_ui_create(pet_ui_action_fn callback)
 {
     /* No UI-owned model or animation timer: recreation cannot duplicate settlement. */
@@ -1179,6 +1221,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.album_button = button(screen, 296, 94, 62, 44, TAG_ALBUM, HUD_PAPER, 8);
     lv_obj_set_style_bg_opa(ui.album_button, LV_OPA_80, 0);
     text(ui.album_button, "图鉴", 15, 11, &pet_font_16, HUD_INK);
+    build_voice(screen);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -1719,6 +1762,9 @@ static void paint(void)
     else
         set_label(ui.bubble_text, msg);
     visible(ui.bubble_text, gains || *msg || ui.world.now < ui.world.coin_until);
+    visible(ui.voice_entry, !memory && ui.panel == PANEL_NONE && !ui.voice_open);
+    visible(ui.voice_page, ui.voice_open);
+    if (ui.voice_open) lv_obj_move_foreground(ui.voice_page);
 }
 void pet_ui_update(const pet_world_t *world)
 {
