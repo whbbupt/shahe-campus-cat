@@ -375,6 +375,46 @@ static bool library_round_trip(void)
     CHECK(w.x == door.x && w.y == door.y);
     return true;
 }
+static bool teaching_room_round_trips(void)
+{
+    static const struct
+    {
+        pw_command_t command;
+        unsigned building, door;
+        float left, top, right, bottom;
+        pw_point_t goal;
+    } cases[] = {
+        {PW_ENTER_PUBLIC, PW_PUBLIC_BUILDING, 54, 12, 259, 244, 310, {92, 317}},
+        {PW_ENTER_LAB, PW_LAB_BUILDING, 16, 216, 268, 315, 327, {183, 369}},
+        {PW_ENTER_WISDOM, PW_SMART_BUILDING, 24, 198, 245, 292, 321, {174, 372}}
+    };
+    for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        pet_world_t w;
+        campus_spawn(&w);
+        CHECK(pw_request(&w, cases[i].command) == PW_OK);
+        pw_advance(&w, 20000);
+        CHECK(w.scene == PW_CLASSROOM && w.phase == PW_IDLE &&
+              w.building_id == cases[i].building && w.return_node == cases[i].door);
+        CHECK(pw_walk_to(&w, (cases[i].left + cases[i].right) / 2,
+                         (cases[i].top + cases[i].bottom) / 2) == PW_INVALID);
+        CHECK(pw_walk_to(&w, cases[i].goal.x, cases[i].goal.y) == PW_OK);
+        for (unsigned step = 0; step < 500 && w.phase == PW_WALK; step++)
+        {
+            CHECK(w.x < cases[i].left || w.x > cases[i].right ||
+                  w.y < cases[i].top || w.y > cases[i].bottom);
+            pw_advance(&w, 20);
+        }
+        CHECK(w.phase == PW_IDLE && w.x == cases[i].goal.x && w.y == cases[i].goal.y);
+        CHECK(pw_request(&w, PW_STUDY) == PW_OK);
+        pw_advance(&w, 15000);
+        CHECK(w.phase == PW_IDLE && w.settlements[PW_STUDY] == 1);
+        CHECK(pw_request(&w, PW_EXIT) == PW_OK && w.building_id == cases[i].building);
+        pw_advance(&w, 15000);
+        CHECK(w.scene == PW_CAMPUS && w.phase == PW_IDLE && w.node == cases[i].door);
+    }
+    return true;
+}
 static bool campus_guards(void)
 {
     pet_world_t w;
@@ -666,6 +706,7 @@ bool pw_campus_selftest(void (*report)(const char *, bool))
     } cases[] = {{"campus-point-retarget-road", campus_point_routes},
                  {"campus-three-building-doors", campus_doors},
                  {"library-stays-visible-until-campus", library_round_trip},
+                 {"teaching-room-detours-and-original-doors", teaching_room_round_trips},
                  {"campus-guards-no-wander", campus_guards},
                  {"campus-clock-camera", campus_clock_camera},
                  {"campus-all-road-endpoints", campus_all_roads_connected}};

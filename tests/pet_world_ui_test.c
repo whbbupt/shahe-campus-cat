@@ -52,6 +52,7 @@ static void check_scene_decoders(void)
 {
     const lv_image_dsc_t *plates[] = {
         &shahe_room_0, &shahe_room_1, &shahe_room_2, &shahe_room_3, &shahe_library_room,
+        &shahe_public_room, &shahe_lab_room, &shahe_smart_room,
         &shahe_front_0, &shahe_front_1, &shahe_front_2, &shahe_seat_0,
         &shahe_building_0, &shahe_building_1, &shahe_building_2, &shahe_tree,
         &shahe_library, &shahe_center, &shahe_lecture, &shahe_gate,
@@ -63,10 +64,12 @@ static void check_scene_decoders(void)
     image_release = handlers->buf_free_cb;
     handlers->buf_malloc_cb = track_image_allocate;
     handlers->buf_free_cb = track_image_release;
+    const size_t ground_count = sizeof(shahe_ground) / sizeof(shahe_ground[0]);
+    const size_t asset_count = ground_count + sizeof(plates) / sizeof(plates[0]);
     for (unsigned repeat = 0; repeat < 10; repeat++)
-        for (unsigned i = 0; i < 46; i++)
+        for (size_t i = 0; i < asset_count; i++)
         {
-            const lv_image_dsc_t *src = i < 25 ? shahe_ground[i] : plates[i - 25];
+            const lv_image_dsc_t *src = i < ground_count ? shahe_ground[i] : plates[i - ground_count];
             lv_image_decoder_dsc_t decoder;
             lv_image_decoder_args_t args = {0};
             args.no_cache = true;
@@ -80,7 +83,7 @@ static void check_scene_decoders(void)
     handlers->buf_free_cb = image_release;
     assert(image_peak <= 351000 + 64);
     printf("[host:assets] %zu production decoders x10, released each time; peak image allocation=%zu bytes PASS\n",
-           sizeof(plates) / sizeof(plates[0]) + sizeof(shahe_ground) / sizeof(shahe_ground[0]), image_peak);
+           asset_count, image_peak);
 }
 static void flush(lv_display_t *d, const lv_area_t *a, uint8_t *data)
 {
@@ -1002,6 +1005,80 @@ static void library_and_activity(void)
     puts("[host:world-ui] library and activity entrances PASS");
 }
 
+static void teaching_buildings(void)
+{
+    static const struct
+    {
+        unsigned id, door;
+        const char *entry, *title, *day, *night;
+        const lv_image_dsc_t *plate;
+    } cases[] = {
+        {PW_SMART_BUILDING, 24, "智慧教学楼", "智慧教学楼 · 自习",
+         "smart-classroom-day.ppm", "smart-classroom-night.ppm", &shahe_smart_room},
+        {PW_LAB_BUILDING, 16, "教学实验综合楼", "教学实验综合楼·实验室",
+         "teaching-lab-day.ppm", "teaching-lab-night.ppm", &shahe_lab_room},
+        {PW_PUBLIC_BUILDING, 54, "公共教学楼", "公共教学楼 · 教室",
+         "public-classroom-day.ppm", "public-classroom-night.ppm", &shahe_public_room}
+    };
+    for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+    {
+        reset();
+        world.scene = PW_CAMPUS;
+        world.node = (int8_t)cases[i].door;
+        pw_point_t gate = pw_node(PW_CAMPUS, cases[i].door);
+        world.x = gate.x;
+        world.y = gate.y;
+        step(40);
+        press(cases[i].entry);
+        assert(result == PW_OK);
+        idle(PW_CLASSROOM);
+        assert(world.building_id == cases[i].id);
+        lv_obj_t *title = label_with(lv_screen_active(), cases[i].title);
+        assert(title);
+        lv_obj_update_layout(lv_screen_active());
+        lv_area_t title_bounds;
+        lv_obj_get_coords(title, &title_bounds);
+        assert(title_bounds.x2 < 220);
+        assert(!image_with(lv_screen_active(), &shahe_room_1));
+        lv_obj_t *plate = image_with(lv_screen_active(), cases[i].plate);
+        assert(plate && shown(plate));
+        assert(pt_parse((const uint8_t *)"20261111140000", 14, &world.clock.utc));
+        world.clock.valid = true;
+        step(2600);
+        screenshot(cases[i].day);
+        assert(pt_parse((const uint8_t *)"20261111213000", 14, &world.clock.utc));
+        step(40);
+        screenshot(cases[i].night);
+        world.clock.valid = false;
+        step(40);
+        tap(330, 410);
+        assert(result == PW_OK && world.phase == PW_WALK && world.purpose == 3);
+        idle(PW_CLASSROOM);
+        if (cases[i].id == PW_LAB_BUILDING)
+        {
+            assert(!label_with(lv_screen_active(), "记忆题"));
+            press("做实验");
+            until_action(PW_STUDY);
+            step(8500);
+            press("勤工俭学");
+            assert(result == PW_OK);
+        }
+        else
+        {
+            press("记忆题");
+            for (unsigned j = 0; j < 500 && world.phase == PW_WALK; j++) step(40);
+            assert(world.phase == PW_MINIGAME);
+            press("×");
+        }
+        assert(world.phase == PW_IDLE);
+        press("出门");
+        assert(result == PW_OK && world.building_id == cases[i].id);
+        idle(PW_CAMPUS);
+        assert(world.node == cases[i].door && world.x == gate.x && world.y == gate.y);
+    }
+    puts("[host:world-ui] three teaching room plates, day/night, pointer interactions and original exits PASS");
+}
+
 int main(int argc, char **argv)
 {
     lv_init();
@@ -1018,6 +1095,8 @@ int main(int argc, char **argv)
     if(measure)return 0;
     library_and_activity();
     if (argc > 1 && !strcmp(argv[1], "--library")) return 0;
+    teaching_buildings();
+    if (argc > 1 && !strcmp(argv[1], "--teaching")) return 0;
     reset();
     lv_obj_t *entry=control("状态");lv_area_t entry_area;
     lv_obj_get_coords(entry,&entry_area);

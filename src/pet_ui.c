@@ -92,7 +92,7 @@ static struct
     bool badminton_active, badminton_finished;
     uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
     unsigned badminton_player, badminton_rival, badminton_rallies;
-    bool library_layout;
+    uint8_t building_id;
     unsigned pending_window;
 } ui;
 static bool audio_available = true;
@@ -714,6 +714,10 @@ static const furniture_hotspot_t furniture[PW_GYM + 1][2] = {
 
 static const lv_image_dsc_t *const room_art[] = {
     &shahe_room_0, &shahe_room_1, &shahe_room_2, [PW_GYM] = &shahe_room_3};
+static const lv_image_dsc_t *const classroom_art[] = {
+    [PW_PUBLIC_BUILDING] = &shahe_public_room,
+    [PW_LAB_BUILDING] = &shahe_lab_room,
+    [PW_SMART_BUILDING] = &shahe_smart_room};
 static const char *const room_names[] = {
     "雁北园 · 宿舍", "教综楼 · 教室", "学生餐厅 · 食堂", [PW_GYM] = "活动中心 · 健身房"};
 static const lv_image_dsc_t *const room_decor[] = {
@@ -728,12 +732,16 @@ static void build_hotspots(void)
             lv_obj_delete(ui.hotspot[i]);
             ui.hotspot[i] = NULL;
         }
-    if (ui.world.scene == PW_CAMPUS || pw_in_library(&ui.world))
+    if (ui.world.scene == PW_CAMPUS || pw_in_library(&ui.world) ||
+        (ui.world.scene == PW_CLASSROOM && ui.world.building_id == PW_LAB_BUILDING))
         return;
+    static const furniture_hotspot_t public_desk = {13, 261, 224, 49, 55, 273, PW_STUDY, 4};
     unsigned count = ui.world.scene == PW_DORM ? 2 : 1;
     for (unsigned t = 0; t < count; t++)
     {
         const furniture_hotspot_t *f = &furniture[ui.world.scene][t];
+        if (ui.world.scene == PW_CLASSROOM && ui.world.building_id == PW_PUBLIC_BUILDING)
+            f = &public_desk;
         lv_obj_t *o = button(lv_screen_active(), f->x, f->y, f->w, f->h, f->command, PAPER, 0);
         ui.hotspot[t] = o;
         lv_obj_set_style_bg_opa(o, LV_OPA_TRANSP, 0);
@@ -1188,7 +1196,7 @@ static const char *room_title(const pet_world_t *w)
         {
         case PW_LIBRARY_BUILDING: return "图书馆 · 自习";
         case 3: return "公共教学楼 · 教室";
-        case 4: return "教学实验综合楼 · 实验室";
+        case PW_LAB_BUILDING: return "教学实验综合楼·实验室";
         case 5: return "智慧教学楼 · 自习";
         case 10: return "科研楼 · 实验室";
         case 11: return "智能工程学院 · 实验室";
@@ -1397,10 +1405,14 @@ static void paint_clock(void)
 static void paint(void)
 {
     bool library = pw_in_library(&ui.world);
-    if (ui.scene != ui.world.scene || ui.library_layout != library)
+    unsigned building = ui.world.building_id;
+    const lv_image_dsc_t *alternate = NULL;
+    if (ui.world.scene == PW_CLASSROOM && building < sizeof(classroom_art) / sizeof(*classroom_art))
+        alternate = classroom_art[building];
+    if (ui.scene != ui.world.scene || ui.building_id != building)
     {
         ui.scene = ui.world.scene;
-        ui.library_layout = library;
+        ui.building_id = (uint8_t)building;
         if (!library && ui.panel == PANEL_LIBRARY)
             ui.panel = PANEL_NONE;
         if (ui.scene != PW_DORM && (ui.panel == PANEL_ORDER || ui.panel == PANEL_SHOP))
@@ -1415,14 +1427,19 @@ static void paint(void)
             set_label(ui.game_entry_label, ui.scene == PW_DORM ? "找物" : ui.scene == PW_CANTEEN ? "配餐"
                 : ui.scene == PW_GYM ? "节奏" : "记忆题");
             static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 296}, {0, 0}, {280, 290}};
-            lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], life_pos[ui.scene][1]);
+            lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], alternate ? 354 : life_pos[ui.scene][1]);
             lv_obj_set_height(ui.life_hit, 44);
+            if (ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING)
+                lv_obj_set_pos(ui.work_button, 202, 202);
+            else
+                lv_obj_set_pos(ui.work_button, 10, 120);
             lv_obj_set_pos(ui.door, library ? 307 : 310, library ? 142 : 100);
             lv_obj_set_size(ui.door, library ? 79 : 69, 143);
         }
         if (ui.scene != PW_CAMPUS)
         {
-            set_image(ui.background, library ? &shahe_library_room : room_art[ui.scene]);
+            const lv_image_dsc_t *background = alternate ? alternate : room_art[ui.scene];
+            set_image(ui.background, library ? &shahe_library_room : background);
             const lv_image_dsc_t *art = room_decor[ui.scene];
             set_image(ui.decor, art);
             lv_obj_set_pos(ui.decor, decor_anchor[ui.scene][0], decor_anchor[ui.scene][1] - art->header.h);
@@ -1430,11 +1447,16 @@ static void paint(void)
     }
     paint_clock();
     bool campus = ui.world.scene == PW_CAMPUS;
-    lv_obj_set_pos(ui.context_button, library ? 138 : 246, library ? 374 : 196);
+    if (library)
+        lv_obj_set_pos(ui.context_button, 138, 374);
+    else if (ui.world.scene == PW_CLASSROOM && building == PW_LAB_BUILDING)
+        lv_obj_set_pos(ui.context_button, 23, 270);
+    else
+        lv_obj_set_pos(ui.context_button, 246, 196);
     lv_obj_set_y(ui.bubble_text, library ? -4 : -18);
     visible(ui.campus, campus);
     visible(ui.background, !campus);
-    visible(ui.decor, !campus && !library);
+    visible(ui.decor, !campus && !library && !alternate);
     for (unsigned i = 0; i < 3; i++)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
@@ -1488,7 +1510,7 @@ static void paint(void)
     lv_obj_set_pos(ui.shadow, (int)v.x - rx, (int)v.y + (v.sleeping ? -16 : -2));
     lv_obj_set_style_bg_opa(ui.shadow, v.airborne ? LV_OPA_0 : LV_OPA_20, 0);
     bool bed = ui.world.phase == PW_SLEEP || ui.world.action == PW_REST || ui.world.action == PW_WAKE;
-    bool show_front = !campus && !library && (v.occlusion || (bed && v.y < 170));
+    bool show_front = !campus && !library && !alternate && (v.occlusion || (bed && v.y < 170));
     if (show_front)
     {
         static const lv_image_dsc_t *const front[] = {&shahe_seat_0, &shahe_front_1, &shahe_front_2};

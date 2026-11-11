@@ -4,9 +4,9 @@
 #include <math.h>
 #include <string.h>
 
-enum { LIBRARY_LAYOUT = PW_GYM + 1 };
+enum { LIBRARY_LAYOUT = PW_GYM + 1, PUBLIC_LAYOUT, LAB_LAYOUT, SMART_LAYOUT, ROOM_LAYOUT_COUNT };
 
-static const pw_point_t nodes[LIBRARY_LAYOUT + 1][PW_PATH_CAPACITY] = {
+static const pw_point_t nodes[ROOM_LAYOUT_COUNT][PW_PATH_CAPACITY] = {
     {{344, 247}, [3] = {189, 367}, [6] = {169, 307}, [7] = {105, 307}, [1] = {304, 302}},
     {{343, 242}, [3] = {188, 358}, [6] = {148, 298}},
     {{346, 239}, [3] = {184, 302}, [6] = {152, 300}},
@@ -18,7 +18,10 @@ static const pw_point_t nodes[LIBRARY_LAYOUT + 1][PW_PATH_CAPACITY] = {
 #undef SHAHE_ROAD
     },
     [PW_GYM] = {{345, 246}, [3] = {232, 359}, [6] = {187, 329}},
-    [LIBRARY_LAYOUT] = {{346, 295}, [3] = {312, 342}, [6] = {197, 370}}};
+    [LIBRARY_LAYOUT] = {{346, 295}, [3] = {312, 342}, [6] = {197, 370}},
+    [PUBLIC_LAYOUT] = {{345, 242}, [3] = {315, 365}, [6] = {256, 299}},
+    [LAB_LAYOUT] = {{345, 243}, [3] = {342, 350}, [6] = {155, 335}},
+    [SMART_LAYOUT] = {{344, 242}, [3] = {171, 359}, [6] = {151, 303}}};
 static const uint8_t campus_edges[][2] = {
 #define SHAHE_NODE(id, x, y)
 #define SHAHE_ROAD(a, b) {a, b},
@@ -34,16 +37,21 @@ typedef struct
 } floor_block_t;
 
 /* These are foot-space obstacles, expanded slightly beyond the painted bases. */
-static const floor_block_t blocks[LIBRARY_LAYOUT + 1][4] = {
+static const floor_block_t blocks[ROOM_LAYOUT_COUNT][4] = {
     {{23, 243, 178, 301}, {213, 276, 260, 324}, {22, 390, 59, 409}},
     {{42, 244, 134, 399}, {200, 244, 291, 319}, {314, 359, 371, 385}},
     {{34, 242, 142, 326}, {214, 242, 319, 326}, {89, 326, 202, 419}, {319, 350, 376, 374}},
     [PW_GYM] = {{34, 241, 168, 322}, {289, 348, 356, 372}},
     [LIBRARY_LAYOUT] = {{12, 286, 100, 298}, {238, 286, 300, 295},
-                        {88, 280, 275, 356}, {10, 310, 51, 348}}
+                        {88, 280, 275, 356}, {10, 310, 51, 348}},
+    [PUBLIC_LAYOUT] = {{12, 259, 244, 310}, {12, 323, 245, 378}},
+    [LAB_LAYOUT] = {{79, 235, 306, 243}, {36, 267, 147, 327}, {216, 268, 315, 327}},
+    [SMART_LAYOUT] = {{188, 233, 269, 241}, {39, 245, 138, 406}, {198, 245, 292, 321}}
 };
-static const unsigned block_count[] = {3, 3, 4, [PW_GYM] = 2, [LIBRARY_LAYOUT] = 4};
-static const unsigned floor_top[] = {246, 241, 236, [PW_GYM] = 242, [LIBRARY_LAYOUT] = 286};
+static const unsigned block_count[] = {3, 3, 4, [PW_GYM] = 2, [LIBRARY_LAYOUT] = 4,
+                                       [PUBLIC_LAYOUT] = 2, [LAB_LAYOUT] = 3, [SMART_LAYOUT] = 3};
+static const unsigned floor_top[] = {246, 241, 236, [PW_GYM] = 242, [LIBRARY_LAYOUT] = 286,
+                                     [PUBLIC_LAYOUT] = 234, [LAB_LAYOUT] = 235, [SMART_LAYOUT] = 234};
 
 bool pw_in_library(const pet_world_t *w)
 {
@@ -52,12 +60,22 @@ bool pw_in_library(const pet_world_t *w)
 
 static unsigned room_layout(const pet_world_t *w)
 {
-    return pw_in_library(w) ? LIBRARY_LAYOUT : (unsigned)w->scene;
+    if (w->scene == PW_CLASSROOM)
+    {
+        switch (w->building_id)
+        {
+        case PW_LIBRARY_BUILDING: return LIBRARY_LAYOUT;
+        case PW_PUBLIC_BUILDING: return PUBLIC_LAYOUT;
+        case PW_LAB_BUILDING: return LAB_LAYOUT;
+        case PW_SMART_BUILDING: return SMART_LAYOUT;
+        }
+    }
+    return (unsigned)w->scene;
 }
 
 static bool room_ground(unsigned scene, float x, float y)
 {
-    if (scene > LIBRARY_LAYOUT || scene == PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
+    if (scene >= ROOM_LAYOUT_COUNT || scene == PW_CAMPUS || !isfinite(x) || !isfinite(y) ||
         x < 12 || x > 378 || y < floor_top[scene] || y > 440)
         return false;
     for (unsigned i = 0; i < block_count[scene]; i++)
@@ -161,7 +179,7 @@ pw_point_t pw_node(pw_scene_t s, unsigned n)
 pw_point_t pw_world_node(const pet_world_t *w, unsigned node)
 {
     unsigned layout = room_layout(w);
-    return layout <= LIBRARY_LAYOUT && node < PW_PATH_CAPACITY ? nodes[layout][node] : (pw_point_t){0, 0};
+    return layout < ROOM_LAYOUT_COUNT && node < PW_PATH_CAPACITY ? nodes[layout][node] : (pw_point_t){0, 0};
 }
 
 uint32_t pw_duration(pw_command_t a)
@@ -1235,7 +1253,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
         v->frame = (uint8_t)(16 + w->now / 210 % 2);
         return;
     }
-    if (pw_in_library(w) && w->phase == PW_ACTION && w->action == PW_STUDY)
+    if (w->phase == PW_ACTION && w->action == PW_STUDY && room_layout(w) >= LIBRARY_LAYOUT)
     {
         v->facing = 4;
         v->frame = (uint8_t)(16 + w->now / 500 % 2);
