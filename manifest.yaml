@@ -1593,21 +1593,25 @@ test_results:
 
   - test_id: TC-299
     description: 课堂记忆题三轮难度、超时和结算
+    expected: 三轮4/5/6项、逐轮加速、12秒超时，通关奖励一次
     actual: 共享世界自检通过
     evidence_path: evidence/pet/games_v0193_host_20261111.txt
     pass: true
   - test_id: TC-300
     description: 三种教学楼新游戏的模型规则及超时
+    expected: 答对两题、限步点亮和正确接线分别通关，超时或超限失败
     actual: 共享挑战自检通过
     evidence_path: evidence/pet/games_v0193_host_20261111.txt
     pass: true
   - test_id: TC-301
     description: 四栋教学楼生产 LVGL 指针与目标构建
+    expected: 逐楼触摸可进游戏，操作、退出与奖励正确，板级目标构建成功
     actual: 主机专项和目标构建通过，旧道路点击断言仍在完整套件报错
     evidence_path: evidence/pet/games_v0193_ui_20261111.txt
     pass: true
   - test_id: TC-302
     description: 教学楼小游戏真机操作
+    expected: 真实黄山派上四栋楼小游戏可进入、操作、结算并退出
     actual: 待用户实机
     pass: null
 
