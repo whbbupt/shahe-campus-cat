@@ -18,7 +18,8 @@ static rt_mq_t events;
 static bool ready, active, acl, paired, pan, pairing;
 static uint8_t peer[6];
 static uint32_t pair_code;
-static rt_tick_t pair_deadline, connect_at;
+static bool pair_in_flight, discovery_pending;
+static rt_tick_t pair_deadline, connect_at, discover_at;
 static atomic_bool online, network_enabled, network_pending;
 static struct netif *old_route, *pan_route; /* TCP/IP thread only. */
 static rt_tick_t next_network_check;
@@ -31,6 +32,23 @@ static rt_tick_t after(unsigned ms)
 static bool due(rt_tick_t when)
 {
     return (int32_t)(rt_tick_get() - when) >= 0;
+}
+
+static void schedule_discovery(unsigned delay_ms)
+{
+    discovery_pending = active;
+    discover_at = after(delay_ms);
+}
+
+static void recover_pairing(const char *reason)
+{
+    rt_kprintf("[pet:VOICE] pair recovery: %s\n", reason);
+    if (pairing) bt_interface_user_confirm_res(peer, 0);
+    if (acl || pair_in_flight) bt_interface_disconnect_req(peer);
+    acl = paired = pan = pairing = pair_in_flight = false;
+    atomic_store(&network_enabled, false);
+    atomic_store(&online, false);
+    schedule_discovery(600);
 }
 
 static int queue_event(uint16_t type, uint16_t id, uint8_t *data, uint16_t size)
@@ -84,6 +102,15 @@ static void process(const bt_event_t *e)
         {
         case BT_NOTIFY_COMMON_BT_STACK_READY:
             ready = true;
+            rt_kprintf("[pet:VOICE] classic Bluetooth ready\n");
+            break;
+        case BT_NOTIFY_COMMON_SCAN_ENB_CFM_IND:
+            if (e->size == 1)
+            {
+                rt_kprintf("[pet:VOICE] scan mode=%u\n", (unsigned)e->data[0]);
+                if (e->data[0] == 3) discovery_pending = false;
+                else if (active && !acl && !pair_in_flight && !paired) schedule_discovery(800);
+            }
             break;
         case BT_NOTIFY_COMMON_IO_CAPABILITY_IND:
             if (e->size >= sizeof(peer))
@@ -104,7 +131,8 @@ static void process(const bt_event_t *e)
                 memcpy(peer, request.mac.addr, sizeof(peer));
                 pair_code = request.num_val;
                 pair_deadline = after(25000);
-                pairing = true;
+                pairing = pair_in_flight = true;
+                discovery_pending = false;
             }
             break;
         case BT_NOTIFY_COMMON_PAIR_IND:
@@ -112,10 +140,12 @@ static void process(const bt_event_t *e)
             {
                 bt_notify_device_base_info_t event;
                 memcpy(&event, e->data, sizeof(event));
-                if (pairing && !memcmp(peer, event.mac.addr, sizeof(peer))) pairing = false;
-                if (active && !event.res && (!paired || !memcmp(peer, event.mac.addr, sizeof(peer))))
+                rt_kprintf("[pet:VOICE] classic pair result=0x%02x\n", (unsigned)event.res);
+                if (!active || !(acl || pair_in_flight) || memcmp(peer, event.mac.addr, sizeof(peer))) break;
+                if (event.res) recover_pairing("phone or stack rejected pairing");
+                else
                 {
-                    memcpy(peer, event.mac.addr, sizeof(peer));
+                    pairing = pair_in_flight = false;
                     paired = true;
                     connect_at = after(3000);
                 }
@@ -126,7 +156,11 @@ static void process(const bt_event_t *e)
             {
                 bt_notify_device_acl_conn_info_t event;
                 memcpy(&event, e->data, sizeof(event));
-                if (event.res) break;
+                if (event.res)
+                {
+                    if (active && !acl && !pair_in_flight) schedule_discovery(600);
+                    break;
+                }
                 if (!active || ((acl || pairing) && memcmp(peer, event.mac.addr, sizeof(peer))))
                 {
                     bt_interface_disconnect_req(event.mac.addr);
@@ -134,6 +168,7 @@ static void process(const bt_event_t *e)
                 }
                 memcpy(peer, event.mac.addr, sizeof(peer));
                 acl = true;
+                discovery_pending = false;
             }
             break;
         case BT_NOTIFY_COMMON_ENCRYPTION:
@@ -141,16 +176,18 @@ static void process(const bt_event_t *e)
             {
                 memcpy(peer, e->data, sizeof(peer));
                 paired = true;
+                pairing = pair_in_flight = false;
                 connect_at = after(3000);
             }
             break;
         case BT_NOTIFY_COMMON_ACL_DISCONNECTED:
             if (e->size >= sizeof(peer) && !memcmp(peer, e->data, sizeof(peer)))
             {
-                acl = paired = pan = pairing = false;
+                acl = paired = pan = pairing = pair_in_flight = false;
                 atomic_store(&network_enabled, false);
                 atomic_store(&online, false);
-                if (active) bt_interface_set_scan_mode(1, 1);
+                schedule_discovery(600);
+                rt_kprintf("[pet:VOICE] classic link disconnected\n");
             }
             break;
         default:
@@ -166,6 +203,7 @@ static void process(const bt_event_t *e)
         if (paired && memcmp(peer, event.mac.addr, sizeof(peer))) return;
         memcpy(peer, event.mac.addr, sizeof(peer));
         paired = true;
+        pairing = pair_in_flight = false;
         connect_at = after(1000);
     }
     if (e->type != BT_NOTIFY_PAN) return;
@@ -212,29 +250,38 @@ void pet_voice_pan_poll(bool enabled, bool accept)
         {
             char name[] = "ShaheCat Voice";
             bt_interface_set_local_name(strlen(name), name);
-            bt_interface_set_scan_mode(1, 1);
+            schedule_discovery(0);
             connect_at = after(100);
         }
         else
         {
             bt_interface_set_scan_mode(0, 0);
             if (pairing) bt_interface_user_confirm_res(peer, 0);
-            if (acl || paired)
+            discovery_pending = false;
+            if (acl || paired || pair_in_flight)
             {
                 bt_interface_cancel_connect_req(peer);
                 bt_interface_disc_ext(peer, BT_PROFILE_PAN);
                 bt_interface_disc_ext(peer, BT_PROFILE_HID);
                 bt_interface_disconnect_req(peer);
             }
-            acl = paired = pan = pairing = false;
+            acl = paired = pan = pairing = pair_in_flight = false;
             atomic_store(&network_enabled, false);
             atomic_store(&online, false);
         }
     }
-    if (pairing && (accept || due(pair_deadline)))
+    if (pairing && accept)
     {
-        bt_interface_user_confirm_res(peer, accept ? 1 : 0);
+        bt_interface_user_confirm_res(peer, 1);
         pairing = false;
+        pair_deadline = after(20000);
+    }
+    if (pair_in_flight && due(pair_deadline)) recover_pairing("confirmation timeout");
+    if (active && discovery_pending && !acl && !pair_in_flight && !paired && due(discover_at))
+    {
+        unsigned result = bt_interface_set_scan_mode(1, 1);
+        rt_kprintf("[pet:VOICE] request discovery result=%u\n", result);
+        discover_at = after(1500); /* Wait for asynchronous scan confirmation. */
     }
     if (active && paired && !pan && !pairing && due(connect_at))
     {
