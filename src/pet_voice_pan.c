@@ -1,5 +1,6 @@
 /* PAN/HID connection sequence based on the verified peripheral_lab PAN service. */
 #include "pet_voice_pan.h"
+#include "pet_voice.h"
 #include "rtthread.h"
 #include "bf0_ble_common.h"
 #include "bts2_app_inc.h"
@@ -248,8 +249,9 @@ void pet_voice_pan_poll(bool enabled, bool accept)
         active = enabled;
         if (active)
         {
-            char name[] = "ShaheCat Voice";
-            bt_interface_set_local_name(strlen(name), name);
+            char name[] = PET_VOICE_BT_NAME;
+            bt_interface_set_local_name(sizeof(name) - 1, name);
+            rt_kprintf("[pet:VOICE] requested classic name=%s\n", name);
             schedule_discovery(0);
             connect_at = after(100);
         }

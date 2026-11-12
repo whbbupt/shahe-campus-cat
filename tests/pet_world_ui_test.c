@@ -902,12 +902,16 @@ static void scroll_menus_and_curfew(void)
     tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
     assert(world.phase==PW_SEATED && world.wallet.coins==100 && world.food==40);step(550);
     assert(label_with(lv_screen_active(),"学生餐厅 · 选窗口"));screenshot("shahe-meal-menu-top.ppm");
-    tap(60,220);assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
+    press("香菇鸡肉饭");assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
     swipe_up();swipe_up();
     lv_obj_t *last=control("红豆小点心");lv_area_t a;lv_obj_get_coords(last,&a);
     assert(a.y1>=118 && a.y2<346);screenshot("shahe-meal-menu-bottom.ppm");
     press("红豆小点心");assert(world.wallet.coins==100 && world.food==40);
-    press("确认用餐 · 3金币");assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
+    lv_obj_t *confirm = control("确认用餐 · 3金币");
+    lv_obj_get_coords(confirm, &a);
+    assert(lv_area_get_height(&a) == 60);
+    tap(a.x1 + 8, a.y1 + 5);
+    assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
     step(6500);tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
     assert(world.phase==PW_SEATED);step(550);press("×");assert(world.phase==PW_IDLE && world.wallet.coins==97);
     reset();world.wallet.coins=100;world.food=40;pet_ui_update(&world);press("外卖");
@@ -1089,6 +1093,14 @@ static void teaching_buildings(void)
         world.x = gate.x;
         world.y = gate.y;
         step(40);
+        if (cases[i].id == PW_SMART_BUILDING)
+        {
+            screenshot("shahe-smart-entrance.ppm");
+            tap_campus_point((int)gate.x + 72, (int)gate.y);
+            assert(world.scene == PW_CAMPUS && world.phase == PW_WALK);
+            assert(world.point_edge_a == 24 && world.point_edge_b == 25);
+            idle(PW_CAMPUS);
+        }
         press(cases[i].entry);
         assert(result == PW_OK);
         idle(PW_CLASSROOM);
@@ -1239,6 +1251,7 @@ int main(int argc, char **argv)
         voice.state = PV_NETWORK;
         press("语音");
         assert(label_with(lv_screen_active(), "等待手机共享网络"));
+        assert(label_with(lv_screen_active(), "蓝牙中选择 " PET_VOICE_BT_NAME));
         voice.state = PV_PAIR;
         strcpy(voice.code, "123456");
         step(40);
@@ -1272,6 +1285,11 @@ int main(int argc, char **argv)
         press("返回");
         assert(world.scene == scene);
         puts("[host:voice-ui] navigation, unavailable, pairing, activation, press/release and stop PASS");
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--meal"))
+    {
+        scroll_menus_and_curfew();
         return 0;
     }
     bool measure=argc>1 && !strcmp(argv[1],"--measure");

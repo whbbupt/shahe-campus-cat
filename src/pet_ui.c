@@ -617,7 +617,8 @@ static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
 static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
 static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN};
-enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477 };
+enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477,
+       WISDOM_X = 1044, WISDOM_Y = 1120 };
 
 static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
 {
@@ -704,7 +705,7 @@ static void build_campus(lv_obj_t *screen)
     image(ui.campus, &shahe_center, CENTER_X, CENTER_Y);
     image(ui.campus, &shahe_lecture, 617, 751);
     image(ui.campus, &shahe_lecture, 1215, 750);
-    image(ui.campus, &shahe_lecture, 1213, 1084);
+    image(ui.campus, &shahe_lecture, WISDOM_X, WISDOM_Y);
     image(ui.campus, &shahe_building_0, 401, 792);
     image(ui.campus, &shahe_gate, 12, 629);
     image(ui.campus, &shahe_gate, 328, 1175);
@@ -776,10 +777,14 @@ static void build_buildings(void)
     lv_obj_set_style_bg_opa(library_door, LV_OPA_TRANSP, 0);
     lv_obj_set_style_bg_opa(library_door, LV_OPA_20, LV_STATE_PRESSED);
     scene_tag(library_door, "图书馆", LV_ALIGN_TOP_MID, 0, 27);
+    lv_obj_t *wisdom_door = button(ui.gates, WISDOM_X + 9, WISDOM_Y - 22,
+                                   100, 44, TAG_WISDOM, PAPER, 6);
+    lv_obj_set_style_bg_opa(wisdom_door, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(wisdom_door, LV_OPA_20, LV_STATE_PRESSED);
+    scene_tag(wisdom_door, "智慧教学楼", LV_ALIGN_CENTER, 0, 0);
     static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
         {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
         {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
-        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
         {130, 560, 120, TAG_SPORTS, 1, "运动场"}};
     for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
     {
@@ -928,7 +933,7 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(ui.menu_tab[i], window_names[i], 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
-    ui.menu_list = box(ui.order_dialog, 12, 118, 322, 214, PAPER, 0);
+    ui.menu_list = box(ui.order_dialog, 12, 118, 322, 202, PAPER, 0);
     lv_obj_add_flag(ui.menu_list, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(ui.menu_list, LV_DIR_VER);
     lv_obj_set_scrollbar_mode(ui.menu_list, LV_SCROLLBAR_MODE_AUTO);
@@ -944,9 +949,9 @@ static void build_panel(lv_obj_t *screen)
     }
     ui.menu_tracking = text(ui.order_dialog, "", 22, 128, &pet_font_20, INK);
     lv_obj_set_width(ui.menu_tracking, 302);
-    ui.order_save = text(ui.order_dialog, "", 18, 342, &pet_font_16, BLUE);
-    ui.order_button = button(ui.order_dialog, 18, 362, 310, 44, TAG_CONFIRM, 0xBCD4BC, 10);
-    ui.menu_confirm_text = text(ui.order_button, "", 0, 0, &pet_font_16, INK);
+    ui.order_save = text(ui.order_dialog, "", 18, 324, &pet_font_16, BLUE);
+    ui.order_button = button(ui.order_dialog, 12, 346, 322, 60, TAG_CONFIRM, 0xBCD4BC, 10);
+    ui.menu_confirm_text = text(ui.order_button, "", 0, 0, &pet_font_20, INK);
     ui.shop_dialog = box(ui.layer, 28, 40, 334, 374, PAPER, 18);
     text(ui.shop_dialog, "布置宿舍", 18, 10, &pet_font_20, INK);
     lv_obj_t *decor_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
@@ -1254,7 +1259,7 @@ static void paint_voice(void)
     const char *action = "";
     switch (v.state)
     {
-    case PV_NETWORK: detail = "蓝牙中选择 ShaheCat Voice"; break;
+    case PV_NETWORK: detail = "蓝牙中选择 " PET_VOICE_BT_NAME; break;
     case PV_PAIR: detail = v.code; action = "配对码相同"; break;
     case PV_ACTIVATE: detail = v.code; action = "已绑定，重试"; break;
     case PV_RECORDING: detail = "松手发送"; break;
@@ -1462,8 +1467,9 @@ static void paint_order(void)
     set_label(ui.menu_title, ui.delivery ? "宿舍外卖" : "学生餐厅 · 选窗口");
     visible(ui.menu_list, !active); visible(ui.menu_tracking, active);
     for (unsigned i = 0; i < 4; i++) visible(ui.menu_tab[i], canteen && !active);
-    lv_obj_set_pos(ui.menu_list, 12, canteen ? 118 : 78);
-    lv_obj_set_height(ui.menu_list, canteen ? 214 : 250);
+    int list_top = canteen ? 118 : 78;
+    lv_obj_set_pos(ui.menu_list, 12, list_top);
+    lv_obj_set_height(ui.menu_list, 320 - list_top);
     if (active)
     {
         set_label(ui.order_note, "订单进行中 · 菜品列表已收起");

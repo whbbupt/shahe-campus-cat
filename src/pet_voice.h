@@ -2,6 +2,8 @@
 #define PET_VOICE_H
 #include <stdbool.h>
 
+#define PET_VOICE_BT_NAME "ShaheCat Talk"
+
 typedef enum {
     PV_UNAVAILABLE, PV_NETWORK, PV_PAIR, PV_CONNECTING, PV_ACTIVATE,
     PV_READY, PV_RECORDING, PV_WAITING, PV_PLAYING, PV_ERROR
