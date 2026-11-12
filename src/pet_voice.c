@@ -3,6 +3,7 @@
 #include "pet_voice_cloud.h"
 #include "pet_audio_rt.h"
 #include "rtthread.h"
+#include "mem_section.h"
 #include "audio_server.h"
 #include "opus.h"
 #include "cJSON.h"
@@ -15,7 +16,14 @@
 #define RECORD_SLOTS 8
 #define OPUS_BYTES 1275
 #define PCM_SAMPLES 5760
+#define VOICE_STACK_SIZE (40 * 1024)
 
+/* Fixed-point Opus uses large stack frames, including temporary alloca buffers. */
+L2_RET_BSS_SECT_BEGIN(pet_voice_worker_stack)
+ALIGN(8)
+static uint8_t voice_stack[VOICE_STACK_SIZE] L2_RET_BSS_SECT(pet_voice_worker_stack);
+L2_RET_BSS_SECT_END
+static struct rt_thread voice_thread;
 static struct rt_mutex view_lock;
 static bool started;
 static atomic_bool page, pressed, cancelled, retry, accept;
@@ -180,7 +188,9 @@ static bool finish_record(void)
     }
     deadline = after(20000);
     publish(PV_WAITING, NULL);
-    return send_control("listen", ",\"state\":\"stop\"");
+    if (!send_control("listen", ",\"state\":\"stop\"")) return false;
+    rt_kprintf("[pet:VOICE] record sent frames=%u\n", sent_frames);
+    return true;
 }
 
 static bool start_play(void)
@@ -383,10 +393,14 @@ void pet_voice_start(void)
 {
     if (rt_mutex_init(&view_lock, "vc_view", RT_IPC_FLAG_PRIO) != RT_EOK || !pet_voice_pan_init())
         return;
-    rt_thread_t thread = rt_thread_create("pet_voice", worker, NULL, 10240, 20, 10);
-    started = thread && rt_thread_startup(thread) == RT_EOK;
-    if (!started && thread) rt_thread_delete(thread);
-    rt_kprintf("[pet:VOICE] worker %s\n", started ? "ready" : "unavailable");
+    if (rt_thread_init(&voice_thread, "pet_voice", worker, NULL,
+                       voice_stack, sizeof(voice_stack), 20, 10) == RT_EOK)
+    {
+        started = rt_thread_startup(&voice_thread) == RT_EOK;
+        if (!started) rt_thread_detach(&voice_thread);
+    }
+    rt_kprintf("[pet:VOICE] worker %s stack=%u bytes\n",
+               started ? "ready" : "unavailable", (unsigned)sizeof(voice_stack));
 }
 
 void pet_voice_page(bool open)
