@@ -3,6 +3,6 @@ from building import *
 
 # Add source code
 src = Glob('*.c')
-group = DefineGroup('Applications', src, depend = [''])
+group = DefineGroup('Applications', src, depend = [''], LINKFLAGS=['-Wl,--wrap=hid_send_report_req_ext'])
 
 Return('group')

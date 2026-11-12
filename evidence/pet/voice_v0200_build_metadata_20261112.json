@@ -1,0 +1,41 @@
+{
+  "version": "0.20.0",
+  "board": "sf32lb52-lchspi-ulp",
+  "sdk": "v2.5.1",
+  "build_exit": 0,
+  "download_images": [
+    {
+      "path": "bootloader/bootloader.bin",
+      "bytes": 58496,
+      "address": "0x12010000",
+      "end_exclusive": "0x1201e480",
+      "erase_end_exclusive": "0x1201f000",
+      "address_int": 302055424,
+      "erase_end_int": 302116864,
+      "sha256": "E59D70DB44367D524FBB46A8A014CE0092462E86959D101A8E2E00AD27BB5E21"
+    },
+    {
+      "path": "main.bin",
+      "bytes": 6042692,
+      "address": "0x12020000",
+      "end_exclusive": "0x125e3444",
+      "erase_end_exclusive": "0x125e4000",
+      "address_int": 302120960,
+      "erase_end_int": 308166656,
+      "sha256": "417A058D0C00FF63B9205AF1E701549D2F4CE964CDC8BA380BAAC2C4BFC38604"
+    },
+    {
+      "path": "ftab/ftab.bin",
+      "bytes": 11288,
+      "address": "0x12000000",
+      "end_exclusive": "0x12002c18",
+      "erase_end_exclusive": "0x12003000",
+      "address_int": 301989888,
+      "erase_end_int": 302002176,
+      "sha256": "6FA2836D509625242C2C6D1633A8CE6682438B1ECC8C8458D292A92D30C1FCF8"
+    }
+  ],
+  "zip_bytes": 4084934,
+  "zip_sha256": "E7D21282B240C5D73DE3B6C9974A9B61D3C3F90FB3D786069223FA11BD593462",
+  "tests": "Zip CRC, byte comparison, flash boundaries and v0.20.0 signature passed. No flash operation."
+}

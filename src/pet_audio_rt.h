@@ -4,4 +4,6 @@
 void pet_audio_start(const pet_world_t *);
 void pet_audio_sync(const pet_world_t *);
 bool pet_audio_available(void);
+void pet_audio_voice_pause(bool paused);
+bool pet_audio_voice_parked(void);
 #endif

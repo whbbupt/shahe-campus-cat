@@ -5,6 +5,7 @@
 #include "littlevgl2rtt.h"
 #include "pet_app.h"
 #include "pet_ble.h"
+#include "pet_voice.h"
 #include "pet_ui.h"
 
 #include "pet_version.h"
@@ -27,6 +28,7 @@ int main(void)
     result = pet_app_start();
     if (result != RT_EOK)
         return result;
+    pet_voice_start();
     result = pet_ble_start();
     if (result != RT_EOK)
         rt_kprintf("[pet:BLE] worker start failed=%d; pet continues\n", result);

@@ -9,6 +9,7 @@
 #define BLOCK_SAMPLES 160U
 static struct rt_mutex lock;
 static bool initialized, available, duck, worker_ready;
+static bool voice_paused, voice_parked;
 static unsigned mode, volume, generation;
 static pa_cue_t pending;
 static pa_observer_t observer;
@@ -20,6 +21,29 @@ bool pet_audio_available(void)
     rt_mutex_release(&lock);
     return value;
 }
+void pet_audio_voice_pause(bool paused)
+{
+    if (!initialized) return;
+    rt_mutex_take(&lock, RT_WAITING_FOREVER);
+    if (voice_paused != paused)
+    {
+        voice_paused = paused;
+        voice_parked = false;
+        generation++;
+        pending = PA_NONE;
+    }
+    rt_mutex_release(&lock);
+}
+
+bool pet_audio_voice_parked(void)
+{
+    if (!initialized) return true;
+    rt_mutex_take(&lock, RT_WAITING_FOREVER);
+    bool parked = voice_parked || !worker_ready;
+    rt_mutex_release(&lock);
+    return parked;
+}
+
 void pet_audio_sync(const pet_world_t *w)
 {
     pa_cue_t cue = pa_observe(&observer, w);
@@ -39,14 +63,14 @@ void pet_audio_sync(const pet_world_t *w)
     }
     if (observer.phase != PW_MINIGAME && duck) { generation++; pending = PA_NONE; }
     duck = w->phase == PW_MINIGAME;
-    if (mode && volume && available && cue != PA_NONE) pending = cue;
+    if (!voice_paused && mode && volume && available && cue != PA_NONE) pending = cue;
     rt_mutex_release(&lock);
 }
 typedef struct { unsigned mode, token; bool duck, available; pa_cue_t cue; unsigned volume; } settings_t;
 static settings_t settings(bool consume)
 {
     rt_mutex_take(&lock, RT_WAITING_FOREVER);
-    settings_t value = {mode, generation, duck, available, pending, volume};
+    settings_t value = {voice_paused ? 0 : mode, generation, duck, available, pending, volume};
     if (consume) pending = PA_NONE;
     rt_mutex_release(&lock);
     return value;
@@ -92,6 +116,9 @@ static void worker(void *arg)
                 volume_set = false;
             }
             if (error) failed();
+            rt_mutex_take(&lock, RT_WAITING_FOREVER);
+            if (voice_paused && generation == token && !error) voice_parked = true;
+            rt_mutex_release(&lock);
             rt_thread_mdelay(10);
             continue;
         }

@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.19.3 教学楼专属小游戏及记忆题加难，主机专项和目标构建通过，TC-302 待板端验证"
+  milestone: "v0.20.0 手表小猫语音，主机专项和目标构建通过，TC-304/305 待实机"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -156,7 +156,7 @@ physical_verification:
     required_action: "使用演示用手机共享网络，激活小智设备，确认对话键收音和扬声器播报并保存一段实机证据。"
     executed_at: null
     evidence_path: null
-    agent_conclusion: "待验证。外设实验的 PAN 与录音历史只作为集成参考。"
+    agent_conclusion: "v0.20.0 已构建并核对下载地址，实机待学生用集成版验证。"
   - item: "TC-302 v0.19.3 教学楼小游戏实机"
     required_action: "烧录 v0.19.3，确认启动版本，逐楼点记忆题、投影抢答、互动屏校准、修电路，记录题目、触摸、结果和退出。"
     executed_at: null
@@ -1626,8 +1626,9 @@ test_results:
   - test_id: TC-303
     description: 手表语音场景的布局和触摸
     expected: 小猫放大居中，进入和退出可重复，退出后回原场景
-    actual: 待集成
-    pass: null
+    actual: 真实 LVGL 主机通过进出、配对、绑定重试、录音按键及停止的界面状态
+    evidence_path: evidence/pet/voice_v0200_verification_20261112.txt
+    pass: true
   - test_id: TC-304
     description: 板载录音和小智云端多轮语音
     expected: 三轮中文对话可播报并接住追问
@@ -1636,10 +1637,11 @@ test_results:
   - test_id: TC-305
     description: 语音取消、断网和游戏回归
     expected: 可取消并返回，恢复原游戏声音，BLE 校时和旧存档可用
-    actual: 待集成
+    actual: 主机音频交接和 Flash 边界检查通过，实机待验
     pass: null
 
 known_issues:
+  - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"
   - "v0.19.3 四楼小游戏主机专项和目标构建通过，完整 LVGL 旧道路断言仍在，TC-302 待实机。"
   - "v0.19.2 三栋教学楼专项与构建通过，完整 LVGL 仍有基线道路点击断言，TC-298 待实机。"
   - "v0.19.1 图书馆与学活主机专项通过，2026-11-11 已完成目标构建，TC-294 待实机。"

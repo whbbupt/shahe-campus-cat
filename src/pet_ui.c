@@ -1,5 +1,6 @@
 /* Room views and continuous campus camera. Model owns movement and settlement. */
 #include "pet_ui.h"
+#include "pet_voice.h"
 #include "lvgl.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
@@ -46,6 +47,7 @@ enum
     TAG_BOOK_FIRST,
     TAG_VOICE = 370,
     TAG_VOICE_BACK,
+    TAG_VOICE_ACTION,
     TAG_SPORTS_ACTION = 350,
     TAG_SPORTS_CLOSE,
     TAG_COLLEGE_FIRST = 340,
@@ -64,7 +66,8 @@ static struct
     lv_obj_t *tone, *lamplight, *clock_text, *clock_date;
     int light_scene, light_band;
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
-    lv_obj_t *voice_entry, *voice_page;
+    lv_obj_t *voice_entry, *voice_page, *voice_status, *voice_detail;
+    lv_obj_t *voice_mic, *voice_action, *voice_action_text, *voice_wave[7];
     bool voice_open;
     lv_obj_t *status_button, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
@@ -336,7 +339,16 @@ static void click(lv_event_t *e)
     if (cmd == TAG_VOICE || cmd == TAG_VOICE_BACK)
     {
         ui.voice_open = cmd == TAG_VOICE;
+        pet_voice_page(ui.voice_open);
         paint();
+        return;
+    }
+    if (cmd == TAG_VOICE_ACTION)
+    {
+        pet_voice_state_t state = pet_voice_view().state;
+        if (state == PV_PAIR) pet_voice_pair();
+        else if (state == PV_WAITING || state == PV_PLAYING) pet_voice_cancel();
+        else if (state == PV_ACTIVATE || state == PV_ERROR) pet_voice_retry();
         return;
     }
     if (cmd == TAG_MEMORY_CLOSE || (cmd == TAG_CLOSE && ui.world.phase == PW_MINIGAME))
@@ -1090,6 +1102,18 @@ static void build_furniture(lv_obj_t *screen)
         ui.furniture[i] = prop;
     }
 }
+static void voice_mic_event(lv_event_t *event)
+{
+    lv_event_code_t code = lv_event_get_code(event);
+    if (code == LV_EVENT_PRESSED) pet_voice_hold(true);
+    else if (code == LV_EVENT_RELEASED) pet_voice_hold(false);
+    else if (code == LV_EVENT_PRESS_LOST)
+    {
+        pet_voice_hold(false);
+        pet_voice_cancel();
+    }
+}
+
 static void build_voice(lv_obj_t *screen)
 {
     ui.voice_entry = button(screen, 24, 94, 76, 44, TAG_VOICE, HUD_PAPER, 8);
@@ -1112,14 +1136,63 @@ static void build_voice(lv_obj_t *screen)
 
     const uint8_t heights[] = {4, 7, 11, 16, 11, 7, 4};
     for (unsigned i = 0; i < sizeof(heights); i++)
-        box(ui.voice_page, 148 + 15 * i, 283 - heights[i] / 2,
+        ui.voice_wave[i] = box(ui.voice_page, 148 + 15 * i, 283 - heights[i] / 2,
             5, heights[i], 0xEAB07B, 3);
 
-    lv_obj_align(text(ui.voice_page, "语音服务未连接", 0, 0, &pet_font_16, 0xD2E2E9),
-                 LV_ALIGN_BOTTOM_MID, 0, -95);
-    lv_obj_t *mic = box(ui.voice_page, 118, 370, 154, 52, 0x2B4357, 26);
-    lv_obj_center(text(mic, "按住说话", 0, 0, &pet_font_20, 0xB8CCD8));
+    ui.voice_status = text(ui.voice_page, "", 0, 0, &pet_font_20, 0xFCF1DA);
+    ui.voice_detail = text(ui.voice_page, "", 0, 0, &pet_font_16, 0xD2E2E9);
+    ui.voice_mic = button(ui.voice_page, 108, 374, 174, 52, 0, 0xEAB07B, 26);
+    lv_obj_remove_event_cb(ui.voice_mic, click);
+    lv_obj_add_event_cb(ui.voice_mic, voice_mic_event, LV_EVENT_ALL, NULL);
+    lv_obj_center(text(ui.voice_mic, "按住说话", 0, 0, &pet_font_20, 0x192B3C));
+    ui.voice_action = button(ui.voice_page, 108, 374, 174, 52, TAG_VOICE_ACTION, 0xEAB07B, 26);
+    ui.voice_action_text = text(ui.voice_action, "", 0, 0, &pet_font_20, 0x192B3C);
     visible(ui.voice_page, false);
+}
+
+static void paint_voice(void)
+{
+    pet_voice_view_t v = pet_voice_view();
+    static const char *titles[] = {
+        "语音服务未连接", "等待手机共享网络", "核对手机配对码", "正在连接小智", "绑定小智设备",
+        "我在听", "正在录音", "小猫在想", "小猫在说", "语音连接失败"
+    };
+    set_label(ui.voice_status, titles[v.state]);
+    lv_obj_align(ui.voice_status, LV_ALIGN_TOP_MID, 0, 310);
+    const char *detail = "";
+    const char *action = "";
+    switch (v.state)
+    {
+    case PV_NETWORK: detail = "蓝牙中选择 ShaheCat Voice"; break;
+    case PV_PAIR: detail = v.code; action = "配对码相同"; break;
+    case PV_ACTIVATE: detail = v.code; action = "已绑定，重试"; break;
+    case PV_RECORDING: detail = "松手发送"; break;
+    case PV_WAITING:
+    case PV_PLAYING: action = "停止"; break;
+    case PV_ERROR: detail = "检查共享网络后重试"; action = "重试"; break;
+    default: break;
+    }
+    set_label(ui.voice_detail, detail);
+    lv_obj_align(ui.voice_detail, LV_ALIGN_TOP_MID, 0, 343);
+    bool mic_visible = v.state == PV_READY || v.state == PV_RECORDING;
+    visible(ui.voice_mic, mic_visible);
+    visible(ui.voice_action, *action != 0);
+    if (*action)
+    {
+        set_label(ui.voice_action_text, action);
+        lv_obj_center(ui.voice_action_text);
+    }
+    for (unsigned i = 0; i < 7; i++)
+    {
+        unsigned distance = i > 3 ? i - 3 : 3 - i;
+        unsigned height = 4 + (3 - distance) * 3;
+        if (v.state == PV_RECORDING || v.state == PV_PLAYING)
+            height += v.level * (4 - distance) / 4000;
+        else if (v.state == PV_WAITING || v.state == PV_CONNECTING)
+            height += (unsigned)((ui.world.now / 100 + i) % 7);
+        lv_obj_set_height(ui.voice_wave[i], (int)height);
+        lv_obj_set_y(ui.voice_wave[i], 283 - (int)height / 2);
+    }
 }
 
 void pet_ui_create(pet_ui_action_fn callback)
@@ -1764,7 +1837,11 @@ static void paint(void)
     visible(ui.bubble_text, gains || *msg || ui.world.now < ui.world.coin_until);
     visible(ui.voice_entry, !memory && ui.panel == PANEL_NONE && !ui.voice_open);
     visible(ui.voice_page, ui.voice_open);
-    if (ui.voice_open) lv_obj_move_foreground(ui.voice_page);
+    if (ui.voice_open)
+    {
+        lv_obj_move_foreground(ui.voice_page);
+        paint_voice();
+    }
 }
 void pet_ui_update(const pet_world_t *world)
 {

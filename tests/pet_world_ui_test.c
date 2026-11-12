@@ -1,6 +1,7 @@
 /* Real production LVGL and UI, simulated pointer and clock; not physical evidence. */
 #include "lvgl.h"
 #include "pet_ui.h"
+#include "pet_voice.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
 #include "pet_shahe_assets.h"
@@ -22,6 +23,15 @@
             exit(1);                                                                                         \
         }                                                                                                    \
     } while (0)
+static pet_voice_view_t voice;
+static bool holding, cancel_voice, retry_voice, accept_pair;
+void pet_voice_page(bool open) { if (!open) holding = false; }
+void pet_voice_hold(bool down) { holding = down; }
+void pet_voice_cancel(void) { cancel_voice = true; }
+void pet_voice_retry(void) { retry_voice = true; }
+void pet_voice_pair(void) { accept_pair = true; }
+pet_voice_view_t pet_voice_view(void) { return voice; }
+
 static pet_world_t world;
 static pw_result_t result;
 static unsigned char frame[450][390][3], draw_buffer[390 * 50 * 3];
@@ -1163,7 +1173,42 @@ int main(int argc, char **argv)
             assert(!label_with(lv_screen_active(), "和小猫说话"));
             assert(world.scene == scene && label_with(lv_screen_active(), "语音"));
         }
-        puts("[host:voice-ui] three entries/exits, disabled microphone and scene preserved PASS");
+        voice.state = PV_NETWORK;
+        press("语音");
+        assert(label_with(lv_screen_active(), "等待手机共享网络"));
+        voice.state = PV_PAIR;
+        strcpy(voice.code, "123456");
+        step(40);
+        assert(label_with(lv_screen_active(), "123456"));
+        press("配对码相同");
+        assert(accept_pair);
+        voice.state = PV_ACTIVATE;
+        step(40);
+        press("已绑定，重试");
+        assert(retry_voice);
+        voice.state = PV_READY;
+        step(40);
+        pointer.x = 195;
+        pointer.y = 398;
+        pointer_state = LV_INDEV_STATE_PRESSED;
+        step(40);
+        step(40);
+        assert(holding);
+        voice.state = PV_RECORDING;
+        voice.level = 4000;
+        step(40);
+        assert(label_with(lv_screen_active(), "正在录音"));
+        pointer_state = LV_INDEV_STATE_RELEASED;
+        step(40);
+        step(40);
+        assert(!holding);
+        voice.state = PV_PLAYING;
+        step(40);
+        press("停止");
+        assert(cancel_voice);
+        press("返回");
+        assert(world.scene == scene);
+        puts("[host:voice-ui] navigation, unavailable, pairing, activation, press/release and stop PASS");
         return 0;
     }
     bool measure=argc>1 && !strcmp(argv[1],"--measure");
