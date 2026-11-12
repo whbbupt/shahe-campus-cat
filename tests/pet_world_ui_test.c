@@ -157,6 +157,7 @@ static lv_obj_t *label_with(lv_obj_t *p, const char *name)
 static lv_obj_t *control(const char *name)
 {
     lv_obj_t *l = label_with(lv_screen_active(), name);
+    if (!l) fprintf(stderr, "Missing control: %s\n", name);
     assert(l);
     lv_obj_t *p = lv_obj_get_parent(l);
     while (p && !lv_obj_check_type(p, &lv_button_class))
@@ -1146,6 +1147,63 @@ static void teaching_buildings(void)
     puts("[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS");
 }
 
+static void start_badminton(void)
+{
+    reset();
+    world.scene = PW_CAMPUS;
+    world.phase = PW_IDLE;
+    world.mood = 50;
+    world.x = 790;
+    world.y = 590;
+    pet_ui_update(&world);
+    step(40);
+    tap_campus_point(735, 590);
+    press("打羽毛球");
+    assert(world.mood == 54);
+    assert(label_with(lv_screen_active(), "挥拍"));
+}
+
+static void badminton_game(void)
+{
+    start_badminton();
+    step(550);
+    press("挥拍");
+    assert(label_with(lv_screen_active(), "早了，再等一下"));
+    assert(label_with(lv_screen_active(), "你  0  :  0  对手"));
+    step(1050);
+    assert(label_with(lv_screen_active(), "现在挥拍！"));
+    screenshot("badminton-hit-window.ppm");
+    press("挥拍");
+    assert(label_with(lv_screen_active(), "打回去了！"));
+    assert(label_with(lv_screen_active(), "你  1  :  0  对手"));
+    press("挥拍");
+    assert(label_with(lv_screen_active(), "你  1  :  0  对手"));
+    step(650); step(550); step(1500);
+    assert(label_with(lv_screen_active(), "漏球 · 对手得分"));
+    assert(label_with(lv_screen_active(), "你  1  :  1  对手"));
+    press("×");
+    assert(!label_with(lv_screen_active(), "挥拍") && world.scene == PW_CAMPUS);
+    assert(label_with(lv_screen_active(), "学生活动中心"));
+
+    start_badminton();
+    step(700);
+    world.scene = PW_DORM;
+    world.curfew_events++;
+    step(40);
+    assert(!label_with(lv_screen_active(), "挥拍"));
+    assert(label_with(lv_screen_active(), "留在宿舍"));
+    press("留在宿舍");
+    assert(world.scene == PW_DORM && label_with(lv_screen_active(), "状态"));
+
+    start_badminton();
+    world.scene = PW_CLASSROOM;
+    step(40);
+    assert(!label_with(lv_screen_active(), "挥拍"));
+    press("状态");
+    assert(label_with(lv_screen_active(), "小猫状态"));
+    puts("[host:badminton] scoring, return, miss, close, curfew and scene change PASS");
+}
+
 int main(int argc, char **argv)
 {
     lv_init();
@@ -1157,6 +1215,11 @@ int main(int argc, char **argv)
     lv_indev_t *input = lv_indev_create();
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
+    if (argc > 1 && !strcmp(argv[1], "--badminton"))
+    {
+        badminton_game();
+        return 0;
+    }
     if (argc > 1 && !strcmp(argv[1], "--voice"))
     {
         reset();

@@ -16,7 +16,7 @@ submission:
   student_id: null # 未提供，不推断。
   student_name: "王焕博" # 2026-10-22用户明确提供；Git标识仍为whbbupt。
   group_id: null # 正式组号未提供；已确认两人团队。
-  milestone: "v0.20.0 手表小猫语音，主机专项和目标构建通过，TC-304/305 待实机"
+  milestone: "v0.20.1 侧视羽毛球及语音配对恢复，真机待验"
   submitted_at: null # 本次本地收尾，不冒充已向教学平台提交。
 
 dev_agent:
@@ -32,6 +32,10 @@ requirements:
 design:
   architecture_doc_path: "docs/02-方案设计说明.md"
   key_decisions:
+    - decision: "羽毛球重做为侧视对打，单一挥拍键与击球时机"
+      alternatives_considered: "侧视对打；第一人称三方向接球"
+      rationale: "侧视可观察完整球路，手指停在底部挥拍区"
+      decided_by: "王焕博明确选择侧视，ADR-0023"
     - decision: "手表录音播报，蓝牙 PAN 借手机上网，经小智云端对话"
       alternatives_considered: "A 手表直接语音对话；B 手机 App 处理音频，手表同步状态"
       rationale: "A 保留对着小猫说话的体验；需验证演示手机、云端和 BLE 校时共存"
@@ -1640,7 +1644,21 @@ test_results:
     actual: 主机音频交接和 Flash 边界检查通过，实机待验
     pass: null
 
+  - test_id: TC-306
+    description: 侧视羽毛球的挥拍、得分和场景切换
+    expected: 命中只计一分，漏球失分，退出及换场景清理球局
+    actual: 生产 LVGL 主机专项通过
+    evidence_path: evidence/pet/previews/badminton-v0.20.1/badminton-hit-window.png
+    pass: true
+  - test_id: TC-307
+    description: 经典蓝牙配对失败后重新可发现
+    expected: 拒绝及超时后恢复搜索，退出页面停止搜索
+    actual: 主机模拟通过，真机待用户复测
+    evidence_path: evidence/pet/voice_pair_failure_20261112_user.txt
+    pass: null
+
 known_issues:
+  - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"
   - "v0.19.3 四楼小游戏主机专项和目标构建通过，完整 LVGL 旧道路断言仍在，TC-302 待实机。"
   - "v0.19.2 三栋教学楼专项与构建通过，完整 LVGL 仍有基线道路点击断言，TC-298 待实机。"
