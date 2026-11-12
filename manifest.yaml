@@ -1690,6 +1690,12 @@ test_results:
     actual: v0.20.3 构建及栈地址检查通过，真机重测待用户执行
     evidence_path: evidence/pet/voice_stack_v0203_verification_20261112.txt
     pass: null
+  - test_id: TC-311
+    description: KEY2 语音入口与三档回复音量
+    expected: 长按开页且无重复短按，播报时短按循环调档，音量条自动收起
+    actual: 主机按键模型、LVGL 页面和构建通过，实机按键与响度待学生确认
+    evidence_path: evidence/pet/voice_key2_v0204_verification_20261112.txt
+    pass: null
 
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"

@@ -68,6 +68,8 @@ static struct
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
     lv_obj_t *voice_entry, *voice_page, *voice_status, *voice_detail;
     lv_obj_t *voice_mic, *voice_action, *voice_action_text, *voice_wave[7];
+    lv_obj_t *voice_volume_panel, *voice_volume_text, *voice_volume_bar[PV_VOLUME_COUNT];
+    uint64_t voice_volume_until;
     bool voice_open;
     lv_obj_t *status_button, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
@@ -396,6 +398,36 @@ static void sports_hit(void)
     sports_scores();
 }
 
+static void set_voice_page(bool open)
+{
+    ui.voice_open = open;
+    ui.voice_volume_until = 0;
+    pet_voice_page(open);
+    paint();
+}
+
+static bool can_open_voice(void)
+{
+    return !ui.voice_open && ui.panel == PANEL_NONE && ui.world.phase != PW_MINIGAME;
+}
+
+void pet_ui_key2(pet_key2_event_t event)
+{
+    if (event == PET_KEY2_LONG && can_open_voice())
+        set_voice_page(true);
+    else if (event == PET_KEY2_SHORT && ui.voice_open)
+    {
+        unsigned volume = pet_voice_cycle_volume() + 1;
+        ui.voice_volume_until = ui.world.now + 2000;
+        set_label_fmt(ui.voice_volume_text, "%u/3", volume);
+        lv_obj_align(ui.voice_volume_text, LV_ALIGN_TOP_MID, 0, 144);
+        for (unsigned i = 0; i < PV_VOLUME_COUNT; i++)
+            lv_obj_set_style_bg_color(ui.voice_volume_bar[i],
+                lv_color_hex(i < volume ? 0xEAB07B : 0x567487), 0);
+        visible(ui.voice_volume_panel, true);
+    }
+}
+
 static void click(lv_event_t *e)
 {
     lv_obj_t *o = lv_event_get_target(e);
@@ -404,9 +436,7 @@ static void click(lv_event_t *e)
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
     if (cmd == TAG_VOICE || cmd == TAG_VOICE_BACK)
     {
-        ui.voice_open = cmd == TAG_VOICE;
-        pet_voice_page(ui.voice_open);
-        paint();
+        if (cmd == TAG_VOICE_BACK || can_open_voice()) set_voice_page(cmd == TAG_VOICE);
         return;
     }
     if (cmd == TAG_VOICE_ACTION)
@@ -1243,11 +1273,19 @@ static void build_voice(lv_obj_t *screen)
     lv_obj_center(text(ui.voice_mic, "按住说话", 0, 0, &pet_font_20, 0x192B3C));
     ui.voice_action = button(ui.voice_page, 108, 374, 174, 52, TAG_VOICE_ACTION, 0xEAB07B, 26);
     ui.voice_action_text = text(ui.voice_action, "", 0, 0, &pet_font_20, 0x192B3C);
+    ui.voice_volume_panel = box(ui.voice_page, 322, 127, 48, 174, 0x2B4357, 20);
+    lv_obj_set_style_bg_opa(ui.voice_volume_panel, LV_OPA_90, 0);
+    text(ui.voice_volume_panel, "音量", 8, 8, &pet_font_16, 0xD2E2E9);
+    for (unsigned i = 0; i < PV_VOLUME_COUNT; i++)
+        ui.voice_volume_bar[i] = box(ui.voice_volume_panel, 13, 109 - 36 * (int)i, 22, 29, 0x567487, 9);
+    ui.voice_volume_text = text(ui.voice_volume_panel, "", 0, 0, &pet_font_16, 0xFCF1DA);
+    visible(ui.voice_volume_panel, false);
     visible(ui.voice_page, false);
 }
 
 static void paint_voice(void)
 {
+    visible(ui.voice_volume_panel, ui.world.now < ui.voice_volume_until);
     pet_voice_view_t v = pet_voice_view();
     static const char *titles[] = {
         "语音服务未连接", "等待手机共享网络", "核对手机配对码", "正在连接小智", "绑定小智设备",
@@ -1933,7 +1971,7 @@ static void paint(void)
     else
         set_label(ui.bubble_text, msg);
     visible(ui.bubble_text, gains || *msg || ui.world.now < ui.world.coin_until);
-    visible(ui.voice_entry, !memory && ui.panel == PANEL_NONE && !ui.voice_open);
+    visible(ui.voice_entry, can_open_voice());
     visible(ui.voice_page, ui.voice_open);
     if (ui.voice_open)
     {

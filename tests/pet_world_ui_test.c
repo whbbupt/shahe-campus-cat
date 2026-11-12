@@ -24,12 +24,18 @@
         }                                                                                                    \
     } while (0)
 static pet_voice_view_t voice;
+static pet_voice_volume_t voice_volume = PV_VOLUME_MEDIUM;
 static bool holding, cancel_voice, retry_voice, accept_pair;
 void pet_voice_page(bool open) { if (!open) holding = false; }
 void pet_voice_hold(bool down) { holding = down; }
 void pet_voice_cancel(void) { cancel_voice = true; }
 void pet_voice_retry(void) { retry_voice = true; }
 void pet_voice_pair(void) { accept_pair = true; }
+pet_voice_volume_t pet_voice_cycle_volume(void)
+{
+    voice_volume = (voice_volume + 1) % PV_VOLUME_COUNT;
+    return voice_volume;
+}
 pet_voice_view_t pet_voice_view(void) { return voice; }
 
 static pet_world_t world;
@@ -1249,8 +1255,19 @@ int main(int argc, char **argv)
             assert(world.scene == scene && label_with(lv_screen_active(), "语音"));
         }
         voice.state = PV_NETWORK;
-        press("语音");
+        assert(pet_key2_selftest());
+        pet_key2_t key;
+        pet_key2_init(&key, false, 0);
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(!label_with(lv_screen_active(), "和小猫说话"));
+        pet_ui_key2(pet_key2_sample(&key, true, 100));
+        pet_ui_key2(pet_key2_sample(&key, true, 130));
+        assert(!label_with(lv_screen_active(), "和小猫说话"));
+        pet_ui_key2(pet_key2_sample(&key, true, 800));
+        pet_ui_key2(pet_key2_sample(&key, false, 900));
+        pet_ui_key2(pet_key2_sample(&key, false, 930));
         assert(label_with(lv_screen_active(), "等待手机共享网络"));
+        assert(!label_with(lv_screen_active(), "音量") && voice_volume == PV_VOLUME_MEDIUM);
         assert(label_with(lv_screen_active(), "蓝牙中选择 " PET_VOICE_BT_NAME));
         voice.state = PV_PAIR;
         strcpy(voice.code, "123456");
@@ -1280,11 +1297,23 @@ int main(int argc, char **argv)
         assert(!holding);
         voice.state = PV_PLAYING;
         step(40);
+        unsigned game_volume = world.volume;
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "3/3"));
+        screenshot("voice-volume.ppm");
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "1/3"));
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "2/3"));
+        step(1990);
+        assert(label_with(lv_screen_active(), "2/3"));
+        step(10);
+        assert(!label_with(lv_screen_active(), "音量") && world.volume == game_volume);
         press("停止");
         assert(cancel_voice);
         press("返回");
         assert(world.scene == scene);
-        puts("[host:voice-ui] navigation, unavailable, pairing, activation, press/release and stop PASS");
+        puts("[host:voice-ui] touch, KEY2 long/short, overlay timeout, pairing, recording and stop PASS");
         return 0;
     }
     if (argc > 1 && !strcmp(argv[1], "--meal"))

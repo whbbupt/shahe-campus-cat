@@ -28,6 +28,7 @@ static struct rt_mutex view_lock;
 static bool started;
 static atomic_bool page, pressed, cancelled, retry, accept;
 static atomic_uint page_epoch, level, record_read, record_write;
+static atomic_uint output_volume = PV_VOLUME_MEDIUM;
 static unsigned session_epoch;
 static atomic_bool record_overflow;
 static pet_voice_view_t view;
@@ -216,9 +217,12 @@ static bool play(const uint8_t *data, size_t size)
     int samples = opus_decode(decoder, data, (opus_int32)size, playback, PCM_SAMPLES, 0);
     if (samples <= 0) return false;
     unsigned maximum = 0;
+    /* Apply gain only to decoded replies, independently of game and microphone audio. */
+    int32_t gain = 1 << atomic_load(&output_volume);
     for (int i = 0; i < samples; i++)
     {
-        int value = playback[i];
+        int value = (int32_t)playback[i] * gain / 4;
+        playback[i] = (int16_t)value;
         unsigned amplitude = (unsigned)(value < 0 ? -value : value);
         if (amplitude > maximum) maximum = amplitude;
     }
@@ -417,6 +421,13 @@ void pet_voice_hold(bool down) { atomic_store(&pressed, down); }
 void pet_voice_cancel(void) { atomic_store(&cancelled, true); }
 void pet_voice_retry(void) { atomic_store(&retry, true); }
 void pet_voice_pair(void) { atomic_store(&accept, true); }
+
+pet_voice_volume_t pet_voice_cycle_volume(void)
+{
+    unsigned next = (atomic_load(&output_volume) + 1) % PV_VOLUME_COUNT;
+    atomic_store(&output_volume, next);
+    return (pet_voice_volume_t)next;
+}
 
 pet_voice_view_t pet_voice_view(void)
 {
