@@ -160,7 +160,7 @@ physical_verification:
     required_action: "进入语音页，回传名称、EIR 与扫描日志，并确认 iPhone 的设备列表。"
     executed_at: "2026-11-12 20:01:34（用户串口监视器）"
     evidence_path: "evidence/pet/voice_discovery_v0202_20261112_user.txt"
-    agent_conclusion: "手表读回 ShaheCat Talk，EIR 写入成功，扫描模式为 3；iPhone 列表结果待确认。"
+    agent_conclusion: "手表读回 ShaheCat Talk，EIR 写入成功，扫描模式为 3；用户确认 iPhone 仍未发现。"
   - item: "TC-307 v0.20.1 iPhone 发现语音蓝牙"
     required_action: "进入语音页，在 iPhone 的设置中搜索经典蓝牙设备并记录串口状态。"
     executed_at: "2026-11-12 19:31（用户串口监视器）"
@@ -1669,9 +1669,9 @@ test_results:
   - test_id: TC-309
     description: iPhone 发现改名后的语音蓝牙
     expected: 进入语音页后 iPhone 发现 ShaheCat Talk，可开始配对
-    actual: 手表已读回 ShaheCat Talk，EIR 写入成功且扫描模式为 3，待确认 iPhone 列表
+    actual: 手表已读回 ShaheCat Talk，EIR 写入成功且扫描模式为 3，用户确认 iPhone 仍未发现
     evidence_path: evidence/pet/voice_discovery_v0202_20261112_user.txt
-    pass: null
+    pass: false
   - test_id: TC-308
     description: 智慧楼门牌和食堂确认按钮
     expected: 旧门牌处可走路，新门牌能进楼，确认按钮高 60 像素且只结算一次
