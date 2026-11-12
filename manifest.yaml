@@ -1653,9 +1653,9 @@ test_results:
   - test_id: TC-307
     description: 经典蓝牙配对失败后重新可发现
     expected: 拒绝及超时后恢复搜索，退出页面停止搜索
-    actual: 主机模拟通过，真机待用户复测
-    evidence_path: evidence/pet/voice_pair_failure_20261112_user.txt
-    pass: null
+    actual: 主机模拟通过，v0.20.1 实机回报 scan mode=3，用户的 iPhone 仍搜不到语音设备
+    evidence_path: evidence/pet/voice_discovery_v0201_20261112_user.txt
+    pass: false
 
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
