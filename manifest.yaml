@@ -1702,6 +1702,19 @@ test_results:
     evidence_path: evidence/pet/voice_key2_v0204_verification_20261112.txt
     pass: null
 
+  - test_id: TC-313
+    description: 小猫步态、校园楼牌与图书馆看书
+    expected: 步态跟随路线，旧按钮覆盖的路面可点击，图书馆正脸坐椅看书并正常结束
+    actual: 主机模型、生产 LVGL 指针和预览通过，板端待验
+    evidence_path: evidence/pet/pet_v0206_verification_20261113.txt
+    pass: null
+  - test_id: TC-314
+    description: 小智回复零档静音
+    expected: 零档实际输出零电平，显示 0/3，下一档恢复
+    actual: 主机检查生产 PCM 增益与 LVGL 切档通过，板端播报待验
+    evidence_path: evidence/pet/pet_v0206_verification_20261113.txt
+    pass: null
+
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"

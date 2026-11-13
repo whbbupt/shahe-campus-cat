@@ -149,7 +149,7 @@ typedef struct
     int8_t destination, entry_node, point_edge_a, point_edge_b;
     pw_point_t point_goal;
     bool swapped;
-    float x, y;
+    float x, y, stride;
     uint64_t now, action_start, action_end, transition_start;
     uint64_t cooldown[PW_ACTION_COUNT], food_elapsed, mood_elapsed, rest_elapsed, message_until;
     uint64_t order_due, gain_until;

@@ -939,7 +939,7 @@ static void activity_workstudy_windows(void)
     reset(); world.scene = PW_CAMPUS; world.phase = PW_IDLE; world.mood = 50;
     pet_ui_update(&world);
     screenshot("v019-campus.ppm");
-    press("学生活动中心");
+    press("学生\n活动中心");
     screenshot("v019-activity.ppm");
     assert(label_with(lv_screen_active(), "去健身房"));
     assert(label_with(lv_screen_active(), "跳舞"));
@@ -1011,7 +1011,11 @@ static void library_and_activity(void)
     press("看书");
     until_action(PW_STUDY);
     assert(pw_in_library(&world));
+    lv_obj_t *reading = image_with(lv_screen_active(), &pw_library_reading);
+    assert(reading && shown(reading));
+    screenshot("library-cat-reading.ppm");
     step(8500);
+    assert(!image_with(lv_screen_active(), &pw_library_reading));
     press("出门");
     assert(pw_in_library(&world) && world.purpose == 2);
     while (world.scene == PW_CLASSROOM && world.phase != PW_IDLE)
@@ -1021,7 +1025,7 @@ static void library_and_activity(void)
     }
     idle(PW_CAMPUS);
     assert(world.node == PW_LIBRARY_DOOR);
-    tap_campus_point(735, 590);
+    tap_campus_point(715, 584);
     assert(label_with(lv_screen_active(), "去健身房"));
     puts("[host:world-ui] library and activity entrances PASS");
 }
@@ -1083,11 +1087,11 @@ static void teaching_buildings(void)
         const char *entry, *title, *day, *night;
         const lv_image_dsc_t *plate;
     } cases[] = {
-        {PW_SMART_BUILDING, 24, "智慧教学楼", "智慧教学楼 · 自习",
+        {PW_SMART_BUILDING, 24, "智慧\n教学楼", "智慧教学楼 · 自习",
          "smart-classroom-day.ppm", "smart-classroom-night.ppm", &shahe_smart_room},
-        {PW_LAB_BUILDING, 16, "教学实验综合楼", "教学实验综合楼·实验室",
+        {PW_LAB_BUILDING, 16, "教学实验\n综合楼", "教学实验综合楼·实验室",
          "teaching-lab-day.ppm", "teaching-lab-night.ppm", &shahe_lab_room},
-        {PW_PUBLIC_BUILDING, 54, "公共教学楼", "公共教学楼 · 教室",
+        {PW_PUBLIC_BUILDING, 54, "公共\n教学楼", "公共教学楼 · 教室",
          "public-classroom-day.ppm", "public-classroom-night.ppm", &shahe_public_room}
     };
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
@@ -1099,6 +1103,13 @@ static void teaching_buildings(void)
         world.x = gate.x;
         world.y = gate.y;
         step(40);
+        if (cases[i].id == PW_LAB_BUILDING)
+        {
+            tap_campus_point(1200, 735);
+            assert(world.scene == PW_CAMPUS && world.phase == PW_WALK && world.purpose == 3);
+            idle(PW_CAMPUS);
+            screenshot("shahe-lab-entrance.ppm");
+        }
         if (cases[i].id == PW_SMART_BUILDING)
         {
             screenshot("shahe-smart-entrance.ppm");
@@ -1175,7 +1186,7 @@ static void start_badminton(void)
     world.y = 590;
     pet_ui_update(&world);
     step(40);
-    tap_campus_point(735, 590);
+    tap_campus_point(715, 584);
     press("打羽毛球");
     assert(world.mood == 54);
     assert(label_with(lv_screen_active(), "挥拍"));
@@ -1302,7 +1313,8 @@ int main(int argc, char **argv)
         assert(label_with(lv_screen_active(), "3/3"));
         screenshot("voice-volume.ppm");
         pet_ui_key2(PET_KEY2_SHORT);
-        assert(label_with(lv_screen_active(), "1/3"));
+        assert(label_with(lv_screen_active(), "0/3") && voice_volume == PV_VOLUME_MUTE);
+        screenshot("voice-muted.ppm");
         pet_ui_key2(PET_KEY2_SHORT);
         assert(label_with(lv_screen_active(), "2/3"));
         step(1990);

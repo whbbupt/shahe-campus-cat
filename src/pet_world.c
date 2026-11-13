@@ -30,6 +30,7 @@ static const uint8_t campus_edges[][2] = {
 #undef SHAHE_ROAD
 };
 enum { ROOM_CORNERS = 8, ROOM_START = 24, ROOM_GOAL = 25, ROAD_GOAL = PW_PATH_CAPACITY - 1 };
+enum { WALK_SPEED = 70, STRIDE_LENGTH = 22 };
 
 typedef struct
 {
@@ -637,6 +638,7 @@ static bool move(pet_world_t *w, int goal, unsigned purpose)
     memcpy(w->route, best, best_n);
     w->route_at = 0;
     w->route_len = (uint8_t)best_n;
+    if (w->phase != PW_WALK) w->stride = 0;
     w->phase = PW_WALK;
     w->action = PW_NONE;
     w->purpose = (uint8_t)purpose;
@@ -698,6 +700,7 @@ pw_result_t pw_walk_to(pet_world_t *w, float x, float y)
         w->route[0] = ROAD_GOAL;
         w->route_at = 0;
         w->route_len = 1;
+        if (w->phase != PW_WALK) w->stride = 0;
         w->phase = PW_WALK;
         w->action = PW_NONE;
         w->purpose = 3;
@@ -1135,7 +1138,7 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         {
             int n = w->route[w->route_at];
             float d = distance(w->x, w->y, point(w, n).x, point(w, n).y);
-            until = (uint64_t)ceilf(d / 70.0f * 1000.0f);
+            until = (uint64_t)ceilf(d / WALK_SPEED * 1000.0f);
             if (!until)
                 until = 1;
         }
@@ -1157,7 +1160,10 @@ void pw_advance(pet_world_t *w, uint32_t ms)
         {
             int n = w->route[w->route_at];
             float dx = point(w, n).x - w->x, dy = point(w, n).y - w->y, d = hypotf(dx, dy);
-            float fraction = d > .001f ? 70.0f * (float)dt / 1000.0f / d : 1;
+            float travel = fminf(d, WALK_SPEED * (float)dt / 1000.0f);
+            float fraction = d > .001f ? travel / d : 1;
+            w->stride += travel;
+            if (w->stride >= STRIDE_LENGTH) w->stride = fmodf(w->stride, STRIDE_LENGTH);
             w->facing = heading(dx, dy);
             if (fraction >= 1)
             {
@@ -1237,6 +1243,14 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     v->scale = fmaxf(.91f, fminf(1.05f, .92f + (w->y - 240) / 1000));
     if (w->scene == PW_CAMPUS)
         v->scale = .78f;
+    if (w->phase == PW_WALK)
+    {
+        pw_point_t next = point(w, w->route[w->route_at]);
+        v->facing = heading(next.x - w->x, next.y - w->y);
+        v->frame = (uint8_t)(v->facing * 2 + (w->stride >= STRIDE_LENGTH / 2));
+        v->lift = 1.4f * fabsf(sinf(6.2831853f * w->stride / STRIDE_LENGTH));
+        return;
+    }
     if (w->phase == PW_IDLE && w->now < w->activity_until && w->activity_kind >= 3)
     {
         float p = (float)(w->now - w->activity_start) / 1200.0f;
@@ -1268,8 +1282,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     }
     if (w->phase == PW_ACTION && w->action == PW_STUDY && room_layout(w) >= LIBRARY_LAYOUT)
     {
-        v->facing = 4;
-        v->frame = (uint8_t)(16 + w->now / 500 % 2);
+        v->facing = pw_in_library(w) ? 0 : 4;
+        v->frame = pw_in_library(w) ? 0 : (uint8_t)(16 + w->now / 500 % 2);
         return;
     }
     bool furniture = w->phase == PW_SLEEP || w->phase == PW_SEATED || (w->phase == PW_ACTION && w->action != PW_TOUCH);
@@ -1329,7 +1343,7 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
             v->facing = mode == 2 ? heading(w->x - target.x, w->y - target.y)
                                   : heading(target.x - w->x, target.y - w->y);
     }
-    v->frame = (uint8_t)(v->facing * 2 + ((w->phase == PW_WALK && w->now / 210 % 2) ? 1 : 0));
+    v->frame = v->facing * 2;
     if (settled)
         v->frame = v->sleeping ? 18 : (uint8_t)(16 + (w->action == PW_CODE && w->now / 210 % 2 ? 1 : 0));
 }

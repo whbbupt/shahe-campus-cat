@@ -204,6 +204,28 @@ static bool all_directions(void)
     }
     return true;
 }
+static bool walking_pose(void)
+{
+    pet_world_t w;
+    pw_visual_t pose;
+    pw_init(&w);
+    w.x = 325;
+    w.y = 365;
+    pw_advance(&w, 250);
+    CHECK(pw_walk_to(&w, 355, 365) == PW_OK);
+    pw_visual(&w, &pose);
+    CHECK(pose.facing == 6 && pose.frame == 12 && pose.lift == 0);
+    pw_advance(&w, 175);
+    pw_visual(&w, &pose);
+    CHECK(pose.frame == 13 && pose.lift > 0);
+    CHECK(pw_walk_to(&w, w.x, 405) == PW_OK);
+    pw_visual(&w, &pose);
+    CHECK(pose.facing == 0 && pose.frame == 1);
+    pw_advance(&w, 1000);
+    pw_visual(&w, &pose);
+    CHECK(w.phase == PW_IDLE && pose.facing == 0 && pose.frame == 0 && pose.lift == 0);
+    return true;
+}
 static bool indoor_floor(void)
 {
     pet_world_t w;
@@ -806,6 +828,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"elapsed-and-long-gap", elapsed_partition},
                  {"jump-and-seat", jump_support},
                  {"eight-directions", all_directions},
+                 {"walking-pose-follows-distance-and-route", walking_pose},
                  {"indoor-floor-detour-and-retarget", indoor_floor},
                  {"classroom-and-canteen-detours", other_room_detours},
                  {"reset-invalid", reset_invalid},

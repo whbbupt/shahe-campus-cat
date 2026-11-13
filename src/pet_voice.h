@@ -8,7 +8,7 @@ typedef enum {
     PV_UNAVAILABLE, PV_NETWORK, PV_PAIR, PV_CONNECTING, PV_ACTIVATE,
     PV_READY, PV_RECORDING, PV_WAITING, PV_PLAYING, PV_ERROR
 } pet_voice_state_t;
-typedef enum { PV_VOLUME_LOW, PV_VOLUME_MEDIUM, PV_VOLUME_HIGH, PV_VOLUME_COUNT } pet_voice_volume_t;
+typedef enum { PV_VOLUME_MUTE, PV_VOLUME_MEDIUM, PV_VOLUME_HIGH, PV_VOLUME_COUNT } pet_voice_volume_t;
 typedef struct {
     pet_voice_state_t state;
     char code[16];

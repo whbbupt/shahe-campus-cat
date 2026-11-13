@@ -417,7 +417,8 @@ void pet_ui_key2(pet_key2_event_t event)
         set_voice_page(true);
     else if (event == PET_KEY2_SHORT && ui.voice_open)
     {
-        unsigned volume = pet_voice_cycle_volume() + 1;
+        pet_voice_volume_t setting = pet_voice_cycle_volume();
+        unsigned volume = setting == PV_VOLUME_MUTE ? 0 : setting + 1;
         ui.voice_volume_until = ui.world.now + 2000;
         set_label_fmt(ui.voice_volume_text, "%u/3", volume);
         lv_obj_align(ui.voice_volume_text, LV_ALIGN_TOP_MID, 0, 144);
@@ -645,24 +646,8 @@ static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
 }
 static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
-static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
-static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN};
 enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477,
        WISDOM_X = 1044, WISDOM_Y = 1120 };
-
-static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
-{
-    lv_obj_t *label = text(parent, name, x, y, &pet_font_16, HUD_INK);
-    lv_obj_set_width(label, width);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_bg_color(label, lv_color_hex(HUD_PAPER), 0);
-    lv_obj_set_style_bg_opa(label, LV_OPA_70, 0);
-    lv_obj_set_style_radius(label, 5, 0);
-    lv_obj_set_style_pad_ver(label, 2, 0);
-    lv_obj_set_style_border_width(label, 1, 0);
-    lv_obj_set_style_border_color(label, lv_color_hex(HUD_EDGE), 0);
-    lv_obj_set_style_border_opa(label, LV_OPA_50, 0);
-}
 
 /* Yellow construction overlay: labels are visible, the area is not a walkable door. */
 static void construction(lv_obj_t *parent, int x, int y, int w, int h, const char *name)
@@ -765,64 +750,37 @@ static void build_campus(lv_obj_t *screen)
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
 }
 
-static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag);
 static void build_gates(lv_obj_t *screen)
 {
     ui.gates = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.gates, LV_OPA_TRANSP, 0);
-    for (unsigned room = 0; room < sizeof(campus_rooms) / sizeof(campus_rooms[0]); room++)
+    /* Coordinates are on the building side of the road. Only each sign takes taps. */
+    static const struct
     {
-        pw_point_t door = pw_node(PW_CAMPUS, pw_campus_door(campus_rooms[room]));
-        int y = (int)door.y - (room == PW_DORM ? 66 : 44);
-        int tag = PW_ENTER_DORM + room;
-        int w = 96;
-        lv_obj_t *gate = button(ui.gates, (int)door.x - w / 2, y, w, 70, tag, PAPER, 5);
-        lv_obj_set_style_bg_opa(gate, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
-        scene_tag(gate, campus_names[room], LV_ALIGN_TOP_MID, 0, 3);
-    }
-    building_hit(ui.gates, 380, 430, 190, 190, PW_ENTER_DORM);
-    building_hit(ui.gates, 930, 630, 200, 180, PW_ENTER_CLASSROOM);
-    building_hit(ui.gates, 520, 980, 200, 200, PW_ENTER_CANTEEN);
-    lv_obj_t *center = button(ui.gates, CENTER_X, CENTER_Y, shahe_center.header.w,
-                              shahe_center.header.h, TAG_ACTIVITY, PAPER, 6);
-    lv_obj_set_style_bg_opa(center, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(center, LV_OPA_20, LV_STATE_PRESSED);
-    scene_tag(center, "学生活动中心", LV_ALIGN_TOP_MID, 0, 3);
-}
-static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
-{
-    lv_obj_t *b = button(parent, x, y, w, h, tag, PAPER, 6);
-    lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(b, LV_OPA_10, LV_STATE_PRESSED);
-}
-
-static void build_buildings(void)
-{
-    pw_point_t door = pw_node(PW_CAMPUS, PW_LIBRARY_DOOR);
-    building_hit(ui.gates, LIBRARY_X, LIBRARY_Y, shahe_library.header.w,
-                 shahe_library.header.h, TAG_LIBRARY);
-    lv_obj_t *library_door = button(ui.gates, (int)door.x - 24, (int)door.y - 28,
-                                    76, 48, TAG_LIBRARY, PAPER, 6);
-    lv_obj_set_style_bg_opa(library_door, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(library_door, LV_OPA_20, LV_STATE_PRESSED);
-    scene_tag(library_door, "图书馆", LV_ALIGN_TOP_MID, 0, 27);
-    lv_obj_t *wisdom_door = button(ui.gates, WISDOM_X + 9, WISDOM_Y - 22,
-                                   100, 44, TAG_WISDOM, PAPER, 6);
-    lv_obj_set_style_bg_opa(wisdom_door, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(wisdom_door, LV_OPA_20, LV_STATE_PRESSED);
-    scene_tag(wisdom_door, "智慧教学楼", LV_ALIGN_CENTER, 0, 0);
-    static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
-        {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
-        {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
-        {130, 560, 120, TAG_SPORTS, 1, "运动场"}};
-    for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+        int x, y, width, tag;
+        const char *name;
+    } signs[] = {
+        {455, 555, 72, PW_ENTER_DORM, "雁北园"},
+        {1020, 781, 72, PW_ENTER_CLASSROOM, "教综楼"},
+        {625, 1135, 82, PW_ENTER_CANTEEN, "学生餐厅"},
+        {715, 584, 74, TAG_ACTIVITY, "学生\n活动中心"},
+        {950, 500, 72, TAG_LIBRARY, "图书馆"},
+        {1103, 1118, 74, TAG_WISDOM, "智慧\n教学楼"},
+        {673, 775, 74, TAG_PUBLIC, "公共\n教学楼"},
+        {1270, 756, 82, TAG_LAB, "教学实验\n综合楼"},
+        {188, 605, 72, TAG_SPORTS, "运动场"}
+    };
+    for (unsigned i = 0; i < sizeof(signs) / sizeof(signs[0]); i++)
     {
-        lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
-                             entries[i].tag, PAPER, 6);
-        lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_bg_opa(b, LV_OPA_20, LV_STATE_PRESSED);
-        if (entries[i].label) scene_tag(b, entries[i].name, LV_ALIGN_TOP_MID, 0, 3);
+        int width = signs[i].width;
+        lv_obj_t *sign = button(ui.gates, signs[i].x - width / 2, signs[i].y - 22,
+                                width, 44, signs[i].tag, HUD_PAPER, 6);
+        lv_obj_set_style_bg_opa(sign, LV_OPA_90, 0);
+        lv_obj_set_style_border_width(sign, 1, 0);
+        lv_obj_set_style_border_color(sign, lv_color_hex(HUD_EDGE), 0);
+        lv_obj_t *label = text(sign, signs[i].name, 0, 0, &pet_font_16, HUD_INK);
+        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_center(label);
     }
 }
 
@@ -1370,7 +1328,6 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
     scene_tag(ui.door, "出门", LV_ALIGN_BOTTOM_MID, 0, -7);
     build_gates(screen);
-    build_buildings();
     ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
     ui.game_entry_label = scene_tag(ui.blackboard, "记忆题", LV_ALIGN_TOP_RIGHT, -3, 3);
@@ -1889,8 +1846,12 @@ static void paint(void)
     pw_visual(&ui.world, &v);
     v.x -= left;
     v.y -= top;
-    set_image(ui.sprite, pw_frames[v.frame]);
-    lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(v.y) - 64);
+    bool reading = library && ui.world.phase == PW_ACTION && ui.world.action == PW_STUDY;
+    int anchor_y = reading ? 94 : 64;
+    float sprite_y = ui.world.phase == PW_WALK ? v.y - v.lift : v.y;
+    set_image(ui.sprite, reading ? &pw_library_reading : pw_frames[v.frame]);
+    lv_image_set_pivot(ui.sprite, 36, anchor_y);
+    lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(sprite_y) - anchor_y);
     lv_image_set_scale(ui.sprite, (uint32_t)lroundf(v.scale * 256));
     lv_obj_set_pos(ui.cat_hit, limit((int)v.x - 32, 0, 326), limit((int)v.y - 64, 0, 382));
     int rx = v.sleeping ? 22 : 12;

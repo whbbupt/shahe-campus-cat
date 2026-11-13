@@ -218,7 +218,8 @@ static bool play(const uint8_t *data, size_t size)
     if (samples <= 0) return false;
     unsigned maximum = 0;
     /* Apply gain only to decoded replies, independently of game and microphone audio. */
-    int32_t gain = 1 << atomic_load(&output_volume);
+    static const int32_t gains[] = {[PV_VOLUME_MUTE] = 0, [PV_VOLUME_MEDIUM] = 2, [PV_VOLUME_HIGH] = 4};
+    int32_t gain = gains[atomic_load(&output_volume)];
     for (int i = 0; i < samples; i++)
     {
         int value = (int32_t)playback[i] * gain / 4;

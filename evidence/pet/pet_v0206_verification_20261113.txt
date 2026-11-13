@@ -1,0 +1,13 @@
+2026-11-13 / v0.20.6 / TC-313、TC-314
+
+Ubuntu 24.04 原生 GCC 世界模型全通过，含八方向、起步、改走、停步和校园道路。
+LVGL 9.4 实际指针 --teaching 通过，包含教学实验综合楼旧触区内 (1200, 735) 的路面点击、智慧教学楼旁道路、紧凑楼牌进入及出门、图书馆读书时呈现正脸坐椅素材且活动后撤下。
+--voice、--meal、--badminton 通过。--voice 模拟后端，在播放状态下以 KEY2 切换高档 → 0/3 → 中档，音量条保持 2 秒。生产 PCM 增益代码使用正负满幅和零样本独立验证，零档全零、中档一半、高档原幅度。初次独立编译遗漏 stdint.h，补头文件后通过。
+初始 42 px 楼牌未通过既有 44 px 触区断言，改成 44 px 后专项通过。完整 LVGL 套件在宿舍 until_action 的动作断言失败，基线 1d3ce8f 同一行、同一张最后截图后复现。没有据此标记全量通过。
+生成并检查了图书馆读书、教学楼牌、智慧教学楼牌、语音 0/3 的生产 UI 主机截图。坐姿使用内置 ImageGen，提示词见 assets/pet-world/library-reading-prompt.txt。
+
+python scripts/build_firmware.py 退出 0。main.bin 6,265,332 字节，静态 RAM 273,292 字节。
+main.bin SHA-256 5A08B74ACAF1858BF7F002E4D5A425D44CF5FACAFE14CBCB1F2F970FC8DC01E1。
+ZIP SHA-256 4D7E207DCC3BC8726BDF571DD2B8ED1BEE18E6EF6008D70C77FD23D5492D3E79。
+三镜像地址、下载配置、4 KiB 擦写范围及 ZIP CRC/逐项内容通过。主程序擦除终点（不含）0x1261A000，早于 BLE 与存档区。v0.20.5 下载包仍可用。
+板端步态、触摸、坐姿与实际播报静音待实测。

@@ -30,6 +30,7 @@ extern const lv_image_dsc_t pw_frame_16;
 extern const lv_image_dsc_t pw_frame_17;
 extern const lv_image_dsc_t pw_frame_18;
 extern const lv_image_dsc_t *const pw_frames[19];
+extern const lv_image_dsc_t pw_library_reading;
 extern const lv_image_dsc_t pw_icon_0;
 extern const lv_image_dsc_t pw_icon_1;
 extern const lv_image_dsc_t pw_icon_2;
