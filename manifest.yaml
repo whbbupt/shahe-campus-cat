@@ -1715,6 +1715,19 @@ test_results:
     evidence_path: evidence/pet/pet_v0206_verification_20261113.txt
     pass: null
 
+  - test_id: TC-315
+    description: 实验楼接线关提示
+    expected: 明确说明同行不能相接并显示操作示例，原配对规则可通关
+    actual: LVGL 验证两条提示、错接灯泡端点及正常通关，板端待验
+    evidence_path: evidence/pet/pet_v0207_verification_20261113.txt
+    pass: null
+  - test_id: TC-316
+    description: 宿舍外卖取餐与坐椅用餐
+    expected: 经过门边取餐点再回书桌，坐椅用餐并只结算一次
+    actual: 模型验证路径、取消重试及结算，生产 LVGL 坐椅遮挡检查通过，板端待验
+    evidence_path: evidence/pet/pet_v0207_verification_20261113.txt
+    pass: null
+
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"

@@ -662,6 +662,10 @@ static void dorm_takeout(void)
     press("取餐");
     until_action(PW_TAKEOUT);
     assert(world.food == food && world.order == PW_ORDER_READY);
+    step(550);
+    lv_obj_t *seat = image_with(lv_screen_active(), &shahe_seat_0);
+    assert(seat && shown(seat) && !label_with(lv_screen_active(), "取餐"));
+    screenshot("shahe-takeout-at-desk.ppm");
     step((uint32_t)(world.action_end - world.now));
     assert(world.food == food + 12 && world.order == PW_ORDER_NONE && world.settlements[PW_TAKEOUT] == 1);
     assert(label_with(lv_screen_active(), "饱食 +12 · 心情 +1"));
@@ -1067,8 +1071,12 @@ static void finish_teaching_game(unsigned building)
     }
     else
     {
-        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "依次点两个端点"));
+        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "同一行的端点不能相接"));
+        assert(label_with(lv_screen_active(), "先点电源 + 再点开关入"));
         screenshot("circuit-game.ppm");
+        press("灯泡入");
+        press("灯泡出");
+        assert(game->mistakes == 1 && game->score == 0);
         static const char *const wiring[] = {"电源 +", "开关入", "开关出", "灯泡入", "灯泡出", "电源 -"};
         for (unsigned i = 0; i < sizeof(wiring) / sizeof(wiring[0]); i++) press(wiring[i]);
         assert(label_with(lv_screen_active(), "灯亮了，通电成功"));
@@ -1331,6 +1339,12 @@ int main(int argc, char **argv)
     if (argc > 1 && !strcmp(argv[1], "--meal"))
     {
         scroll_menus_and_curfew();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--takeout"))
+    {
+        reset();
+        dorm_takeout();
         return 0;
     }
     bool measure=argc>1 && !strcmp(argv[1],"--measure");

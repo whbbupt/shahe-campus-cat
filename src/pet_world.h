@@ -139,6 +139,7 @@ typedef struct
 {
     float x, y;
 } pw_point_t;
+enum { PW_WALK_TO_TAKEOUT_BAG = 5 };
 typedef struct
 {
     pw_scene_t scene;

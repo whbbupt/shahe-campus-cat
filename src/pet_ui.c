@@ -1590,7 +1590,7 @@ static void paint_teaching_game(const pg_game_t *g)
     visible(ui.challenge_track, false);
     visible(ui.projection_pattern, projection);
     set_label(ui.memory_title, projection ? "投影抢答" : circuit ? "修电路" : "互动屏校准");
-    const char *instruction = projection ? "按规律选下一个" : circuit ? "依次点两个端点" : "本格和上下左右一起翻转";
+    const char *instruction = projection ? "按规律选下一个" : circuit ? "同一行的端点不能相接" : "本格和上下左右一起翻转";
     set_label(ui.memory_note, won ? (circuit ? "灯亮了，通电成功" : "挑战完成") :
                               lost ? "差一点，下次再试" : instruction);
 
@@ -1670,7 +1670,7 @@ static void paint_teaching_game(const pg_game_t *g)
     }
     if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
     else if (lost) set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
-    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "电源 > 开关 > 灯泡 > 电源" : "让九格全部点亮");
+    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "先点电源 + 再点开关入" : "让九格全部点亮");
 }
 
 static void paint_challenge(void)
@@ -1818,7 +1818,9 @@ static void paint(void)
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
     visible(ui.location, ui.world.phase != PW_MINIGAME);
     visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
-                    ui.world.action != PW_TAKEOUT);
+                    ui.world.action != PW_TAKEOUT &&
+                    !(ui.world.phase == PW_WALK && ui.world.target == PW_TAKEOUT &&
+                      ui.world.purpose != PW_WALK_TO_TAKEOUT_BAG));
     visible(ui.door, !campus);
     if (!campus)
         set_label(ui.location_text, room_title(&ui.world));

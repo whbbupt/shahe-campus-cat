@@ -31,6 +31,7 @@ static const uint8_t campus_edges[][2] = {
 };
 enum { ROOM_CORNERS = 8, ROOM_START = 24, ROOM_GOAL = 25, ROAD_GOAL = PW_PATH_CAPACITY - 1 };
 enum { WALK_SPEED = 70, STRIDE_LENGTH = 22 };
+enum { TAKEOUT_BAG_NODE = 1, DORM_DESK_NODE = 7 };
 
 typedef struct
 {
@@ -532,6 +533,8 @@ static bool shortest(const pet_world_t *w, int start, int goal, int8_t *route, u
     *cost = dist[goal];
     return true;
 }
+static bool move(pet_world_t *w, int goal, unsigned purpose);
+
 static void arrived(pet_world_t *w)
 {
     unsigned purpose = w->purpose;
@@ -539,7 +542,16 @@ static void arrived(pet_world_t *w)
         wish_done(w, PJ_EXPLORE);
     w->purpose = 0;
     w->edge_a = w->edge_b = -1;
-    if (purpose == 4)
+    if (purpose == PW_WALK_TO_TAKEOUT_BAG)
+    {
+        if (!move(w, DORM_DESK_NODE, 1))
+        {
+            w->target = PW_NONE;
+            idle(w);
+            reject(w, PW_INVALID);
+        }
+    }
+    else if (purpose == 4)
     {
         w->phase = PW_SEATED; w->action = PW_EAT; w->target = PW_NONE;
         w->action_start = w->now; w->gain_until = 0;
@@ -1028,7 +1040,8 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         say(w, MSG_ORDERED);
         return PW_OK;
     }
-    if (w->phase == PW_WALK && w->purpose == 1 && w->target == cmd)
+    if (w->phase == PW_WALK && (w->purpose == 1 || w->purpose == PW_WALK_TO_TAKEOUT_BAG) &&
+        w->target == cmd)
         return PW_OK;
     w->destination = -1;
     if (cmd == PW_TOUCH)
@@ -1040,7 +1053,8 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
     }
     if (cmd != PW_MEMORY) w->challenge.kind = PG_NONE;
     w->target = cmd;
-    if (!move(w, cmd == PW_CODE ? 7 : (cmd == PW_TAKEOUT ? 1 : 6), 1))
+    int goal = cmd == PW_TAKEOUT ? TAKEOUT_BAG_NODE : (cmd == PW_CODE ? DORM_DESK_NODE : 6);
+    if (!move(w, goal, cmd == PW_TAKEOUT ? PW_WALK_TO_TAKEOUT_BAG : 1))
         return reject(w, PW_INVALID);
     say(w, MSG_WALK);
     return PW_OK;
@@ -1275,11 +1289,6 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
         v->frame = (uint8_t)(v->facing * 2 + w->now / 115 % 2);
         return;
     }
-    if (w->phase == PW_ACTION && w->action == PW_TAKEOUT)
-    {
-        v->frame = (uint8_t)(16 + w->now / 210 % 2);
-        return;
-    }
     if (w->phase == PW_ACTION && w->action == PW_STUDY && room_layout(w) >= LIBRARY_LAYOUT)
     {
         v->facing = pw_in_library(w) ? 0 : 4;
@@ -1345,7 +1354,8 @@ void pw_visual(const pet_world_t *w, pw_visual_t *v)
     }
     v->frame = v->facing * 2;
     if (settled)
-        v->frame = v->sleeping ? 18 : (uint8_t)(16 + (w->action == PW_CODE && w->now / 210 % 2 ? 1 : 0));
+        v->frame = v->sleeping ? 18 : (uint8_t)(16 +
+            ((w->action == PW_CODE || w->action == PW_TAKEOUT) && w->now / 210 % 2));
 }
 const char *pw_state_text(const pet_world_t *w)
 {
@@ -1377,7 +1387,11 @@ const char *pw_state_text(const pet_world_t *w)
     if (w->phase == PW_TRANSITION)
         return "切换场景";
     if (w->phase == PW_WALK)
+    {
+        if (w->target == PW_TAKEOUT)
+            return w->purpose == PW_WALK_TO_TAKEOUT_BAG ? "去门口取餐" : "回到书桌用餐";
         return w->purpose == 2 ? "前往门口" : (w->purpose == 1 ? "走向家具" : "散步中");
+    }
     if (w->phase == PW_ACTION)
     {
         static const char *names[] = {"闲逛中", "吃饭中", "摸摸", "准备睡觉", "上课中", "敲代码", "起床中", "锻炼中", "外卖用餐中"};
