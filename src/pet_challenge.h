@@ -23,6 +23,6 @@ void pg_press(pg_game_t *game, unsigned choice);
 uint32_t pg_remaining(const pg_game_t *game);
 bool pg_window(const pg_game_t *game);
 unsigned pg_projection(const pg_game_t *game, uint8_t pattern[PG_PROJECTION_STEPS], uint8_t options[3]);
-extern const uint8_t pg_circuit_links[PG_CIRCUIT_LINKS][2];
+unsigned pg_circuit_color(const pg_game_t *game, unsigned port);
 bool pg_selftest(void (*report)(const char *, bool));
 #endif

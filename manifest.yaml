@@ -1728,6 +1728,13 @@ test_results:
     evidence_path: evidence/pet/pet_v0207_verification_20261113.txt
     pass: null
 
+  - test_id: TC-317
+    description: 教学小游戏图形操作
+    expected: 接线端子同色同形配对并画线，其他三关可用图形按钮完成
+    actual: 模型多种种子、LVGL 实点通关及截图检查通过，板端待验
+    evidence_path: evidence/pet/pet_v0208_verification_20261113.txt
+    pass: null
+
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"

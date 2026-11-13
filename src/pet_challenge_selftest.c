@@ -57,9 +57,23 @@ static bool circuit_challenge(void)
     pg_press(&game, 0);
     pg_press(&game, 1);
     if (game.mistakes != 1 || game.links) return false;
-    const unsigned ports[] = {2, 0, 1, 5, 4, 3};
-    for (unsigned i = 0; i < sizeof(ports) / sizeof(ports[0]); i++) pg_press(&game, ports[i]);
-    if (game.phase != PG_WON || game.links != 7 || game.score != 3) return false;
+    unsigned arrangements = 0;
+    for (unsigned seed = 0; seed < 16; seed++)
+    {
+        pg_start(&game, PG_CIRCUIT, seed);
+        unsigned mask = 0;
+        for (unsigned port = 3; port < 6; port++)
+        {
+            unsigned match = pg_circuit_color(&game, port);
+            if (match >= 3 || (mask & (1U << match))) return false;
+            mask |= 1U << match;
+            pg_press(&game, port);
+            pg_press(&game, match);
+        }
+        if (game.phase != PG_WON || game.links != 7 || game.score != 3) return false;
+        arrangements |= 1U << (game.cards[0] * 3 + game.cards[1]);
+    }
+    if (!(arrangements & (arrangements - 1))) return false;
     pg_start(&game, PG_CIRCUIT, 0);
     for (unsigned i = 0; i < 3; i++)
     {

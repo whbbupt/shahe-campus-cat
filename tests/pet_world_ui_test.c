@@ -484,16 +484,15 @@ static void check_campus_tiles(void)
 }
 static void memory_demo(void)
 {
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     press("记忆题");
     for (unsigned i = 0; i < 1000 && world.phase == PW_WALK; i++) step(20);
     assert(world.phase == PW_MINIGAME && world.memory.phase == PM_SHOW);
     screenshot("shahe-memory-show.ppm");
-    press("花");
+    tap(119, 222);
     assert(world.memory.phase == PM_SHOW && world.memory.input_at == 0);
     step(pm_remaining(&world.memory));
     unsigned wrong = (world.memory.sequence[0] + 1) % 4;
-    press(symbols[wrong]);
+    tap(119 + (int)(wrong % 2) * 152, 222 + (int)(wrong / 2) * 83);
     assert(world.memory.phase == PM_LOST && world.memory_wins == 0);
     assert(label_with(lv_screen_active(), "参与奖励 +0 金币"));
     screenshot("shahe-memory-retry.ppm");
@@ -508,7 +507,10 @@ static void memory_demo(void)
         screenshot("shahe-memory-input.ppm");
         unsigned length = world.memory.length;
         for (unsigned i = 0; i < length; i++)
-            press(symbols[world.memory.sequence[i]]);
+        {
+            unsigned choice = world.memory.sequence[i];
+            tap(119 + (int)(choice % 2) * 152, 222 + (int)(choice / 2) * 83);
+        }
     }
     assert(world.memory.phase == PM_WON && world.memory_wins == 1);
     screenshot("shahe-memory-won.ppm");
@@ -1071,14 +1073,17 @@ static void finish_teaching_game(unsigned building)
     }
     else
     {
-        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "同一行的端点不能相接"));
-        assert(label_with(lv_screen_active(), "先点电源 + 再点开关入"));
+        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "点两个同色图案"));
         screenshot("circuit-game.ppm");
-        press("灯泡入");
-        press("灯泡出");
+        tap(84, 205);
+        tap(84, 258);
         assert(game->mistakes == 1 && game->score == 0);
-        static const char *const wiring[] = {"电源 +", "开关入", "开关出", "灯泡入", "灯泡出", "电源 -"};
-        for (unsigned i = 0; i < sizeof(wiring) / sizeof(wiring[0]); i++) press(wiring[i]);
+        for (unsigned right = 0; right < PG_CIRCUIT_LINKS; right++)
+        {
+            unsigned match = pg_circuit_color(game, right + PG_CIRCUIT_LINKS);
+            tap(84, 205 + (int)match * 53);
+            tap(306, 205 + (int)right * 53);
+        }
         assert(label_with(lv_screen_active(), "灯亮了，通电成功"));
         screenshot("circuit-won.ppm");
     }

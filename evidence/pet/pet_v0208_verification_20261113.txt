@@ -1,0 +1,8 @@
+2026-11-13 / v0.20.8 / TC-317
+
+原生 GCC 世界模型全通过。接线 16 个种子检查各颜色恰有一对、排列变化、反向接通、三次接错及超时。
+生产 LVGL --teaching 验证实验楼错接后以同色端子通关、投影抢答、九宫格及三轮课堂记忆的图形触摸。检查实际渲染的三色连线、投影图案、实心和空心灯、记忆高亮。--voice、--meal、--badminton 通过。
+python scripts/build_firmware.py 退出 0。main.bin 6,265,988 字节。
+main.bin SHA-256 206CA72673D4ED15088DDCC5D187F8C66B6CD19048DE7D9377AD5EC565513B0C。
+ZIP SHA-256 C3733555FC12613397F35D13FB1E2EA3F6732C7EFD5C12131BA72CCDAA11B692。
+三镜像地址和 4 KiB 擦写范围、ZIP CRC 与逐文件内容通过。主程序擦除终点不含 0x1261A000，早于 BLE 与小猫存档区。新版未烧录。

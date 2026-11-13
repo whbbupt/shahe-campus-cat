@@ -86,9 +86,11 @@ static struct
     lv_obj_t *menu_name[PE_MENU_COUNT], *menu_image[PE_MENU_COUNT];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit;
+    lv_obj_t *memory_icon[4], *projection_icon[PG_PROJECTION_STEPS];
     lv_obj_t *challenge_track, *challenge_cursor;
-    lv_obj_t *teaching_controls, *projection_pattern, *puzzle_tile[PG_GRID_CELLS], *puzzle_label[PG_GRID_CELLS];
+    lv_obj_t *teaching_controls, *projection_pattern, *puzzle_tile[PG_GRID_CELLS], *puzzle_icon[PG_GRID_CELLS];
     lv_obj_t *circuit_wire[PG_CIRCUIT_LINKS], *circuit_trace;
+    lv_point_precise_t circuit_points[PG_CIRCUIT_LINKS][2];
     lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
     lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
@@ -195,6 +197,27 @@ static void visible(lv_obj_t *o, bool show)
     else
         lv_obj_add_flag(o, LV_OBJ_FLAG_HIDDEN);
 }
+
+static void game_icon(lv_obj_t *icon, unsigned shape, uint32_t color)
+{
+    lv_obj_set_style_radius(icon, shape == 0 || shape == 3 ? LV_RADIUS_CIRCLE : 3, 0);
+    lv_obj_set_style_transform_rotation(icon, shape == 2 ? 450 : 0, 0);
+    lv_obj_set_style_bg_color(icon, lv_color_hex(color), 0);
+    lv_obj_set_style_bg_opa(icon, shape == 3 ? LV_OPA_TRANSP : LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(icon, shape == 3 ? 3 : 0, 0);
+    lv_obj_set_style_border_color(icon, lv_color_hex(color), 0);
+}
+
+static lv_obj_t *new_game_icon(lv_obj_t *parent, int size)
+{
+    lv_obj_t *icon = box(parent, 0, 0, size, size, INK, 3);
+    lv_obj_set_style_transform_pivot_x(icon, size / 2, 0);
+    lv_obj_set_style_transform_pivot_y(icon, size / 2, 0);
+    lv_obj_center(icon);
+    return icon;
+}
+
+static const uint32_t game_colors[] = {0xBC5149, 0x3D65A2, 0x287A6A, 0x956629};
 enum { BD_OFF, BD_SERVE, BD_INCOMING, BD_RETURN, BD_MISS, BD_DONE };
 
 static bool badminton_can_hit(void)
@@ -1110,27 +1133,29 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_center(memory_x);
     ui.memory_note = text(ui.memory_dialog, "", 18, 50, &pet_font_20, INK);
     ui.memory_round = text(ui.memory_dialog, "", 18, 80, &pet_font_16, BLUE);
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     for (unsigned i = 0; i < 4; i++)
     {
         ui.memory_tile[i] = button(ui.memory_dialog, 20 + (i % 2) * 152,
                                    111 + (i / 2) * 83, 140, 72, PW_MEMORY_0 + i, 0xE7E4CF, 13);
-        ui.memory_symbol[i] = text(ui.memory_tile[i], symbols[i], 0, 0, &pet_font_20, INK);
+        ui.memory_symbol[i] = text(ui.memory_tile[i], "", 0, 0, &pet_font_20, INK);
         lv_obj_center(ui.memory_symbol[i]);
+        ui.memory_icon[i] = new_game_icon(ui.memory_tile[i], 26);
     }
     ui.memory_footer = text(ui.memory_dialog, "", 20, 281, &pet_font_16, BLUE);
     ui.teaching_controls = box(ui.memory_dialog, 0, 0, 332, 312, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.teaching_controls, LV_OPA_TRANSP, 0);
-    ui.projection_pattern = text(ui.teaching_controls, "", 24, 119, &pet_font_20, INK);
-    static const lv_point_precise_t wire_points[PG_CIRCUIT_LINKS][2] = {
-        {{126, 130}, {126, 183}}, {{206, 183}, {126, 236}}, {{206, 236}, {206, 130}}
-    };
+    ui.projection_pattern = box(ui.teaching_controls, 20, 111, 292, 40, 0xEAE6D6, 8);
+    for (unsigned i = 0; i < PG_PROJECTION_STEPS; i++)
+    {
+        ui.projection_icon[i] = new_game_icon(ui.projection_pattern, 18);
+        lv_obj_align(ui.projection_icon[i], LV_ALIGN_LEFT_MID, 15 + (int)i * 40, 0);
+    }
+    text(ui.projection_pattern, "?", 256, 6, &pet_font_20, INK);
     for (unsigned i = 0; i < PG_CIRCUIT_LINKS; i++)
     {
         ui.circuit_wire[i] = lv_line_create(ui.teaching_controls);
-        lv_line_set_points(ui.circuit_wire[i], wire_points[i], 2);
-        lv_obj_set_style_line_width(ui.circuit_wire[i], 3, 0);
-        lv_obj_set_style_line_color(ui.circuit_wire[i], lv_color_hex(0x367467), 0);
+        lv_obj_set_style_line_width(ui.circuit_wire[i], 4, 0);
+        lv_obj_set_style_line_color(ui.circuit_wire[i], lv_color_hex(game_colors[i]), 0);
     }
     static const lv_point_precise_t trace[] = {{117, 271}, {139, 271}, {147, 265},
         {157, 274}, {167, 265}, {177, 274}, {185, 271}, {213, 271}};
@@ -1141,8 +1166,7 @@ static void build_panel(lv_obj_t *screen)
     for (unsigned i = 0; i < PG_GRID_CELLS; i++)
     {
         ui.puzzle_tile[i] = button(ui.teaching_controls, 0, 0, 92, 44, PW_GRID_FIRST + (int)i, 0xDCEAF3, 8);
-        ui.puzzle_label[i] = text(ui.puzzle_tile[i], "", 0, 0, &pet_font_16, INK);
-        lv_obj_center(ui.puzzle_label[i]);
+        ui.puzzle_icon[i] = new_game_icon(ui.puzzle_tile[i], 20);
     }
     visible(ui.teaching_controls, false);
     ui.challenge_track = box(ui.memory_dialog, 20, 126, 292, 20, 0xDCEAF3, 10);
@@ -1546,13 +1570,14 @@ static void paint_memory(void)
     set_label(ui.memory_title, "课堂记忆题");
     visible(ui.teaching_controls, false);
     visible(ui.challenge_track, false);
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     for (unsigned i = 0; i < 4; i++)
     {
         visible(ui.memory_tile[i], true);
         lv_obj_set_pos(ui.memory_tile[i], 20 + (i % 2) * 152, 111 + (i / 2) * 83);
         lv_obj_set_size(ui.memory_tile[i], 140, 72);
-        set_label(ui.memory_symbol[i], symbols[i]); lv_obj_center(ui.memory_symbol[i]);
+        visible(ui.memory_symbol[i], false);
+        visible(ui.memory_icon[i], true);
+        game_icon(ui.memory_icon[i], i, game_colors[i]);
     }
     const pm_game_t *game = &ui.world.memory;
     const char *note = game->phase == PM_SHOW ? "先记住亮起的顺序"
@@ -1590,13 +1615,12 @@ static void paint_teaching_game(const pg_game_t *g)
     visible(ui.challenge_track, false);
     visible(ui.projection_pattern, projection);
     set_label(ui.memory_title, projection ? "投影抢答" : circuit ? "修电路" : "互动屏校准");
-    const char *instruction = projection ? "按规律选下一个" : circuit ? "同一行的端点不能相接" : "本格和上下左右一起翻转";
+    const char *instruction = projection ? "按规律选下一个" : circuit ? "点两个同色图案" : "本格和上下左右一起翻转";
     set_label(ui.memory_note, won ? (circuit ? "灯亮了，通电成功" : "挑战完成") :
                               lost ? "差一点，下次再试" : instruction);
 
     if (projection)
     {
-        static const char *const symbols[] = {"花", "叶", "月", "星"};
         uint8_t pattern[PG_PROJECTION_STEPS], options[3];
         pg_projection(g, pattern, options);
         if (active)
@@ -1604,15 +1628,15 @@ static void paint_teaching_game(const pg_game_t *g)
         else
             set_label_fmt(ui.memory_round, "答对 %u / 3", g->score);
         visible(ui.projection_pattern, active);
-        set_label_fmt(ui.projection_pattern, "%s  %s  %s  %s  %s  %s  ?",
-                      symbols[pattern[0]], symbols[pattern[1]], symbols[pattern[2]],
-                      symbols[pattern[3]], symbols[pattern[4]], symbols[pattern[5]]);
+        for (unsigned i = 0; i < PG_PROJECTION_STEPS; i++)
+            game_icon(ui.projection_icon[i], pattern[i], game_colors[pattern[i]]);
         for (unsigned i = 0; i < 3; i++)
         {
             lv_obj_set_pos(ui.memory_tile[i], 20 + (int)i * 100, 166);
             lv_obj_set_size(ui.memory_tile[i], 92, 74);
-            set_label(ui.memory_symbol[i], symbols[options[i]]);
-            lv_obj_center(ui.memory_symbol[i]);
+            visible(ui.memory_symbol[i], false);
+            visible(ui.memory_icon[i], true);
+            game_icon(ui.memory_icon[i], options[i], game_colors[options[i]]);
             lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(0xF3DFB3), 0);
             lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
         }
@@ -1631,16 +1655,20 @@ static void paint_teaching_game(const pg_game_t *g)
     for (unsigned i = 0; i < 4; i++)
         visible(ui.memory_tile[i], projection && active && i < 3);
 
-    unsigned connected = 0;
     for (unsigned i = 0; i < PG_CIRCUIT_LINKS; i++)
     {
         bool show = circuit && (g->links & (1U << i));
         visible(ui.circuit_wire[i], show);
         if (show)
-            connected |= (1U << pg_circuit_links[i][0]) | (1U << pg_circuit_links[i][1]);
+        {
+            unsigned right = 0;
+            while (pg_circuit_color(g, right + PG_CIRCUIT_LINKS) != i) right++;
+            ui.circuit_points[i][0] = (lv_point_precise_t){90, 130 + (int)i * 53};
+            ui.circuit_points[i][1] = (lv_point_precise_t){242, 130 + (int)right * 53};
+            lv_line_set_points(ui.circuit_wire[i], ui.circuit_points[i], 2);
+        }
     }
     visible(ui.circuit_trace, circuit && won);
-    static const char *const ports[] = {"电源 +", "电源 -", "开关入", "开关出", "灯泡入", "灯泡出"};
     for (unsigned i = 0; i < PG_GRID_CELLS; i++)
     {
         visible(ui.puzzle_tile[i], !projection && (!circuit || i < PG_CIRCUIT_PORTS));
@@ -1649,20 +1677,20 @@ static void paint_teaching_game(const pg_game_t *g)
         uint32_t color;
         if (circuit)
         {
-            lv_obj_set_pos(tile, i % 2 ? 206 : 20, 108 + (int)(i / 2) * 53);
-            lv_obj_set_size(tile, 106, 44);
-            set_label(ui.puzzle_label[i], ports[i]);
-            color = g->selected == i || (won && i >= 4) ? 0xF4D382 :
-                    (connected & (1U << i)) ? 0xC2DFC9 : 0xEBECE2;
-            lv_obj_set_style_border_width(tile, g->selected == i ? 2 : 0, 0);
-            lv_obj_set_style_border_color(tile, lv_color_hex(0x745720), 0);
+            unsigned match = pg_circuit_color(g, i);
+            lv_obj_set_pos(tile, i < PG_CIRCUIT_LINKS ? 20 : 242, 108 + (int)(i % PG_CIRCUIT_LINKS) * 53);
+            lv_obj_set_size(tile, 70, 44);
+            game_icon(ui.puzzle_icon[i], match, game_colors[match]);
+            color = g->selected == i ? 0xF4D382 : 0xEBECE2;
+            lv_obj_set_style_border_width(tile, g->selected == i || (g->links & (1U << match)) ? 2 : 0, 0);
+            lv_obj_set_style_border_color(tile, lv_color_hex(game_colors[match]), 0);
         }
         else
         {
             bool on = (g->grid & (1U << i)) != 0;
             lv_obj_set_pos(tile, 20 + (int)(i % 3) * 100, 106 + (int)(i / 3) * 54);
             lv_obj_set_size(tile, 92, 48);
-            set_label(ui.puzzle_label[i], on ? "亮" : "暗");
+            game_icon(ui.puzzle_icon[i], on ? 0 : 3, on ? 0x287A6A : 0x75818A);
             color = on ? 0x9EDDED : 0xDBE3EC;
             lv_obj_set_style_border_width(tile, 0, 0);
         }
@@ -1670,7 +1698,7 @@ static void paint_teaching_game(const pg_game_t *g)
     }
     if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
     else if (lost) set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
-    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "先点电源 + 再点开关入" : "让九格全部点亮");
+    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "接通三个图案" : "让九格全部点亮");
 }
 
 static void paint_challenge(void)
@@ -1701,6 +1729,8 @@ static void paint_challenge(void)
     for (unsigned i = 0; i < 4; i++)
     {
         visible(ui.memory_tile[i], !rhythm || i == 0);
+        visible(ui.memory_symbol[i], true);
+        visible(ui.memory_icon[i], false);
         lv_obj_set_pos(ui.memory_tile[i], rhythm ? 20 : 20 + (i % 2) * 152, rhythm ? 165 : 111 + (i / 2) * 83);
         lv_obj_set_size(ui.memory_tile[i], rhythm ? 292 : 140, rhythm ? 88 : 72);
         set_label(ui.memory_symbol[i], rhythm ? g->pressed ? "这一拍已点" : "跟上节拍" : g->kind == PG_MEAL ? food[i]

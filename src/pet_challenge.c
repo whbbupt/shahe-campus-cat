@@ -17,14 +17,9 @@ static uint16_t grid_flip(unsigned cell)
 }
 
 enum { GRID_LIT = (1U << PG_GRID_CELLS) - 1 };
-const uint8_t pg_circuit_links[PG_CIRCUIT_LINKS][2] = {{0, 2}, {3, 4}, {5, 1}};
-
-static unsigned circuit_link(unsigned port)
+unsigned pg_circuit_color(const pg_game_t *g, unsigned port)
 {
-    for (unsigned i = 0; i < PG_CIRCUIT_LINKS; i++)
-        if (port == pg_circuit_links[i][0] || port == pg_circuit_links[i][1])
-            return i;
-    return PG_CIRCUIT_LINKS;
+    return port < PG_CIRCUIT_LINKS ? port : g->cards[port - PG_CIRCUIT_LINKS];
 }
 
 unsigned pg_projection(const pg_game_t *g, uint8_t pattern[PG_PROJECTION_STEPS], uint8_t options[3])
@@ -47,8 +42,9 @@ void pg_start(pg_game_t *g, pg_kind_t kind, uint32_t seed)
     if (kind < PG_MEAL || kind == PG_LIFE || kind > PG_CIRCUIT) return;
     g->selected = PG_CIRCUIT_PORTS;
     g->phase = kind == PG_FIND ? PG_SHOW : PG_INPUT;
-    for (unsigned i = 0; i < 4; i++) g->cards[i] = (uint8_t)i;
-    for (unsigned i = 3; i > 0; i--)
+    unsigned cards = kind == PG_CIRCUIT ? PG_CIRCUIT_LINKS : 4;
+    for (unsigned i = 0; i < cards; i++) g->cards[i] = (uint8_t)i;
+    for (unsigned i = cards - 1; i > 0; i--)
     {
         seed = seed * 1664525U + 1013904223U;
         unsigned j = (seed >> 16) % (i + 1);
@@ -106,7 +102,7 @@ void pg_advance(pg_game_t *g, uint32_t ms)
 static void press_circuit(pg_game_t *g, unsigned port)
 {
     if (port >= PG_CIRCUIT_PORTS) return;
-    unsigned link = circuit_link(port);
+    unsigned link = pg_circuit_color(g, port);
     if (g->links & (1U << link)) return;
     unsigned first = g->selected;
     g->selected = PG_CIRCUIT_PORTS;
@@ -116,7 +112,7 @@ static void press_circuit(pg_game_t *g, unsigned port)
         g->selected = (uint8_t)port;
         return;
     }
-    if (circuit_link(first) != link)
+    if (pg_circuit_color(g, first) != link)
     {
         if (++g->mistakes == 3) result(g, false);
         return;
