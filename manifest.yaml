@@ -156,6 +156,11 @@ practice_completion:
   formal_product_submission_ready: false
 
 physical_verification:
+  - item: "TC-304 / TC-310 v0.20.4 蓝牙热点与小智会话诊断"
+    required_action: "从真机串口核对 PAN、小智会话和录音帧，记录连接失败的阶段。"
+    executed_at: "2026-11-13（Asia/Shanghai，COM7）"
+    evidence_path: "evidence/pet/voice_cloud_v0204_20261113_serial.txt"
+    agent_conclusion: "PAN 和小智会话曾成功连接，随后发送两帧录音。后续两次云端建连报通用错误，具体环节待定位，完整播报未确认。"
   - item: "TC-304 v0.20.2 首次录音崩溃"
     required_action: "完成小智绑定并按住说话，观察松手是否进入等待和播报。"
     executed_at: "2026-11-12 20:12:35（用户串口监视器）"
