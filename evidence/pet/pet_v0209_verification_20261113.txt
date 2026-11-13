@@ -1,0 +1,10 @@
+2026-11-13 / v0.20.9 / TC-318、TC-319
+
+世界模型全通过。生产 LVGL --sports 验证左右交替、重复点击去重、超时和场景退出。--badminton 验证提前点击、直接点亮区得分、漏球、关闭和场景切换。--life-games 验证三个房间实际入口、按图通关、关闭、冷却和一次奖励。--teaching、--voice、--meal、--takeout 通过。
+首轮发现找物图标绘制位置不对，修改后截图确认四物件可见。首次将恢复入口测试和旧生活角落一并调用时，三关通关后在旧生活角落的 PW_ACTION 断言失败。原断言保留，后续以 --life-games 专项验证这三关，未声称全量通过。
+使用内置 ImageGen 生成绘本运动场与小猫运动姿势。素材和提示词在 assets/pet-shahe/sports-courts-*、sports-poses-*。三张 390×300 背景以 RGB565/LZ4 压缩，解压逐字节一致。检查了八张真实 LVGL 主机画面。
+
+python scripts/build_firmware.py 退出 0。main.bin 6,877,604 字节。
+main.bin SHA-256 5E1006790BB77B0B95A2B7ABC17DB5B8E92D804A4E9D136766258EDF00CA1A68。
+ZIP SHA-256 3A1B1122CEC929DEC0381D55622CB871C76271098F3AD7C3F0206E7CCCC7B929。
+三镜像地址、4 KiB 擦写范围、配置、ZIP CRC 和逐文件内容通过。主程序擦除终点不含 0x126B0000，早于 BLE 和小猫存档区。未代烧录。

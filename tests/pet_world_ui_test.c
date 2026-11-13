@@ -772,12 +772,10 @@ static void real_clock_previews(void)
     reset();
     puts("[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS");
 }
-static void new_life_and_challenges(void)
+static void new_life_and_challenges(bool games_only)
 {
     const pw_scene_t rooms[] = {PW_CANTEEN, PW_GYM, PW_DORM};
     const char *entries[] = {"配餐", "节奏", "找物"};
-    const char *food[] = {"米饭", "青菜", "鸡蛋", "热汤"};
-    const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     for (unsigned k = 0; k < 3; k++)
     {
         reset(); world.scene = rooms[k];
@@ -795,7 +793,7 @@ static void new_life_and_challenges(void)
                 unsigned at = world.challenge.elapsed % 3000;
                 assert(at < 1500); step(1500 - at);
                 if (n == 0) screenshot("shahe-rhythm-green.ppm");
-                press("跟上节拍");
+                tap(190, 280);
                 assert(world.challenge.score == n + 1);
                 step(3000 - world.challenge.elapsed % 3000);
             }
@@ -805,7 +803,7 @@ static void new_life_and_challenges(void)
             unsigned pick = world.challenge.targets[n];
             if (k == 2) for (unsigned j = 0; j < 4; j++)
                 if (world.challenge.cards[j] == world.challenge.targets[n]) pick = j;
-            press(k == 0 ? food[pick] : slots[pick]);
+            tap(119 + (int)(pick % 2) * 152, 222 + (int)(pick / 2) * 83);
         }
         assert(world.challenge.phase == PG_WON && world.memory_wins == 1 && world.mood == 63);
         assert(label_with(lv_screen_active(), "金币 +10 · 心情 +3"));
@@ -824,6 +822,7 @@ static void new_life_and_challenges(void)
         assert(world.phase == PW_MINIGAME);
         press("×"); assert(world.phase == PW_IDLE && world.memory_wins == 1);
     }
+    if (games_only) return;
     for (pw_scene_t scene = PW_DORM; scene <= PW_GYM; scene++)
     {
         if (scene == PW_CAMPUS) continue;
@@ -1213,9 +1212,9 @@ static void badminton_game(void)
     assert(label_with(lv_screen_active(), "早了，再等一下"));
     assert(label_with(lv_screen_active(), "你  0  :  0  对手"));
     step(1050);
-    assert(label_with(lv_screen_active(), "现在挥拍！"));
+    assert(label_with(lv_screen_active(), "现在挥拍！点亮区"));
     screenshot("badminton-hit-window.ppm");
-    press("挥拍");
+    tap(94, 200);
     assert(label_with(lv_screen_active(), "打回去了！"));
     assert(label_with(lv_screen_active(), "你  1  :  0  对手"));
     press("挥拍");
@@ -1225,7 +1224,7 @@ static void badminton_game(void)
     assert(label_with(lv_screen_active(), "你  1  :  1  对手"));
     press("×");
     assert(!label_with(lv_screen_active(), "挥拍") && world.scene == PW_CAMPUS);
-    assert(label_with(lv_screen_active(), "学生活动中心"));
+    assert(label_with(lv_screen_active(), "学生\n活动中心"));
 
     start_badminton();
     step(700);
@@ -1246,6 +1245,54 @@ static void badminton_game(void)
     puts("[host:badminton] scoring, return, miss, close, curfew and scene change PASS");
 }
 
+static void start_sport(const char *name)
+{
+    reset();
+    world.scene = PW_CAMPUS;
+    world.node = 7;
+    world.x = 220;
+    world.y = 690;
+    step(40);
+    press("运动场");
+    press(name);
+    assert(result == PW_OK);
+}
+
+static void sports_games(void)
+{
+    start_sport("跑步");
+    tap(270, 407);
+    assert(label_with(lv_screen_active(), "跑步  0 / 100"));
+    tap(105, 407);
+    tap(105, 407);
+    assert(label_with(lv_screen_active(), "跑步  7 / 100"));
+    screenshot("sports-run.ppm");
+    for (unsigned i = 1; i < 15; i++) tap(i % 2 ? 270 : 105, 407);
+    assert(label_with(lv_screen_active(), "跑步  100 / 100"));
+    press("×");
+
+    start_sport("引体向上");
+    step(510);
+    tap(190, 225);
+    tap(190, 225);
+    assert(label_with(lv_screen_active(), "引体向上  1 / 10"));
+    screenshot("sports-pull.ppm");
+    step(20000);
+    assert(label_with(lv_screen_active(), "时间到"));
+    press("×");
+
+    start_sport("仰卧起坐");
+    step(810);
+    tap(190, 269);
+    tap(190, 269);
+    assert(label_with(lv_screen_active(), "仰卧起坐  1 / 12"));
+    screenshot("sports-sit.ppm");
+    world.scene = PW_DORM;
+    step(40);
+    assert(!label_with(lv_screen_active(), "仰卧起坐  1 / 12"));
+    puts("[host:sports] alternate steps, timing, duplicate hits, timeout and scene exit PASS");
+}
+
 int main(int argc, char **argv)
 {
     lv_init();
@@ -1257,6 +1304,16 @@ int main(int argc, char **argv)
     lv_indev_t *input = lv_indev_create();
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
+    if (argc > 1 && !strcmp(argv[1], "--sports"))
+    {
+        sports_games();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--life-games"))
+    {
+        new_life_and_challenges(true);
+        return 0;
+    }
     if (argc > 1 && !strcmp(argv[1], "--badminton"))
     {
         badminton_game();
@@ -1415,7 +1472,7 @@ int main(int argc, char **argv)
     album_demo();
     campus_extended_route();
     real_clock_previews();
-    new_life_and_challenges();
+    new_life_and_challenges(false);
     daily_checkin_ui();
     scroll_menus_and_curfew();
     activity_workstudy_windows();

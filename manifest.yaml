@@ -1735,6 +1735,19 @@ test_results:
     evidence_path: evidence/pet/pet_v0208_verification_20261113.txt
     pass: null
 
+  - test_id: TC-318
+    description: 绘本运动场三关和羽毛球击球区
+    expected: 左右脚交替、两项运动按时机计数、可直接点击球区并正常退出
+    actual: 主机 LVGL 指针、截图和目标构建通过，板端待验
+    evidence_path: evidence/pet/pet_v0209_verification_20261113.txt
+    pass: null
+  - test_id: TC-319
+    description: 找物、配餐和健身节奏入口及图形
+    expected: 从实际房间入口进入，按图形完成，奖励一次结算
+    actual: 三关主机 LVGL 入口、通关、退出和冷却通过，板端待验
+    evidence_path: evidence/pet/pet_v0209_verification_20261113.txt
+    pass: null
+
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"

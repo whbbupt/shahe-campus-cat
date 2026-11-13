@@ -50,6 +50,7 @@ enum
     TAG_VOICE_ACTION,
     TAG_SPORTS_ACTION = 350,
     TAG_SPORTS_CLOSE,
+    TAG_SPORTS_RIGHT,
     TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
@@ -87,7 +88,8 @@ static struct
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit;
     lv_obj_t *memory_icon[4], *projection_icon[PG_PROJECTION_STEPS];
-    lv_obj_t *challenge_track, *challenge_cursor;
+    lv_obj_t *find_icon[4], *meal_icon[4];
+    lv_obj_t *challenge_track, *challenge_cursor, *rhythm_beats[6];
     lv_obj_t *teaching_controls, *projection_pattern, *puzzle_tile[PG_GRID_CELLS], *puzzle_icon[PG_GRID_CELLS];
     lv_obj_t *circuit_wire[PG_CIRCUIT_LINKS], *circuit_trace;
     lv_point_precise_t circuit_points[PG_CIRCUIT_LINKS][2];
@@ -95,10 +97,11 @@ static struct
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
     lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
     lv_obj_t *sports_dialog, *sports_game_dialog, *sports_run_layer, *sports_pull_layer, *sports_sit_layer;
-    lv_obj_t *sports_action, *sports_action_label, *sports_score_label, *sports_timer, *sports_prompt, *sports_marker, *sports_runner;
+    lv_obj_t *sports_action, *sports_right, *sports_score_label, *sports_timer, *sports_prompt, *sports_marker;
+    lv_obj_t *sports_cat[3];
     bool sports_active, sports_finished;
-    unsigned sports_mode, sports_score, sports_target, sports_distance;
-    uint32_t sports_until, sports_next;
+    unsigned sports_mode, sports_score, sports_target, sports_distance, sports_last_cycle;
+    uint64_t sports_started, sports_until, sports_feedback;
     lv_obj_t *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
     lv_obj_t *badminton_zone, *badminton_shuttle, *badminton_action, *badminton_racket, *badminton_rival_racket;
     lv_obj_t *library_shelf, *library_panel, *library_book_name[5], *library_book_button[5];
@@ -218,6 +221,41 @@ static lv_obj_t *new_game_icon(lv_obj_t *parent, int size)
 }
 
 static const uint32_t game_colors[] = {0xBC5149, 0x3D65A2, 0x287A6A, 0x956629};
+static const unsigned challenge_dishes[] = {0, 3, 4, 5};
+
+static lv_obj_t *find_object(lv_obj_t *parent, unsigned kind)
+{
+    lv_obj_t *icon = box(parent, 0, 0, 52, 52, PAPER, 0);
+    lv_obj_set_style_bg_opa(icon, LV_OPA_TRANSP, 0);
+    if (kind == 0)
+    {
+        box(icon, 12, 12, 24, 30, 0x397A93, 6);
+        box(icon, 33, 16, 10, 15, 0x397A93, 4);
+        box(icon, 35, 19, 5, 8, 0xDCEAF3, 2);
+        box(icon, 16, 15, 16, 4, 0xA6D6DF, 2);
+    }
+    else if (kind == 1)
+    {
+        box(icon, 9, 11, 34, 31, 0xAD5C46, 4);
+        box(icon, 14, 11, 12, 25, 0xF6E7C5, 2);
+        box(icon, 27, 11, 12, 25, 0xFFF3D7, 2);
+    }
+    else if (kind == 2)
+    {
+        box(icon, 7, 12, 23, 23, 0xAA742A, LV_RADIUS_CIRCLE);
+        box(icon, 12, 17, 13, 13, 0xDCEAF3, LV_RADIUS_CIRCLE);
+        box(icon, 24, 21, 21, 7, 0xAA742A, 3);
+        box(icon, 38, 27, 7, 10, 0xAA742A, 2);
+    }
+    else
+    {
+        box(icon, 9, 9, 34, 31, 0x39516D, 12);
+        box(icon, 14, 15, 24, 28, 0xDCEAF3, 8);
+        box(icon, 9, 24, 10, 17, 0x39516D, 4);
+        box(icon, 33, 24, 10, 17, 0x39516D, 4);
+    }
+    return icon;
+}
 enum { BD_OFF, BD_SERVE, BD_INCOMING, BD_RETURN, BD_MISS, BD_DONE };
 
 static bool badminton_can_hit(void)
@@ -334,91 +372,116 @@ static void paint_badminton(void)
                ui.badminton.player == ui.badminton.rival ? "比赛结束 · 平局" : "比赛结束 · 对手赢了";
     else if (phase == BD_RETURN) note = "打回去了！";
     else if (phase == BD_MISS) note = "漏球 · 对手得分";
-    else if (can_hit) note = "现在挥拍！";
+    else if (can_hit) note = "现在挥拍！点亮区";
     else if (incoming && now < ui.badminton.early_until) note = "早了，再等一下";
     set_label(ui.badminton_note, note);
     lv_obj_align(ui.badminton_note, LV_ALIGN_TOP_MID, 0, 351);
 }
 
-static void sports_scores(void)
+static void sports_paint(void)
 {
-    set_label_fmt(ui.sports_score_label, "%s  %u", ui.sports_mode == 1 ? "跑道" : ui.sports_mode == 2 ? "引体" : "仰卧",
-                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
-    set_label_fmt(ui.sports_timer, "剩余 %u 秒", (unsigned)((ui.sports_until > ui.world.now ? ui.sports_until - ui.world.now : 0) / 1000));
-}
-static void sports_show(unsigned mode)
-{
-    visible(ui.sports_run_layer, mode == 1);
-    visible(ui.sports_pull_layer, mode == 2);
-    visible(ui.sports_sit_layer, mode == 3);
-    set_label(ui.sports_action_label, mode == 1 ? "加速跑" : mode == 2 ? "向上拉" : "起身");
-}
-static void sports_start(int cmd)
-{
-    if (!ui.action || ui.action((pw_command_t)cmd) != PW_OK) return;
-    ui.sports_active = true; ui.sports_finished = false; ui.panel = PANEL_SPORTS_GAME;
-    ui.sports_mode = cmd == PW_RUN ? 1 : cmd == PW_PULLUP ? 2 : 3;
-    ui.sports_score = 0; ui.sports_target = 1; ui.sports_distance = 0;
-    ui.sports_until = ui.world.now + 20000; ui.sports_next = ui.world.now + 700;
-    sports_show(ui.sports_mode);
-    lv_obj_set_pos(ui.sports_runner, 38, 246);
-    set_label(ui.sports_prompt, ui.sports_mode == 1 ? "快速点击，跑到 100 米" : ui.sports_mode == 2 ? "在绿区点击向上拉" : "看字：起 / 卧");
-    sports_scores();
-}
-static void sports_end(void)
-{
-    ui.sports_active = false; ui.sports_finished = true;
-    set_label_fmt(ui.sports_prompt, "结束：%s %u", ui.sports_mode == 1 ? "跑了" : ui.sports_mode == 2 ? "拉了" : "做了",
-                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
-    set_label(ui.sports_action_label, "关闭");
-    sports_scores();
-}
-static void sports_tick(void)
-{
-    if (!ui.sports_active) return;
-    uint64_t now = ui.world.now;
-    if (now >= ui.sports_until) { sports_end(); return; }
-    if (ui.sports_mode == 2)
+    unsigned mode = ui.sports_mode;
+    unsigned elapsed = (unsigned)(ui.world.now - ui.sports_started);
+    unsigned left = ui.world.now < ui.sports_until
+        ? (unsigned)((ui.sports_until - ui.world.now + 999) / 1000) : 0;
+    bool hit = ui.world.now < ui.sports_feedback;
+    const uint32_t ready = 0xEEC16C, waiting = 0x527566;
+    bool window = mode == 1 ? ui.sports_target == 0 :
+        mode == 2 ? (elapsed % 1400 >= 450 && elapsed % 1400 < 950) :
+        elapsed % 1600 >= 800 && elapsed % 1600 < 1400;
+    const unsigned target = mode == 1 ? 100 : mode == 2 ? 10 : 12;
+    const unsigned score = mode == 1 ? ui.sports_distance : ui.sports_score;
+    const char *title = mode == 1 ? "跑步" : mode == 2 ? "引体向上" : "仰卧起坐";
+    set_label_fmt(ui.sports_score_label, "%s  %u / %u", title, score, target);
+    set_label_fmt(ui.sports_timer, "剩余 %u 秒", left);
+    visible(ui.sports_action, ui.sports_active);
+    visible(ui.sports_right, ui.sports_active && mode == 1);
+    lv_obj_set_style_bg_color(ui.sports_action, lv_color_hex(window ? ready : waiting), 0);
+    lv_obj_set_style_bg_color(ui.sports_right, lv_color_hex(window ? waiting : ready), 0);
+    const char *hint = mode == 1 ? "左右依次点" :
+        mode == 2 ? "指针到绿区时点小猫" : "小猫起身时点一下";
+    set_label(ui.sports_prompt, ui.sports_finished ? (score == target ? "挑战完成" : "时间到") : hint);
+    if (mode == 1)
     {
-        int y = 90 + (int)((now / 28) % 150);
-        lv_obj_set_y(ui.sports_marker, y);
+        set_image(ui.sports_cat[0], pw_frames[12 + (hit && ui.sports_target)]);
+        lv_obj_set_pos(ui.sports_cat[0], 16 + (int)score * 282 / 100, 171 - (hit ? 5 : 0));
     }
-    else if (ui.sports_mode == 3 && now >= ui.sports_next)
+    else if (mode == 2)
     {
-        ui.sports_target ^= 1;
-        ui.sports_next = now + 800;
-        set_label(ui.sports_prompt, ui.sports_target ? "起！" : "卧！");
-    }
-}
-static void sports_hit(void)
-{
-    if (!ui.sports_active)
-    {
-        if (ui.sports_finished) { ui.sports_finished = false; ui.panel = PANEL_NONE; }
-        return;
-    }
-    if (ui.sports_finished) return;
-    if (ui.sports_mode == 1)
-    {
-        ui.sports_distance += 7;
-        if (ui.sports_distance > 100) ui.sports_distance = 100;
-        lv_obj_set_x(ui.sports_runner, 38 + (int)ui.sports_distance * 3);
-        if (ui.sports_distance >= 100) sports_end();
-    }
-    else if (ui.sports_mode == 2)
-    {
-        int y = lv_obj_get_y(ui.sports_marker);
-        if (y >= 120 && y <= 190) ui.sports_score++;
-        if (ui.sports_score >= 10) sports_end();
+        lv_obj_set_y(ui.sports_marker, 84 + (int)(elapsed % 1400) * 162 / 1400);
+        set_image(ui.sports_cat[1], shahe_sports_poses[hit ? 1 : 0]);
+        lv_obj_set_y(ui.sports_cat[1], hit ? 84 : 102);
     }
     else
     {
-        if (ui.sports_target) ui.sports_score++;
-        ui.sports_target ^= 1;
-        ui.sports_next = ui.world.now + 800;
-        if (ui.sports_score >= 12) sports_end();
+        set_image(ui.sports_cat[2], shahe_sports_poses[window || hit ? 3 : 2]);
+        lv_obj_set_y(ui.sports_cat[2], 146);
     }
-    sports_scores();
+}
+
+static void sports_start(int cmd)
+{
+    if (!ui.action || ui.action((pw_command_t)cmd) != PW_OK) return;
+    ui.sports_active = true;
+    ui.sports_finished = false;
+    ui.panel = PANEL_SPORTS_GAME;
+    ui.sports_mode = cmd == PW_RUN ? 1 : cmd == PW_PULLUP ? 2 : 3;
+    ui.sports_score = ui.sports_target = ui.sports_distance = 0;
+    ui.sports_last_cycle = UINT32_MAX;
+    ui.sports_started = ui.world.now;
+    ui.sports_until = ui.world.now + 20000;
+    ui.sports_feedback = 0;
+    visible(ui.sports_run_layer, ui.sports_mode == 1);
+    visible(ui.sports_pull_layer, ui.sports_mode == 2);
+    visible(ui.sports_sit_layer, ui.sports_mode == 3);
+    lv_obj_set_pos(ui.sports_action, ui.sports_mode == 1 ? 45 : 126,
+                   ui.sports_mode == 1 ? 382 : ui.sports_mode == 2 ? 148 : 202);
+    lv_obj_set_size(ui.sports_action, ui.sports_mode == 1 ? 132 : 126,
+                    ui.sports_mode == 1 ? 52 : ui.sports_mode == 2 ? 156 : 118);
+    lv_obj_set_style_bg_opa(ui.sports_action, ui.sports_mode == 1 ? LV_OPA_COVER : LV_OPA_10, 0);
+    lv_obj_set_style_border_width(ui.sports_action, ui.sports_mode == 1 ? 0 : 2, 0);
+    lv_obj_set_style_border_color(ui.sports_action, lv_color_hex(0xEEC16C), 0);
+    visible(lv_obj_get_child(ui.sports_action, 0), ui.sports_mode == 1);
+    sports_paint();
+}
+
+static void sports_end(void)
+{
+    ui.sports_active = false;
+    ui.sports_finished = true;
+}
+
+static void sports_tick(void)
+{
+    if (ui.panel != PANEL_SPORTS_GAME) return;
+    if (ui.sports_active && ui.world.now >= ui.sports_until) sports_end();
+    sports_paint();
+}
+
+static void sports_hit(bool right)
+{
+    if (!ui.sports_active || ui.panel != PANEL_SPORTS_GAME) return;
+    if (ui.world.now >= ui.sports_until) { sports_end(); return; }
+    unsigned elapsed = (unsigned)(ui.world.now - ui.sports_started);
+    if (ui.sports_mode == 1)
+    {
+        if (right != ui.sports_target) return;
+        ui.sports_target ^= 1;
+        ui.sports_distance += 7;
+        if (ui.sports_distance >= 100) { ui.sports_distance = 100; sports_end(); }
+    }
+    else
+    {
+        unsigned period = ui.sports_mode == 2 ? 1400 : 1600;
+        unsigned phase = elapsed % period, cycle = elapsed / period;
+        unsigned from = ui.sports_mode == 2 ? 450 : 800;
+        unsigned to = ui.sports_mode == 2 ? 950 : 1400;
+        if (right || cycle == ui.sports_last_cycle || phase < from || phase >= to) return;
+        ui.sports_last_cycle = cycle;
+        if (++ui.sports_score == (ui.sports_mode == 2 ? 10U : 12U)) sports_end();
+    }
+    ui.sports_feedback = ui.world.now + 200;
+    sports_paint();
 }
 
 static void set_voice_page(bool open)
@@ -575,7 +638,8 @@ static void click(lv_event_t *e)
         sports_start(cmd);
         paint(); return;
     }
-    if (cmd == TAG_SPORTS_ACTION) { sports_hit(); paint(); return; }
+    if (cmd == TAG_SPORTS_ACTION || cmd == TAG_SPORTS_RIGHT)
+    { sports_hit(cmd == TAG_SPORTS_RIGHT); paint(); return; }
     if (cmd == TAG_SPORTS_CLOSE)
     {
         ui.sports_active = false; ui.sports_finished = false;
@@ -1032,37 +1096,42 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(b, sports[i].name, 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
-    /* First-person cat view: green court underfoot, net in the middle. */
-    ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
+    ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x254D40, 0);
     ui.sports_run_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xB85C3C, 0);
-    box(ui.sports_run_layer, 0, 30, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 120, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 210, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 300, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 360, 0, 4, 300, 0xE8F0E3, 0);
-    ui.sports_runner = box(ui.sports_run_layer, 38, 246, 24, 28, 0xF0D3A8, 10);
-    text(ui.sports_run_layer, "100m", 300, 268, &pet_font_16, 0xFFF1D6);
     ui.sports_pull_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xBFD9D2, 0);
-    box(ui.sports_pull_layer, 50, 60, 290, 8, 0x6D4C36, 4);
-    box(ui.sports_pull_layer, 58, 60, 8, 210, 0x6D4C36, 2);
-    box(ui.sports_pull_layer, 324, 60, 8, 210, 0x6D4C36, 2);
-    box(ui.sports_pull_layer, 180, 92, 34, 110, 0xF0D3A8, 12);
-    box(ui.sports_pull_layer, 250, 120, 30, 70, 0x6E8B73, 8);
-    ui.sports_marker = box(ui.sports_pull_layer, 256, 90, 18, 18, 0x456B77, 9);
-    text(ui.sports_pull_layer, "绿区", 250, 195, &pet_font_16, INK);
     ui.sports_sit_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xDCE6CB, 0);
-    box(ui.sports_sit_layer, 55, 230, 280, 62, 0x8D6548, 12);
-    box(ui.sports_sit_layer, 170, 130, 50, 100, 0xF0D3A8, 18);
-    ui.sports_score_label = text(ui.sports_game_dialog, "", 14, 8, &pet_font_20, 0xFFF1D6);
-    ui.sports_timer = text(ui.sports_game_dialog, "", 14, 32, &pet_font_16, 0xF2E5C8);
-    lv_obj_t *sports_game_close = button(ui.sports_game_dialog, 336, 6, 44, 44, TAG_SPORTS_CLOSE, 0x1D3B30, 10);
-    lv_obj_t *sports_game_x = text(sports_game_close, "×", 0, 0, &pet_font_20, 0xFFF1D6); lv_obj_center(sports_game_x);
-    ui.sports_prompt = text(ui.sports_game_dialog, "", 16, 360, &pet_font_20, 0xFFF1D6);
-    ui.sports_action = button(ui.sports_game_dialog, 80, 392, 230, 46, TAG_SPORTS_ACTION, 0xDCE6CB, 12);
-    ui.sports_action_label = text(ui.sports_action, "开始", 0, 0, &pet_font_20, INK);
-    lv_obj_center(ui.sports_action_label);
+    lv_obj_t *courts[] = {ui.sports_run_layer, ui.sports_pull_layer, ui.sports_sit_layer};
+    for (unsigned i = 0; i < 3; i++)
+    {
+        image(courts[i], shahe_sports_courts[i], 0, 0);
+        ui.sports_cat[i] = lv_image_create(courts[i]);
+        lv_obj_remove_flag(ui.sports_cat[i], LV_OBJ_FLAG_CLICKABLE);
+        set_image(ui.sports_cat[i], i == 0 ? pw_frames[12] : shahe_sports_poses[(i - 1) * 2]);
+        lv_obj_set_pos(ui.sports_cat[i], 152, 129);
+    }
+    box(ui.sports_run_layer, 356, 184, 4, 74, 0xFFF1D6, 1);
+    text(ui.sports_run_layer, "100m", 322, 262, &pet_font_16, 0xFFF1D6);
+    box(ui.sports_pull_layer, 288, 84, 25, 180, 0x213E34, 10);
+    box(ui.sports_pull_layer, 288, 145, 25, 59, 0x74C290, 8);
+    ui.sports_marker = box(ui.sports_pull_layer, 291, 84, 19, 19, 0xFFF1D6, 10);
+    ui.sports_score_label = text(ui.sports_game_dialog, "", 14, 4, &pet_font_20, 0xFFF1D6);
+    ui.sports_timer = text(ui.sports_game_dialog, "", 14, 29, &pet_font_16, 0xF2E5C8);
+    lv_obj_t *sports_game_close = button(ui.sports_game_dialog, 336, 6, 44, 44, TAG_SPORTS_CLOSE, 0x183932, 10);
+    lv_obj_center(text(sports_game_close, "×", 0, 0, &pet_font_20, 0xFFF1D6));
+    ui.sports_prompt = text(ui.sports_game_dialog, "", 16, 354, &pet_font_16, 0xFFF1D6);
+    ui.sports_action = button(ui.sports_game_dialog, 45, 382, 132, 52, TAG_SPORTS_ACTION, 0xEEC16C, 16);
+    ui.sports_right = button(ui.sports_game_dialog, 213, 382, 132, 52, TAG_SPORTS_RIGHT, 0x527566, 16);
+    for (unsigned i = 0; i < 2; i++)
+    {
+        lv_obj_t *pad = i ? ui.sports_right : ui.sports_action;
+        lv_obj_t *foot = box(pad, 0, 0, 20, 28, 0xFFF1D6, LV_RADIUS_CIRCLE);
+        lv_obj_set_style_transform_pivot_x(foot, 10, 0);
+        lv_obj_set_style_transform_pivot_y(foot, 14, 0);
+        lv_obj_set_style_transform_rotation(foot, i ? 240 : -240, 0);
+        lv_obj_center(foot);
+        box(foot, 4, -4, 12, 8, 0xFFF1D6, LV_RADIUS_CIRCLE);
+    }
     visible(ui.sports_game_dialog, false);
-    visible(ui.sports_run_layer, false); visible(ui.sports_pull_layer, false); visible(ui.sports_sit_layer, false);
 
     ui.badminton_dialog = box(ui.layer, 0, 0, 390, 450, 0x2D574C, 0);
     lv_obj_add_flag(ui.badminton_dialog, LV_OBJ_FLAG_CLICKABLE);
@@ -1074,7 +1143,8 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_t *court_close = button(ui.badminton_dialog, 318, 15, 48, 48, TAG_BADMINTON_CLOSE, 0x40665B, 10);
     lv_obj_center(text(court_close, "×", 0, 0, &pet_font_20, 0xFFF1D5));
 
-    ui.badminton_zone = box(ui.badminton_dialog, 32, 135, 126, 134, 0xEEC16C, 13);
+    ui.badminton_zone = button(ui.badminton_dialog, 32, 135, 126, 134,
+                               TAG_BADMINTON_HIT, 0xEEC16C, 13);
     lv_obj_set_style_border_width(ui.badminton_zone, 2, 0);
     lv_obj_set_style_border_color(ui.badminton_zone, lv_color_hex(0xEEC16C), 0);
     lv_obj_t *own_shadow = box(ui.badminton_dialog, 41, 325, 67, 11, 0x354138, 8);
@@ -1172,6 +1242,19 @@ static void build_panel(lv_obj_t *screen)
     ui.challenge_track = box(ui.memory_dialog, 20, 126, 292, 20, 0xDCEAF3, 10);
     box(ui.challenge_track, 107, 0, 78, 20, 0x88AA92, 10);
     ui.challenge_cursor = box(ui.challenge_track, 0, 0, 5, 20, INK, 2);
+    for (unsigned i = 0; i < 6; i++)
+        ui.rhythm_beats[i] = box(ui.challenge_track, 12 + (int)i * 49, 5, 10, 10, 0xB4C4BE, LV_RADIUS_CIRCLE);
+    for (unsigned i = 0; i < 4; i++)
+    {
+        ui.find_icon[i] = find_object(ui.memory_dialog, i);
+        lv_obj_t *crop = box(ui.memory_tile[i], 0, 0, 64, 64, PAPER, 8);
+        lv_obj_center(crop);
+        ui.meal_icon[i] = crop;
+        unsigned tile = challenge_dishes[i];
+        image(crop, &pet_food_atlas, -(int)(tile % 3) * 64, -(int)(tile / 3) * 64);
+        visible(crop, false);
+        visible(ui.find_icon[i], false);
+    }
     visible(ui.challenge_track, false);
     visible(ui.layer, false);
 }
@@ -1712,31 +1795,40 @@ static void paint_challenge(void)
     visible(ui.teaching_controls, false);
     bool rhythm = g->kind == PG_RHYTHM;
     bool won = g->phase == PG_WON, lost = g->phase == PG_LOST;
-    static const char *food[] = {"米饭", "青菜", "鸡蛋", "热汤"};
     static const char *objects[] = {"水杯", "书本", "钥匙", "耳机"};
-    static const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     set_label(ui.memory_title, rhythm ? "健身节奏" : g->kind == PG_FIND ? "宿舍找物" : "食堂配餐");
     if (won || lost) set_label(ui.memory_note, won ? "答对啦，完成挑战" : "差一点，下次再试");
     else if (rhythm) set_label(ui.memory_note, pg_window(g) ? "绿色时间，点一下！" : "等指针走到绿色");
     else if (g->phase == PG_SHOW) set_label(ui.memory_note, "先记住物品的位置");
     else set_label_fmt(ui.memory_note, "%s：%s", g->kind == PG_FIND ? "找一找" : "订单", 
-        g->kind == PG_FIND ? objects[g->targets[g->round]] : food[g->targets[g->round]]);
+        g->kind == PG_FIND ? objects[g->targets[g->round]] : pe_menu(false, challenge_dishes[g->targets[g->round]])->name);
     if (rhythm) set_label_fmt(ui.memory_round, "第 %u / 6 拍 · 命中 %u", g->round < 6 ? g->round + 1 : 6, g->score);
     else if (won || lost) set_label_fmt(ui.memory_round, "完成 %u / 3", g->score);
     else set_label_fmt(ui.memory_round, "%u / 3 · 剩余 %u 秒", g->score, g->total < 30000 ? (30000 - g->total + 999) / 1000 : 0);
     visible(ui.challenge_track, rhythm);
     lv_obj_set_x(ui.challenge_cursor, (int)(g->elapsed % 3000 * 287U / 3000));
+    for (unsigned i = 0; i < 6; i++)
+        lv_obj_set_style_bg_color(ui.rhythm_beats[i], lv_color_hex(i < g->round ? 0x49685A : 0xB4C4BE), 0);
     for (unsigned i = 0; i < 4; i++)
     {
         visible(ui.memory_tile[i], !rhythm || i == 0);
-        visible(ui.memory_symbol[i], true);
-        visible(ui.memory_icon[i], false);
-        lv_obj_set_pos(ui.memory_tile[i], rhythm ? 20 : 20 + (i % 2) * 152, rhythm ? 165 : 111 + (i / 2) * 83);
+        visible(ui.memory_symbol[i], false);
+        visible(ui.meal_icon[i], g->kind == PG_MEAL);
+        bool reveal = g->kind == PG_FIND && g->phase == PG_SHOW;
+        visible(ui.find_icon[i], reveal);
+        if (reveal)
+        {
+            unsigned slot = 0;
+            while (g->cards[slot] != i) slot++;
+            lv_obj_set_pos(ui.find_icon[i], 64 + (int)(slot % 2) * 152, 121 + (int)(slot / 2) * 83);
+        }
+        bool beat = rhythm && pg_window(g) && !g->pressed;
+        visible(ui.memory_icon[i], !reveal && g->kind != PG_MEAL && (!rhythm || i == 0));
+        game_icon(ui.memory_icon[i], beat ? 0 : 3, beat ? 0xF4CF75 : 0x51768C);
+        lv_obj_set_pos(ui.memory_tile[i], rhythm ? 20 : 20 + (i % 2) * 152,
+                       rhythm ? 165 : 111 + (i / 2) * 83);
         lv_obj_set_size(ui.memory_tile[i], rhythm ? 292 : 140, rhythm ? 88 : 72);
-        set_label(ui.memory_symbol[i], rhythm ? g->pressed ? "这一拍已点" : "跟上节拍" : g->kind == PG_MEAL ? food[i]
-            : g->phase == PG_SHOW ? objects[g->cards[i]] : slots[i]);
-        lv_obj_center(ui.memory_symbol[i]);
-        lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(rhythm && pg_window(g) ? 0x88AA92 : 0xDCEAF3), 0);
+        lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(beat ? 0x557F68 : 0xDCEAF3), 0);
         lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
     }
     if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
@@ -1798,6 +1890,14 @@ static void paint(void)
             if (ui.scene == PW_CLASSROOM && building == PW_PUBLIC_BUILDING) game = "投影抢答";
             if (ui.scene == PW_CLASSROOM && building == PW_SMART_BUILDING) game = "互动屏校准";
             set_label(ui.game_entry_label, game);
+            bool room_game = ui.scene != PW_CLASSROOM;
+            lv_obj_set_pos(ui.blackboard, room_game ? 143 : 147, room_game ? 96 : 108);
+            lv_obj_set_size(ui.blackboard, room_game ? 104 : 145, room_game ? 44 : 71);
+            lv_obj_set_style_bg_opa(ui.blackboard, room_game ? LV_OPA_80 : LV_OPA_TRANSP, 0);
+            lv_obj_set_style_bg_opa(ui.game_entry_label, room_game ? LV_OPA_TRANSP : LV_OPA_80, 0);
+            lv_obj_set_style_border_opa(ui.game_entry_label, room_game ? LV_OPA_TRANSP : LV_OPA_60, 0);
+            lv_obj_align(ui.game_entry_label, room_game ? LV_ALIGN_CENTER : LV_ALIGN_TOP_RIGHT,
+                         room_game ? 0 : -3, room_game ? 0 : 3);
             lv_obj_remove_event_cb(ui.context_button, click);
             lv_obj_add_event_cb(ui.context_button, click, LV_EVENT_CLICKED,
                 (void *)(uintptr_t)(ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING ? PW_MEMORY_START : PW_STUDY));
@@ -1836,7 +1936,9 @@ static void paint(void)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
-    visible(ui.blackboard, !campus && (ui.world.building_id == 1 || ui.world.building_id == 3 || ui.world.building_id == 5));
+    bool room_game = ui.scene == PW_DORM || ui.scene == PW_CANTEEN || ui.scene == PW_GYM;
+    visible(ui.blackboard, !campus && (room_game || ui.world.building_id == 1 ||
+                                      ui.world.building_id == 3 || ui.world.building_id == 5));
     visible(ui.life_hit, !campus && !library);
     bool college_lab = ui.world.building_id == 10 || ui.world.building_id == 11 || ui.world.building_id == 12 ||
                        ui.world.building_id == 17 || ui.world.building_id == 18;
@@ -1925,6 +2027,12 @@ static void paint(void)
     lv_obj_center(ui.audio_label);
     set_label(ui.audio_note, audio_available ? "调至零档无声 · 自动记住" : "声音暂不可用，切换重试");
     bool memory = ui.world.phase == PW_MINIGAME;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        visible(ui.find_icon[i], false);
+        visible(ui.meal_icon[i], false);
+    }
+
     visible(ui.layer, memory || ui.panel != PANEL_NONE);
     if (memory || ui.panel != PANEL_NONE) lv_obj_move_foreground(ui.layer);
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
@@ -1978,6 +2086,12 @@ void pet_ui_update(const pet_world_t *world)
     if (ui.panel == PANEL_BADMINTON &&
         (curfew || world->scene != PW_CAMPUS || world->phase == PW_MINIGAME))
         badminton_close();
+    if (ui.panel == PANEL_SPORTS_GAME &&
+        (curfew || world->scene != PW_CAMPUS || world->phase == PW_MINIGAME))
+    {
+        ui.sports_active = ui.sports_finished = false;
+        ui.panel = PANEL_NONE;
+    }
     if (curfew) ui.panel = PANEL_CURFEW;
     else if (world->phase == PW_MINIGAME && ui.panel == PANEL_ALBUM) ui.panel = PANEL_NONE;
     else if (world->phase == PW_MINIGAME && ui.panel == PANEL_ACTIVITY) ui.panel = PANEL_NONE;
