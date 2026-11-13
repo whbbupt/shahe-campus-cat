@@ -1,9 +1,9 @@
-# 沙河校园小猫 v0.20.4 语音试用
+# 沙河校园小猫 v0.20.5 语音试用
 
 ## 下载
 
 1. 用 USB 连黄山派的 USB-to-UART 口。打开小猫工程的 `project`，在 CodeKit 选 `sf32lb52-lchspi-ulp` 并点 **Download**。使用常规下载，关闭全片擦除选项。
-2. 下载后串口波特率用 `1000000`。确认启动行出现 `[pet] v0.20.4 boot ok`、`[pet:VOICE] worker ready stack=40960 bytes` 和 `[pet:KEY2] selftest PASS`。
+2. 下载后串口波特率用 `1000000`。确认启动行出现 `[pet] v0.20.5 boot ok`、`[pet:VOICE] worker ready stack=40960 bytes` 和 `[pet:KEY2] selftest PASS`。
 
 ## 试聊
 
@@ -14,6 +14,8 @@
 5. 在校园或室内长按实体 KEY2 约 0.7 秒也能打开语音页。语音页短按 KEY2 循环调节小智回复音量，右侧显示三档音量条，两秒后收起。开机默认中档，播报中也能调节。
 
 请记录三轮是否都听到回答、追问能否接住上一轮，以及从松手到开口的大致时间。若录音后没收到回复，回传松手后的 `[pet:VOICE] record sent frames=` 或错误日志。搜不到设备时回传 `Local device name` 和 `scan mode`，配对失败时回传 `classic pair result`。请遮挡小智绑定码和手机蓝牙配对码。
+
+如果已经连接蓝牙热点，但语音页显示「检查共享网络后重试」，点一次「重试」，回传 `[pet:VOICE] cloud phase=` 开头的所有行。该行给出失败阶段、步骤和数值错误码。
 
 ## 地址与回退
 

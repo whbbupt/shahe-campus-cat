@@ -110,7 +110,24 @@ static bool endpoint(const char *url, char host[HOST_MAX], char path[PATH_MAX_LE
     return true;
 }
 
-static bool start_tls(const char *host);
+static bool start_tls(const char *host, const char *phase);
+
+static bool cloud_failure(const char *phase, const char *step, int code)
+{
+    rt_kprintf("[pet:VOICE] cloud phase=%s step=%s code=%d\n", phase, step, code);
+    return false;
+}
+
+static int http_status(const char *headers)
+{
+    int status = 0;
+    if ((!strncmp(headers, "HTTP/1.0 ", 9) || !strncmp(headers, "HTTP/1.1 ", 9)) &&
+        headers[9] >= '0' && headers[9] <= '9' &&
+        headers[10] >= '0' && headers[10] <= '9' &&
+        headers[11] >= '0' && headers[11] <= '9' && headers[12] == ' ')
+        status = (headers[9] - '0') * 100 + (headers[10] - '0') * 10 + headers[11] - '0';
+    return status;
+}
 
 static bool read_headers(char *response, size_t capacity)
 {
@@ -175,39 +192,61 @@ static vc_open_result_t discover(const char *mac, const char *id, char activatio
     char *response = rt_malloc(PET_VOICE_FRAME_MAX + 1);
     cJSON *json = NULL;
     vc_open_result_t result = VC_ERROR;
-    if (!response || !start_tls(DISCOVERY_HOST)) goto finish;
-    if (!post("/xiaozhi/ota/", mac, id, body, headers, sizeof(headers)) ||
-        (strncmp(headers, "HTTP/1.1 200 ", 13) && strncmp(headers, "HTTP/1.0 200 ", 13)))
+    if (!response)
+    {
+        cloud_failure("ota", "allocate-response", 0);
         goto finish;
+    }
+    if (!start_tls(DISCOVERY_HOST, "ota")) goto finish;
+    if (!post("/xiaozhi/ota/", mac, id, body, headers, sizeof(headers)))
+    {
+        cloud_failure("ota", "http-exchange", 0);
+        goto finish;
+    }
+    int status = http_status(headers);
+    if (status != 200)
+    {
+        cloud_failure("ota", "http-status", status);
+        goto finish;
+    }
+    const char *response_error = "content-length";
     size_t field_length = 0, content_length = 0;
     const char *value = header_value(headers, "Content-Length:", &field_length);
     if (value)
     {
-        if (!field_length || field_length > 4) goto finish;
+        if (!field_length || field_length > 4) goto invalid_response;
         for (size_t i = 0; i < field_length; i++)
         {
-            if (value[i] < '0' || value[i] > '9') goto finish;
+            if (value[i] < '0' || value[i] > '9') goto invalid_response;
             content_length = content_length * 10 + (unsigned)(value[i] - '0');
         }
-        if (!content_length || content_length > PET_VOICE_FRAME_MAX) goto finish;
+        if (!content_length || content_length > PET_VOICE_FRAME_MAX) goto invalid_response;
     }
-    if (header_value(headers, "Transfer-Encoding:", &field_length)) goto finish;
+    response_error = "transfer-encoding";
+    if (header_value(headers, "Transfer-Encoding:", &field_length)) goto invalid_response;
+    response_error = "response-body";
     size_t used = 0;
     size_t limit = content_length ? content_length : PET_VOICE_FRAME_MAX;
     rt_tick_t deadline = rt_tick_get() + rt_tick_from_millisecond(7000);
     while (used < limit)
     {
-        if (!before(deadline)) goto finish;
+        if (!before(deadline)) goto invalid_response;
         int rc = mbedtls_ssl_read(&tls->ssl, (unsigned char *)response + used, limit - used);
         if (retryable(rc)) { rt_thread_mdelay(5); continue; }
         if (!rc || rc == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) break;
-        if (rc < 0) goto finish;
+        if (rc < 0)
+        {
+            cloud_failure("ota", response_error, rc);
+            goto finish;
+        }
         used += (size_t)rc;
     }
     if (!used || (content_length && used != content_length) || (!content_length && used == limit))
-        goto finish;
+        goto invalid_response;
     response[used] = 0;
     json = cJSON_ParseWithLength(response, used + 1);
+    response_error = "response-json";
+    if (!json) goto invalid_response;
     const cJSON *binding = cJSON_GetObjectItemCaseSensitive(json, "activation");
     const char *code = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(binding, "code"));
     if (code && strlen(code) > 0 && strlen(code) < 16 && strspn(code, "0123456789") == strlen(code))
@@ -220,12 +259,15 @@ static vc_open_result_t discover(const char *mac, const char *id, char activatio
     const char *url = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(ws, "url"));
     const char *credential = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(ws, "token"));
     const char *value_start = credential && !strncmp(credential, "Bearer ", 7) ? credential + 7 : credential;
-    if (url && endpoint(url, host, path) &&
-        (!credential || (strlen(credential) < 512 && printable(value_start))))
-    {
-        strcpy(token, credential ? credential : "");
-        result = VC_CONNECTED;
-    }
+    response_error = "websocket-config";
+    if (!url || !endpoint(url, host, path) ||
+        (credential && (strlen(credential) >= 512 || !printable(value_start))))
+        goto invalid_response;
+    strcpy(token, credential ? credential : "");
+    result = VC_CONNECTED;
+    goto finish;
+invalid_response:
+    cloud_failure("ota", response_error, 0);
 finish:
     vc_close();
     cJSON_Delete(json);
@@ -251,22 +293,26 @@ static int socket_write(void *context, const unsigned char *data, size_t size)
     return MBEDTLS_ERR_NET_SEND_FAILED;
 }
 
-static bool socket_connect(const char *host)
+static bool socket_connect(const char *host, const char *phase)
 {
     struct addrinfo hints = {0}, *addresses = NULL;
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    if (!is_active() || lwip_getaddrinfo(host, "443", &hints, &addresses)) return false;
+    if (!is_active()) return false;
+    int dns_result = lwip_getaddrinfo(host, "443", &hints, &addresses);
+    if (dns_result) return cloud_failure(phase, "dns", dns_result);
     rt_tick_t deadline = rt_tick_get() + rt_tick_from_millisecond(6000);
+    int connect_error = 0;
     for (struct addrinfo *address = addresses; address && before(deadline); address = address->ai_next)
     {
         int fd = lwip_socket(address->ai_family, address->ai_socktype, address->ai_protocol);
-        if (fd < 0) continue;
+        if (fd < 0) { connect_error = errno; continue; }
         unsigned long nonblock = 1;
         if (lwip_ioctl(fd, FIONBIO, &nonblock) == 0)
         {
             int rc = lwip_connect(fd, address->ai_addr, address->ai_addrlen);
-            if (rc && (errno == EINPROGRESS || errno == EWOULDBLOCK))
+            connect_error = rc ? errno : 0;
+            if (rc && (connect_error == EINPROGRESS || connect_error == EWOULDBLOCK))
             {
                 while (before(deadline))
                 {
@@ -278,10 +324,23 @@ static bool socket_connect(const char *host)
                     if (!rc) continue;
                     int error = 0;
                     socklen_t length = sizeof(error);
-                    rc = rc > 0 && !lwip_getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &length) && !error ? 0 : -1;
+                    if (rc < 0 || lwip_getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &length))
+                    {
+                        connect_error = errno;
+                        rc = -1;
+                    }
+                    else
+                    {
+                        connect_error = error;
+                        rc = error ? -1 : 0;
+                    }
                     break;
                 }
-                if (!before(deadline)) rc = -1;
+                if (!before(deadline))
+                {
+                    connect_error = ETIMEDOUT;
+                    rc = -1;
+                }
             }
             if (!rc)
             {
@@ -289,35 +348,46 @@ static bool socket_connect(const char *host)
                 break;
             }
         }
+        else connect_error = errno;
         lwip_close(fd);
     }
     lwip_freeaddrinfo(addresses);
-    return tls->server_fd.fd >= 0;
+    if (tls->server_fd.fd >= 0) return true;
+    return !is_active() ? false : cloud_failure(phase, "tcp", connect_error);
 }
 
-static bool start_tls(const char *host)
+static bool start_tls(const char *host, const char *phase)
 {
     tls = rt_calloc(1, sizeof(*tls));
-    if (!tls) return false;
+    if (!tls) return cloud_failure(phase, "tls-allocate", 0);
     const char seed[] = "shahe-cat-voice";
-    if (mbedtls_client_init(tls, (void *)seed, sizeof(seed)) != 0) return false;
+    int rc = mbedtls_client_init(tls, (void *)seed, sizeof(seed));
+    if (rc) return cloud_failure(phase, "tls-init", rc);
     tls->host = rt_strdup(host);
-    if (!tls->host || mbedtls_client_context(tls) != 0) return false;
-    if (!socket_connect(host)) return false;
+    if (!tls->host) return cloud_failure(phase, "tls-allocate-host", 0);
+    rc = mbedtls_client_context(tls);
+    if (rc) return cloud_failure(phase, "tls-config", rc);
+    if (!socket_connect(host, phase)) return false;
     mbedtls_ssl_set_bio(&tls->ssl, &tls->server_fd, socket_write, socket_read, NULL);
     rt_tick_t deadline = rt_tick_get() + rt_tick_from_millisecond(12000);
     while (before(deadline))
     {
-        int rc = mbedtls_ssl_handshake(&tls->ssl);
-        if (!rc) return mbedtls_ssl_get_verify_result(&tls->ssl) == 0;
+        rc = mbedtls_ssl_handshake(&tls->ssl);
+        if (!rc)
+        {
+            uint32_t flags = mbedtls_ssl_get_verify_result(&tls->ssl);
+            return flags == 0 || cloud_failure(phase, "tls-verify", (int)flags);
+        }
         if (!retryable(rc))
         {
-            rt_kprintf("[pet:VOICE] TLS handshake error %d\n", rc);
-            return false;
+            uint32_t flags = mbedtls_ssl_get_verify_result(&tls->ssl);
+            if (flags && flags != UINT32_MAX)
+                cloud_failure(phase, "tls-verify", (int)flags);
+            return cloud_failure(phase, "tls-handshake", rc);
         }
         rt_thread_mdelay(10);
     }
-    return false;
+    return !is_active() ? false : cloud_failure(phase, "tls-timeout", rc);
 }
 
 static bool upgrade(const char *host, const char *path, const char *token, const char *mac, const char *id)
@@ -327,11 +397,11 @@ static bool upgrade(const char *host, const char *path, const char *token, const
     char check[72], request[1232], response[1536];
     if (mbedtls_ctr_drbg_random(&tls->ctr_drbg, key_bytes, sizeof(key_bytes)) ||
         mbedtls_base64_encode(key, sizeof(key), &len, key_bytes, sizeof(key_bytes)))
-        return false;
+        return cloud_failure("websocket", "handshake-key", 0);
     snprintf(check, sizeof(check), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", key);
     if (mbedtls_sha1_ret((const unsigned char *)check, strlen(check), digest) ||
         mbedtls_base64_encode(expected, sizeof(expected), &len, digest, sizeof(digest)))
-        return false;
+        return cloud_failure("websocket", "handshake-key", 0);
     const char *prefix = *token ? "Authorization: " : "";
     const char *scheme = *token && strncmp(token, "Bearer ", 7) ? "Bearer " : "";
     int n = snprintf(request, sizeof(request),
@@ -339,12 +409,16 @@ static bool upgrade(const char *host, const char *path, const char *token, const
         "Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: %s\r\n%s%s%s%s"
         "Protocol-Version: 1\r\nDevice-Id: %s\r\nClient-Id: %s\r\n\r\n",
         path, host, key, prefix, scheme, token, *token ? "\r\n" : "", mac, id);
-    if (n <= 0 || (size_t)n >= sizeof(request) || !send_bytes(request, (size_t)n)) return false;
-    if (!read_headers(response, sizeof(response)) || strncmp(response, "HTTP/1.1 101 ", 13))
-        return false;
+    if (n <= 0 || (size_t)n >= sizeof(request) || !send_bytes(request, (size_t)n))
+        return cloud_failure("websocket", "http-send", 0);
+    if (!read_headers(response, sizeof(response)))
+        return cloud_failure("websocket", "http-headers", 0);
+    if (strncmp(response, "HTTP/1.1 101 ", 13))
+        return cloud_failure("websocket", "http-status", http_status(response));
     size_t accepted_length = 0;
     const char *accepted = header_value(response, "Sec-WebSocket-Accept:", &accepted_length);
-    return accepted && accepted_length == len && !memcmp(accepted, expected, len);
+    if (accepted && accepted_length == len && !memcmp(accepted, expected, len)) return true;
+    return cloud_failure("websocket", "accept-key", 0);
 }
 
 vc_open_result_t vc_open(char activation[16], bool check_activation, bool (*active)(void))
@@ -352,18 +426,27 @@ vc_open_result_t vc_open(char activation[16], bool check_activation, bool (*acti
     char mac[18], id[37], host[HOST_MAX], path[PATH_MAX_LEN], token[512];
     vc_close();
     is_active = active;
-    if (!identity(mac, id)) return VC_ERROR;
+    if (!identity(mac, id))
+    {
+        cloud_failure("ota", "identity", 0);
+        return VC_ERROR;
+    }
     if (check_activation)
     {
         char headers[1536];
-        if (start_tls(DISCOVERY_HOST))
-            post("/xiaozhi/ota/activate", mac, id, "{}", headers, sizeof(headers));
+        if (start_tls(DISCOVERY_HOST, "activation"))
+        {
+            if (!post("/xiaozhi/ota/activate", mac, id, "{}", headers, sizeof(headers)))
+                cloud_failure("activation", "http-exchange", 0);
+            else
+                rt_kprintf("[pet:VOICE] cloud phase=activation http=%d\n", http_status(headers));
+        }
         vc_close();
     }
     if (!active()) return VC_ERROR;
     vc_open_result_t result = discover(mac, id, activation, host, path, token);
     if (result != VC_CONNECTED) return result;
-    if (start_tls(host) && upgrade(host, path, token, mac, id)) return VC_CONNECTED;
+    if (start_tls(host, "websocket") && upgrade(host, path, token, mac, id)) return VC_CONNECTED;
     vc_close();
     return VC_ERROR;
 }
