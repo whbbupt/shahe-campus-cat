@@ -1748,6 +1748,13 @@ test_results:
     evidence_path: evidence/pet/pet_v0209_verification_20261113.txt
     pass: null
 
+  - test_id: TC-320
+    description: 三个生活小游戏与四个房间看看入口回归
+    expected: 食堂看看和点餐触区分开，看看增加心情，点餐打开菜单
+    actual: 生产 LVGL 主机专项通过，板端触摸待验
+    evidence_path: evidence/pet/pet_v0210_verification_20261114.txt
+    pass: true
+
 known_issues:
   - "v0.20.1 修复已定位的经典蓝牙失败恢复与羽毛球遮挡，板端复测待完成。"
   - "v0.20.0 语音 PAN、云端激活和三轮播报及 BLE 共存待板端验证。"

@@ -1901,7 +1901,7 @@ static void paint(void)
             lv_obj_remove_event_cb(ui.context_button, click);
             lv_obj_add_event_cb(ui.context_button, click, LV_EVENT_CLICKED,
                 (void *)(uintptr_t)(ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING ? PW_MEMORY_START : PW_STUDY));
-            static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 296}, {0, 0}, {280, 290}};
+            static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 350}, {0, 0}, {280, 290}};
             lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], alternate ? 354 : life_pos[ui.scene][1]);
             lv_obj_set_height(ui.life_hit, 44);
             if (ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING)

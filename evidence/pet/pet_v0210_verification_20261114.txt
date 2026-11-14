@@ -1,0 +1,10 @@
+2026-11-14 / v0.20.10 / TC-320
+
+旧 v0.20.9 的生产 LVGL 指针测试中，宿舍和教室从「看看」进入 PW_ACTION，食堂点击后进入 PW_SEATED。旧版食堂两个按钮的左上角和尺寸分别为「看看」(308,296) 64×44、「点餐」(250,300) 104×44。两者相交，后绘制的点餐按钮接走了点击。
+
+把食堂「看看」移至 (308,350)，两按钮之间留 6 像素。生产 LVGL --life-games 完成找物、配餐、节奏和四个房间的「看看」，验证心情由 60 增至 62，并验证食堂点餐打开菜单，未立即扣费。世界模型和 --meal、--sports、--badminton、--teaching、--voice、--takeout 均通过。完整 LVGL 测试仍有此前版本已记录的宿舍动作断言失败，停在 shahe-dorm-code.ppm 之后的 until_action 检查。
+
+python scripts/build_firmware.py 返回 0。main.bin 6,877,604 字节。
+main.bin SHA-256 9E31D9A530C6E758CE161E90C3AE30B5EC7853FEC754380CBA18AA1163ACEBF4。
+ZIP SHA-256 69EDC3FCC5DB85D081AB6CFBBBFA23E893C596B11DEC69AD07EA1CCEF293D809。
+三个镜像地址及 4 KiB 擦除边界、包内字节、ZIP CRC 和版本标识通过。主镜像擦除终点不含 0x126B0000，早于 BLE 区和小猫存档区。真机触摸待验。

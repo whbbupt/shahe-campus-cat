@@ -772,7 +772,7 @@ static void real_clock_previews(void)
     reset();
     puts("[host:clock-ui] four light bands indoor/outdoor, date/version, bedtime and lost clock PASS");
 }
-static void new_life_and_challenges(bool games_only)
+static void new_life_and_challenges(void)
 {
     const pw_scene_t rooms[] = {PW_CANTEEN, PW_GYM, PW_DORM};
     const char *entries[] = {"配餐", "节奏", "找物"};
@@ -822,18 +822,33 @@ static void new_life_and_challenges(bool games_only)
         assert(world.phase == PW_MINIGAME);
         press("×"); assert(world.phase == PW_IDLE && world.memory_wins == 1);
     }
-    if (games_only) return;
     for (pw_scene_t scene = PW_DORM; scene <= PW_GYM; scene++)
     {
         if (scene == PW_CAMPUS) continue;
         reset(); world.scene = scene;
         pw_point_t p = pw_node(scene, 3); world.x = p.x; world.y = p.y;
         pet_ui_update(&world); step(40);
+        if (scene == PW_CANTEEN)
+        {
+            lv_area_t life, order;
+            lv_obj_get_coords(control("看看"), &life);
+            lv_obj_get_coords(control("点餐"), &order);
+            assert(life.y1 > order.y2);
+        }
         press("看看"); assert(result == PW_OK);
         for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
         assert(world.phase == PW_ACTION && world.mood == 60);
         char name[64]; snprintf(name, sizeof(name), "shahe-life-%u.ppm", scene); screenshot(name);
         step(4000); assert(world.phase == PW_IDLE && world.mood == 62 && !world.memory_wins);
+        if (scene == PW_CANTEEN)
+        {
+            unsigned coins = world.wallet.coins;
+            press("点餐");
+            for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
+            step(550);
+            assert(world.phase == PW_SEATED && world.wallet.coins == coins);
+            assert(label_with(lv_screen_active(), "风味"));
+        }
     }
     for (unsigned mask = 0; mask < 8; mask++)
     {
@@ -1311,7 +1326,7 @@ int main(int argc, char **argv)
     }
     if (argc > 1 && !strcmp(argv[1], "--life-games"))
     {
-        new_life_and_challenges(true);
+        new_life_and_challenges();
         return 0;
     }
     if (argc > 1 && !strcmp(argv[1], "--badminton"))
@@ -1472,7 +1487,7 @@ int main(int argc, char **argv)
     album_demo();
     campus_extended_route();
     real_clock_previews();
-    new_life_and_challenges(false);
+    new_life_and_challenges();
     daily_checkin_ui();
     scroll_menus_and_curfew();
     activity_workstudy_windows();
