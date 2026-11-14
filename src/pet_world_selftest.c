@@ -536,15 +536,16 @@ static bool sports_cooldown(void)
 {
     pet_world_t w;
     campus_spawn(&w);
+    w.mood = 100;
     CHECK(pw_request(&w, PW_RUN) == PW_OK);
     pw_advance(&w, 4999);
     CHECK(pw_request(&w, PW_RUN) == PW_COOLDOWN);
     CHECK(pw_request(&w, PW_PULLUP) == PW_COOLDOWN);
     CHECK(pw_request(&w, PW_SITUP) == PW_COOLDOWN);
-    CHECK(w.food == 67 && w.mood == 66);
+    CHECK(w.food == 67 && w.mood == 100 && w.mood_gain == 0);
     pw_advance(&w, 1);
     CHECK(pw_request(&w, PW_PULLUP) == PW_OK);
-    CHECK(w.food == 65 && w.mood == 71);
+    CHECK(w.food == 65 && w.mood == 100 && w.mood_gain == 0);
     return true;
 }
 
@@ -818,6 +819,10 @@ static bool activity_and_workstudy(void)
     CHECK(pw_request(&w, PW_BADMINTON) == PW_COOLDOWN);
     w.now += PW_ACTIVITY_COOLDOWN_MS;
     CHECK(pw_request(&w, PW_BADMINTON) == PW_OK && w.mood == 59);
+    w.now += PW_ACTIVITY_COOLDOWN_MS;
+    w.mood = 100;
+    CHECK(pw_request(&w, PW_DANCE) == PW_FULL);
+    CHECK(pw_request(&w, PW_BADMINTON) == PW_OK && w.mood == 100 && w.mood_gain == 0);
     w.scene = PW_CLASSROOM; w.now += 1;
     unsigned coins = w.wallet.coins;
     CHECK(pw_request(&w, PW_WORKSTUDY) == PW_OK);

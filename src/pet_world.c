@@ -757,7 +757,6 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
             return reject(w, w->phase == PW_SLEEP ? PW_ASLEEP : PW_BUSY);
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
         if (w->cooldown[PW_WORKOUT] > w->now) return reject(w, PW_COOLDOWN);
-        if (w->mood >= 100) return reject(w, PW_FULL);
         int food = cmd == PW_RUN ? 3 : cmd == PW_PULLUP ? 2 : 1;
         int mood = cmd == PW_RUN ? 6 : cmd == PW_PULLUP ? 5 : 4;
         w->food = clamp_value(w->food - food);
@@ -785,7 +784,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         if (w->scene != PW_CAMPUS) return reject(w, PW_WRONG_ROOM);
         if (w->cooldown[PW_TOUCH] > w->now) return reject(w, PW_COOLDOWN);
         int gain = cmd == PW_DANCE ? PW_DANCE_MOOD : PW_BADMINTON_MOOD;
-        if (w->mood >= 100) return reject(w, PW_FULL);
+        if (cmd == PW_DANCE && w->mood >= 100) return reject(w, PW_FULL);
         int mood = w->mood;
         w->mood = clamp_value(mood + gain);
         w->cooldown[PW_TOUCH] = w->now + PW_ACTIVITY_COOLDOWN_MS;

@@ -817,6 +817,7 @@ static void new_life_and_challenges(void)
         press("×"); assert(world.phase == PW_IDLE);
         press(entries[k]); assert(result == PW_COOLDOWN && world.memory_wins == 1);
         world.cooldown[PW_MEMORY] = 0;
+        world.mood = 100;
         press(entries[k]);
         for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
         assert(world.phase == PW_MINIGAME);
@@ -1173,6 +1174,7 @@ static void teaching_buildings(void)
         const char *game_entry = cases[i].id == PW_LAB_BUILDING ? "修电路" :
             cases[i].id == PW_SMART_BUILDING ? "互动屏校准" : "投影抢答";
         unsigned before_cancel = world.wallet.coins;
+        world.mood = 100;
         press(game_entry);
         for (unsigned j = 0; j < 500 && world.phase == PW_WALK; j++) step(40);
         assert(world.phase == PW_MINIGAME);
@@ -1199,6 +1201,7 @@ static void teaching_buildings(void)
     world.y = gate.y;
     step(40);
     enter("教综楼", PW_CLASSROOM);
+    world.mood = 100;
     memory_demo();
     puts("[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS");
 }
@@ -1208,14 +1211,14 @@ static void start_badminton(void)
     reset();
     world.scene = PW_CAMPUS;
     world.phase = PW_IDLE;
-    world.mood = 50;
+    world.mood = 100;
     world.x = 790;
     world.y = 590;
     pet_ui_update(&world);
     step(40);
     tap_campus_point(715, 584);
     press("打羽毛球");
-    assert(world.mood == 54);
+    assert(result == PW_OK && world.mood == 100 && world.mood_gain == 0);
     assert(label_with(lv_screen_active(), "挥拍"));
 }
 
@@ -1265,12 +1268,13 @@ static void start_sport(const char *name)
     reset();
     world.scene = PW_CAMPUS;
     world.node = 7;
+    world.mood = 100;
     world.x = 220;
     world.y = 690;
     step(40);
     press("运动场");
     press(name);
-    assert(result == PW_OK);
+    assert(result == PW_OK && world.mood == 100 && world.mood_gain == 0);
 }
 
 static void sports_games(void)
