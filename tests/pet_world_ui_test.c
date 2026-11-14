@@ -817,6 +817,7 @@ static void new_life_and_challenges(void)
         press("×"); assert(world.phase == PW_IDLE);
         press(entries[k]); assert(result == PW_COOLDOWN && world.memory_wins == 1);
         world.cooldown[PW_MEMORY] = 0;
+        world.mood = 100;
         press(entries[k]);
         for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
         assert(world.phase == PW_MINIGAME);
@@ -1173,6 +1174,7 @@ static void teaching_buildings(void)
         const char *game_entry = cases[i].id == PW_LAB_BUILDING ? "修电路" :
             cases[i].id == PW_SMART_BUILDING ? "互动屏校准" : "投影抢答";
         unsigned before_cancel = world.wallet.coins;
+        world.mood = 100;
         press(game_entry);
         for (unsigned j = 0; j < 500 && world.phase == PW_WALK; j++) step(40);
         assert(world.phase == PW_MINIGAME);
@@ -1199,6 +1201,7 @@ static void teaching_buildings(void)
     world.y = gate.y;
     step(40);
     enter("教综楼", PW_CLASSROOM);
+    world.mood = 100;
     memory_demo();
     puts("[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS");
 }
@@ -1208,14 +1211,14 @@ static void start_badminton(void)
     reset();
     world.scene = PW_CAMPUS;
     world.phase = PW_IDLE;
-    world.mood = 50;
+    world.mood = 100;
     world.x = 790;
     world.y = 590;
     pet_ui_update(&world);
     step(40);
     tap_campus_point(715, 584);
     press("打羽毛球");
-    assert(world.mood == 54);
+    assert(result == PW_OK && world.mood == 100 && world.mood_gain == 0);
     assert(label_with(lv_screen_active(), "挥拍"));
 }
 
@@ -1265,17 +1268,30 @@ static void start_sport(const char *name)
     reset();
     world.scene = PW_CAMPUS;
     world.node = 7;
+    world.mood = 100;
     world.x = 220;
     world.y = 690;
     step(40);
     press("运动场");
     press(name);
-    assert(result == PW_OK);
+    assert(result == PW_OK && world.mood == 100 && world.mood_gain == 0);
 }
 
 static void sports_games(void)
 {
     start_sport("跑步");
+    press("×");
+    press("运动场");
+    press("引体向上");
+    assert(result == PW_COOLDOWN);
+    step(5000);
+    press("引体向上");
+    assert(result == PW_OK);
+    assert(label_with(lv_screen_active(), "引体向上  0 / 10"));
+
+    start_sport("跑步");
+    tap(190, 205);
+    assert(label_with(lv_screen_active(), "跑步  0 / 100"));
     tap(270, 407);
     assert(label_with(lv_screen_active(), "跑步  0 / 100"));
     tap(105, 407);
@@ -1287,6 +1303,8 @@ static void sports_games(void)
     press("×");
 
     start_sport("引体向上");
+    tap(100, 33);
+    assert(label_with(lv_screen_active(), "引体向上  0 / 10"));
     step(510);
     tap(190, 225);
     tap(190, 225);
@@ -1294,10 +1312,14 @@ static void sports_games(void)
     screenshot("sports-pull.ppm");
     step(20000);
     assert(label_with(lv_screen_active(), "时间到"));
+    tap(190, 225);
+    assert(label_with(lv_screen_active(), "时间到"));
     press("×");
 
     start_sport("仰卧起坐");
-    step(810);
+    tap(43, 267);
+    assert(label_with(lv_screen_active(), "仰卧起坐  0 / 12"));
+    step(650);
     tap(190, 269);
     tap(190, 269);
     assert(label_with(lv_screen_active(), "仰卧起坐  1 / 12"));

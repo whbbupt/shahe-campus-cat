@@ -142,6 +142,7 @@ static bool snapshot_ready(const pet_world_t *w)
 bool ps_visible_saved(const pet_save_t *s, const pet_world_t *w)
 {
     return s->enabled && s->has_saved && snapshot_ready(w) &&
+           s->saved[4] == SCHEMA &&
            s->saved[12] == w->food && s->saved[13] == w->mood &&
            s->saved[14] == (uint8_t)w->scene && saved_library(s->saved) == pw_in_library(w) &&
            sleeping(s->saved) == (w->phase == PW_SLEEP) && sound_mode(s->saved) == w->sound_mode && volume(s->saved) == w->volume &&
@@ -319,7 +320,7 @@ ps_result_t ps_poll(pet_save_t *s, const pet_world_t *w)
     uint8_t key[20], saved[20];
     visible_key(r, key);
     visible_key(s->saved, saved);
-    bool changed = !s->has_saved || memcmp(key, saved, sizeof(key)) != 0;
+    bool changed = !s->has_saved || s->saved[4] != SCHEMA || memcmp(key, saved, sizeof(key)) != 0;
     if (changed)
     {
         if (!s->pending || memcmp(s->pending_key, key, sizeof(key)))

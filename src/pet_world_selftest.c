@@ -532,6 +532,23 @@ static bool rebalanced_actions(void)
     return true;
 }
 
+static bool sports_cooldown(void)
+{
+    pet_world_t w;
+    campus_spawn(&w);
+    w.mood = 100;
+    CHECK(pw_request(&w, PW_RUN) == PW_OK);
+    pw_advance(&w, 4999);
+    CHECK(pw_request(&w, PW_RUN) == PW_COOLDOWN);
+    CHECK(pw_request(&w, PW_PULLUP) == PW_COOLDOWN);
+    CHECK(pw_request(&w, PW_SITUP) == PW_COOLDOWN);
+    CHECK(w.food == 67 && w.mood == 100 && w.mood_gain == 0);
+    pw_advance(&w, 1);
+    CHECK(pw_request(&w, PW_PULLUP) == PW_OK);
+    CHECK(w.food == 65 && w.mood == 100 && w.mood_gain == 0);
+    return true;
+}
+
 static bool gym_cycle(void)
 {
     pet_world_t w;
@@ -548,6 +565,7 @@ static bool gym_cycle(void)
     pw_advance(&w, (uint32_t)(w.action_end - w.now));
     CHECK(w.food == 64 && w.mood == 66 && w.gain == -6 && w.mood_gain == 6);
     CHECK(w.settlements[PW_WORKOUT] == 1 && w.phase == PW_IDLE);
+    CHECK(w.cooldown[PW_WORKOUT] - w.now == 15000);
     CHECK(pw_request(&w, PW_WORKOUT) == PW_COOLDOWN);
     CHECK(pw_request(&w, PW_EXIT) == PW_OK);
     pw_advance(&w, 9000);
@@ -801,6 +819,10 @@ static bool activity_and_workstudy(void)
     CHECK(pw_request(&w, PW_BADMINTON) == PW_COOLDOWN);
     w.now += PW_ACTIVITY_COOLDOWN_MS;
     CHECK(pw_request(&w, PW_BADMINTON) == PW_OK && w.mood == 59);
+    w.now += PW_ACTIVITY_COOLDOWN_MS;
+    w.mood = 100;
+    CHECK(pw_request(&w, PW_DANCE) == PW_FULL);
+    CHECK(pw_request(&w, PW_BADMINTON) == PW_OK && w.mood == 100 && w.mood_gain == 0);
     w.scene = PW_CLASSROOM; w.now += 1;
     unsigned coins = w.wallet.coins;
     CHECK(pw_request(&w, PW_WORKSTUDY) == PW_OK);
@@ -857,6 +879,7 @@ bool pw_selftest(void (*report)(const char *, bool))
                  {"memory-rounds-wrong-cancel-and-once", memory_rounds_and_guards},
                  {"rebalanced-actions-and-sleep-clamp", rebalanced_actions},
                  {"gym-access-workout-and-return", gym_cycle},
+                 {"sports-shared-five-second-cooldown", sports_cooldown},
                  {"takeout-delivery-guards-and-once", takeout_cycle},
                  {"album-unlock-once-and-takeout", album_unlock},
                  {"wrong-room-feedback", wrong_room_feedback},

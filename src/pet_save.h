@@ -5,8 +5,8 @@
 #define PS_RECORD_SIZE 64U
 #define PS_SECTOR_SIZE 4096U
 #define PS_AREA_SIZE (2U * PS_SECTOR_SIZE)
-/* Schema 12 records the library identity. Schemas 1 through 11 remain readable. */
-#define PS_SCHEMA 12U
+/* Schema 13 marks the one-time starting values update. Schemas 1–12 remain readable. */
+#define PS_SCHEMA 13U
 typedef enum { PS_OK, PS_EMPTY, PS_WAIT, PS_UNCHANGED, PS_IO_ERROR, PS_INVALID, PS_VERSION } ps_result_t;
 typedef struct
 {

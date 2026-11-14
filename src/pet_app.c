@@ -85,6 +85,12 @@ static void save_report(const char *name, bool ok)
 {
     rt_kprintf("[pet:SAVE-TEST] %s %s\n", name, ok ? "PASS" : "FAIL");
 }
+static void set_starting_values(void)
+{
+    world.wallet.coins = 100;
+    world.food = world.mood = 50;
+    world.food_elapsed = world.mood_elapsed = world.rest_elapsed = 0;
+}
 rt_err_t pet_app_start(void)
 {
     if (!pt_selftest(report) || !pg_selftest(report) || !pe_selftest(report) || !pw_selftest(report) || !ps_selftest(save_report) || !pa_selftest(audio_report))
@@ -94,10 +100,20 @@ rt_err_t pet_app_start(void)
     }
     rt_kprintf("[pet:WORLD] all PASS\n[pet:SAVE-TEST] all PASS (RAM only)\n");
     pw_init(&world);
+    set_starting_values();
     memset(&save, 0, sizeof(save));
     ps_io_t io;
     ps_result_t loaded = PS_IO_ERROR;
     if (ps_flash_io(&io)) loaded = ps_open(&save, io, &world);
+    unsigned initial_save = loaded == PS_OK ? PET_SAVE_SAVED :
+                            loaded == PS_EMPTY ? PET_SAVE_PENDING : PET_SAVE_UNAVAILABLE;
+    if (loaded == PS_OK && save.saved[4] < PS_SCHEMA)
+    {
+        set_starting_values();
+        ps_result_t updated = ps_save(&save, &world);
+        if (updated != PS_OK) initial_save = PET_SAVE_FAILED;
+        rt_kprintf("[pet:SAVE] starting-values upgrade result=%u\n", (unsigned)updated);
+    }
     pet_time_start(world.clock.trusted);
     world.clock=pet_time_snapshot();
     pet_audio_start(&world);
@@ -105,7 +121,7 @@ rt_err_t pet_app_start(void)
     fraction = display_elapsed = 0;
     pet_ui_create(command);
     pet_ui_set_point_handler(walk_to);
-    show_save(loaded == PS_OK ? PET_SAVE_SAVED : (loaded == PS_EMPTY ? PET_SAVE_PENDING : PET_SAVE_UNAVAILABLE));
+    show_save(initial_save);
     pet_ui_set_audio_available(pet_audio_available());
     pet_ui_update(&world);
     rt_kprintf("[pet:SAVE] load=%u seq=%u scene=%u food=%u mood=%u sleeping=%u\n", (unsigned)loaded,
