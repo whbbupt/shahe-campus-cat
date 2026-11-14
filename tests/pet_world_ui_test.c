@@ -1276,6 +1276,16 @@ static void start_sport(const char *name)
 static void sports_games(void)
 {
     start_sport("跑步");
+    press("×");
+    press("运动场");
+    press("引体向上");
+    assert(result == PW_COOLDOWN);
+    step(5000);
+    press("引体向上");
+    assert(result == PW_OK);
+    assert(label_with(lv_screen_active(), "引体向上  0 / 10"));
+
+    start_sport("跑步");
     tap(270, 407);
     assert(label_with(lv_screen_active(), "跑步  0 / 100"));
     tap(105, 407);

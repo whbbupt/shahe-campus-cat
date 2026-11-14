@@ -763,7 +763,7 @@ static pw_result_t request_base(pet_world_t *w, pw_command_t cmd)
         w->food = clamp_value(w->food - food);
         int old_mood = w->mood;
         w->mood = clamp_value(w->mood + mood);
-        w->cooldown[PW_WORKOUT] = w->now + PW_WORKOUT_COOLDOWN_MS;
+        w->cooldown[PW_WORKOUT] = w->now + 5000;
         w->activity_kind = cmd == PW_RUN ? 6 : cmd == PW_PULLUP ? 7 : 8;
         w->activity_start = w->now;
         w->activity_until = w->now + 1200;
