@@ -1,0 +1,26 @@
+黄山派 v0.20.0 语音集成验证，2026-11-12
+
+目标构建
+- SDK v2.5.1 / 421126d9，arm-none-eabi-gcc 14.2.1。
+- python scripts/build_firmware.py -j12，退出 0。
+- main.bin 6,042,692 字节，SHA-256 417A058D0C00FF63B9205AF1E701549D2F4CE964CDC8BA380BAAC2C4BFC38604。
+- ROM 6,172,832 / 8,388,608 字节。静态 SRAM 273,072 / 523,264 字节。
+- ELF 内 Opus/TLS 池为 0x60000000 起 1 MiB。SDK 图形私有堆为 0x60100000 起 4 MiB，分区边界及堆布局检查通过。运行时峰值和音频时序待板上验证。
+- 嵌入 LCPU 镜像与本次构建 lcpu.bin 内容一致，检查通过。
+- CodeKit ImgBurnList.ini 与 sftool_param.json 三镜像地址一致。计算 4 KiB 扇区上界后，主程序终点 0x125E4000，存档、BLE 区域不相交。ZIP 内容和 CRC 检查通过。
+
+实际主机检查
+- [host:voice-ui] navigation, unavailable, pairing, activation, press/release and stop PASS
+- [host:audio-driver] live volume/zero, no stale cue on unmute, restored volume, voice handoff and failures PASS (13 cases)
+- [host:audio-driver] thread creation failure remains unavailable across toggles PASS
+- [host:voice-ws] real frame functions: split input, fragments, ping/pong, masking, extended lengths and malformed headers PASS
+- 需求追踪通过，源码和下载件的地址核对结果见同目录构建元数据。
+
+真实失败及处理
+- 手工调用 SDK 环境缺少 PYTHONPATH，SConstruct 无法导入 building。补齐 SDK tools/build 后重试。
+- 初次 Kconfig 未定义 BT_USING_PAIRING_CONFIRMATION。该选项来自外设实验的项目级 Kconfig，补入相同定义。
+- 初次链接找不到 mbedtls_net_set_nonblock。改用 lwIP 的非阻塞 socket、有限连接时间和 MbedTLS 读写回调。
+- MbedTLS 默认未启用可替换分配器。通过 SDK 的组级本地编译宏启用，仅在本工程把 TLS/Opus 分配接到 PSRAM 池。
+- 打包脚本最初将启动行误当单一字面值，核对固件中格式串及 v0.20.0 字符串后修正并重验。
+
+TC-304、TC-305 的真机部分待执行。未烧录，未执行实机联网、小智激活、三轮试聊或 BLE 校时。

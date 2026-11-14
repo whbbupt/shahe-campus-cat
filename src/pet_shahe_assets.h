@@ -14,6 +14,7 @@ extern const lv_image_dsc_t shahe_front_2;
 extern const int16_t shahe_front_2_xy[2];
 extern const lv_image_dsc_t shahe_room_3;
 extern const lv_image_dsc_t shahe_library_room;
+extern const lv_image_dsc_t shahe_badminton_room;
 extern const lv_image_dsc_t shahe_public_room;
 extern const lv_image_dsc_t shahe_lab_room;
 extern const lv_image_dsc_t shahe_smart_room;
@@ -56,4 +57,6 @@ extern const lv_image_dsc_t shahe_ground_22;
 extern const lv_image_dsc_t shahe_ground_23;
 extern const lv_image_dsc_t shahe_ground_24;
 extern const lv_image_dsc_t *const shahe_ground[25];
+extern const lv_image_dsc_t *const shahe_sports_courts[3];
+extern const lv_image_dsc_t *const shahe_sports_poses[4];
 #endif

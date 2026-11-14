@@ -1,0 +1,260 @@
+
+udio audiosvr: need init tx=0 rx=1
+
+[38122474] I/audio audiosvr: (tx rx): ch[0,1] rate(0 16000)
+
+[38122501] I/audio audiosvr: config_rx mic=0
+
+[38122518] I/audio audiosvr: non modem config rx--set callback
+
+[38122543] I/audio audiosvr: codec input parameter:sub_type=4 channels 1, rate 16000, bits 16
+
+[38122578] I/audio audiosvr: mic0: channels 1, type=0 rate 16000, bitwidth 16
+
+get_mic_volume = 12db
+
+get_mic_volume = 12db
+
+[38122625] I/audio audiosvr: start_rx need_adc_rx=1
+
+[38122716] I/drv.audcodec audiosvr: pll config state:1, samplerate:0 
+
+
+get_mic_volume = 12db
+
+20:12:35
+RX
+[38123511] I/audio audiosvr: audio_device_speaker_open out
+
+[38123534] I/audio audiosvr: hardware_device_open out: rx=1 tx=0 b=1
+
+[38123560] I/audio audiosvr: callback opened ok
+
+[38123578]
+20:12:35
+RX
+ I/audio audiosvr: audio_device_open out
+
+[38123597] I/audio audiosvr: device 0 info reg=1 busy=1:
+
+[38123618] I/audio audiosvr: running: d=0 h=200535dc name=record type=6 rw=2 device_s=0 device_u=0 prio=93
+
+[38123657] I/
+20:12:35
+RX
+audio audiosvr: device 0 info end
+
+[38123675] I/audio audiosvr:
+20:12:35
+RX
+ audio_client_start out
+
+20:12:35
+RX
+[38123983] I/audio pet_voic: aud
+20:12:35
+RX
+io_open ret=0x200535dc
+
+20:12:35
+RX
+ sp: 0x2004b030
+psr: 0x61000200
+20:12:35
+RX
+
+r00: 0x60015994
+r01: 0x2004c118
+r02: 0x2004c12c
+r03: 0x00000000
+r04: 0x60015994
+r05: 0x60015100
+r06: 0x00000000
+r07: 0x2004b7f8
+r08: 0x60016bd0
+r09: 0x00003b60
+r10: 0x60015994
+r11: 0x60016994
+r12: 0x00003b60
+ lr: 0x120e31a7
+ pc: 0x120e6b9a
+hard fault on thread: pet_voic
+
+
+
+=====================
+PSP: 0x2004af9c, MSP: 0x20001fbc
+===================
+Thread Info 
+20:12:35
+RX
+       
+===================
+thread   pri  status      sp      top     stack size max used left tick  error
+-------- ---  ----
+20:12:35
+RX
+--- ---------- ---------- ----------  ------  ---------- ---
+bts       12  suspend 0x20054bd0 0x20054ce0 0x00000c00    49%   0x
+20:12:35
+RX
+0000000a 000
+KE_EVT3   10  suspend 0x20052e08 0x20052e7c 0x00000400    38%   0x00000002 000
+KE_EVT0   25  suspend 0x200529f8 0
+20:12:35
+RX
+x20052a6c 0x00000400    11%   0x00000014 000
+KE_EVT2   12  suspend 0x200525e8 0x2005265c 0x0000
+20:12:35
+RX
+1000    18%   0x00000002 000
+pet_ble   21  suspend 0x2004db60 0x2004dd14 0x00001000    21%   0x00000009 000
+pet_voic  20  read
+20:12:35
+RX
+y   0x2004b7c0 0x2004c79c 0x00002800    67%   0x00000006 000
+pet_sfx   18  suspend 0x20049718 0
+20:12:35
+RX
+x20049a84 0x00001000    21%   0x0000000a 000
+tpread    10  suspend 0x2001cb28 0x2001cbac 0x0000
+20:12:35
+RX
+0400    37%   0x00000009 000
+lcd_task  12  suspend 0x2001c6d0 0x2001c7ac 0x00000800    30%   0x
+20:12:35
+RX
+00000003 000
+tshell    20  suspend 0x20047630 0x20047724 0x00001000    07%   0x0000000a 000
+bt_downv  11  suspend 0x20020660 0x200206f4 0x00001598    07%   0x
+20:12:35
+RX
+0000000a 000
+audiosvr  11  suspend 0x20022a18 0x20022af4 0x00002400    09%   0x00000006 000
+tcpip     10  suspend 0x20045d98 0x20045e30 0x00001000    14%   0x
+20:12:35
+RX
+00000006 000
+etx       12  suspend 0x2003c5e0 0x2003c65c 0x00000400    18%   0x0000000b 000
+er
+20:12:35
+RX
+x       12  suspend 0x2003c100 0x2003c188 0x00000400    13%   0x00000010 000
+tidle     31  ready   0x200322f8 0x20032350 0x0000
+20:12:35
+RX
+0200    22%   0x0000001d 000
+timer      4  suspend 0x2001cf30 0x2001cfac 0x00000400    12%   0x
+20:12:35
+RX
+00000009 000
+main      19  suspend 0x20044b90 0x20044ccc 0x00002000    65%   0x00000003 000
+===================
+Mailbox Info 
+20:12:35
+RX
+      
+===================
+mailbox entry size suspend thread
+------- ----  ---- -------------
+20:12:35
+RX
+-
+mbox4   0000  0010 0
+mbox0   0000  0008 1:tcpip
+etxmb   0000  0008 1:etx
+erxmb   0000  0008 1:erx
+===================
+Me
+20:12:35
+RX
+ssageQueue Info  
+===================
+msgqueue entry suspend thread
+-------- ----  --------------
+pet_ble  0000  1:pet_ble
+20:12:35
+RX
+vc_bt    0000  0
+drv_lcd  0000  1:lcd_task�
+===================
+Mutex Info         
+===================
+mutex      owner  h
+20:12:35
+RX
+old suspend thread
+-------- -------- ---- --------------
+idle_tim (NULL)   0000 0
+bts2_mu  (NULL)   0000 0
+bts2_mu  (NULL)   0000 0
+bts2_mu  (NULL)   0000 0
+ble_flas (NULL)   0000 0
+vc_view  (NULL)   0000 0
+pet_sfx  (NULL)   0000 0
+tplck    (NULL)   0000 0
+audio_sv (NULL)   0000 0
+rgb_drv  (NULL)   0000 0
+rtc      (NULL)   0000 0
+ulog loc (NULL)   0000 0
+mu0      (NULL)   0000 0
+fslock   (NULL)   0000 0
+i2c_bus_ (NULL)   0000 0
+i2c_bus_ (NULL)   0000 0
+i2c_bus_ (NULL)   0000 0
+===========
+20:12:35
+RX
+========
+Semaphore Info     
+===================
+semaphore v   suspend thread
+-------- --- --------------
+sem12    000 0
+bts2_ev  000 1:bts
+KE       000 1:KE_EVT3
+KE       000 1:KE_EVT0
+ke_mem_e 001 0
+ke_mem_e 001 0
+ke_mem_e 001 0
+ke_mem_e 001 0
+KE       000 1:KE_EVT2
+sifli    000 0
+tp_ctrl  001 0
+lv_lcd   001 0
+lcd_msg  000 0
+lcd_draw 000 0
+drv_lcd  001 0
+shrx     000 0
+epic     001 0
+lv_psram 001 0
+ft6146   000 1:tpread
+vc_heap  001 0
+aes_drv  001 0
+drv_eDma 001 0
+gpadc    001 0
+i2c4     000 0
+i2c2     000 0
+i2c1     000 0
+heap     001 0
+flash2   001 0
+===================
+Memory Info     
+===================
+total memory: 250112 used memory : 79184 maximum allocated memory: 81420
+===================
+MemoryHeap Info    
+20:12:35
+RX
+ 
+===================
+memheap   pool size  max used size available size
+-------- ---------- ------------- --------------
+lv_psram 4194304    578096        3619828
+vc_heap  1048576    107676        940900
+No such directory
+dfs_statfs failed.
+FPU active!
+
+usage fault:
+SCB_CFSR_UFSR:0x10 STKOF 

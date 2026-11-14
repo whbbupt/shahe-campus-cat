@@ -64,6 +64,23 @@ int audio_write(audio_client_t c,uint8_t *data,uint32_t n)
 void rt_thread_mdelay(int ms)
 {
     assert(!locks);ticks+=(unsigned)ms;
+    if (scenario == 12)
+    {
+        if (writes == 3 && live && !resumed_tick) pet_audio_voice_pause(true);
+        if (!live && writes == 3 && !resumed_tick && pet_audio_voice_parked())
+        {
+            assert(volume == 7 && closes == 1);
+            resumed_tick = ticks;
+            pet_audio_voice_pause(false);
+            assert(!pet_audio_voice_parked());
+        }
+        if (opens == 2 && writes >= 6 && live)
+        {
+            world.sound_mode = 0;
+            pet_audio_sync(&world);
+        }
+        if (!live && opens == 2) longjmp(done, 1);
+    }
     if (scenario==11) {
         if (!resumed_tick && writes>=3) {
             world.volume=0;pet_audio_sync(&world);
@@ -105,6 +122,7 @@ static void run(unsigned which)
     assert(!live && opens==closes && volume==7 && !locks);
     if(which==1) assert(writes>1 && ticks>=300 && !pet_audio_available());
     if(which==0 || which==2) assert(writes>40 && pet_audio_available());
+    else if(which==12) assert(writes==6 && opens==2 && pet_audio_available());
     else if(which==11) assert(writes==3 && opens==1 && world.volume==5 && pet_audio_available());
     else if(which==10) assert(writes>=30 && opens==1 && world.volume==0 &&
         (volume_seen&(1U<<8)) && (volume_seen&(1U<<2)) && pet_audio_available());
@@ -125,7 +143,7 @@ int main(int argc, char **argv)
         return 0;
     }
     assert(entry && pet_audio_available() && !live);
-    for(unsigned i=0;i<12;i++) run(i);
-    puts("[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume and failures PASS (12 cases)");
+    for(unsigned i=0;i<13;i++) run(i);
+    puts("[host:audio-driver] live volume/zero, no stale cue on unmute, restored volume, voice handoff and failures PASS (13 cases)");
     return 0;
 }

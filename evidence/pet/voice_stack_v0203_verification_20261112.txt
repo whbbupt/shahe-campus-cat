@@ -1,0 +1,13 @@
+v0.20.2 真机证据：voice_record_stkof_v0202_20261112_user.txt（用户附件原字节）。
+用同版 main.bin SHA-256 B1CE51F8B1D71048399E98EB57E563286CFA023C8B7CFD0B0065373E7AB8BCB2 和 main.elf 交叉检查。
+PC 0x120e6b9a = silk_encode_frame_FIX, encode_frame_FIX.c:93；LR 0x120e31a6 = silk_Encode, enc_API.c:510。
+故障指令 sub.w sp, sp, #9408；下一条还要减 36。旧线程总栈 0x2800；故障日志为 SCB_CFSR_UFSR:0x10 STKOF。
+
+v0.20.3 目标构建 python scripts/build_firmware.py 退出 0。
+arm-none-eabi-nm 与反汇编：应用将 40960 字节的静态缓冲传给 rt_thread_init，再调用 rt_thread_startup。
+PSRAM 半开区间：栈 [0x60000000, 0x6000A000)、语音堆 [0x6000A000, 0x6010A000)、LVGL 图形堆 [0x6010A000, 0x6050A000)。均 8 字节对齐且不重叠。
+main.bin 6,242,092 字节；ROM 6,372,748 / 8,388,608 字节；静态 SRAM 273,252 字节。
+main.bin SHA-256 4C6A37DB6D14E35F358484833AC0A73CCEE3B8F2C843AD56300473773BF58E91。
+ZIP SHA-256 16B1F09458B18C70A5A357F64A7558BC51448274C1B1BDB24D75079A0B24FE94。
+ZIP CRC、逐文件字节、三镜像地址、4 KiB 擦写范围检查通过。主程序擦写结束地址（不含）0x12614000，未触及 BLE 或 PET_SAVE 区。
+未操作硬件。新版实际栈峰值、录音上传、云端回复和连续对话由学生按 TC-310 复测。

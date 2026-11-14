@@ -1,0 +1,41 @@
+来源：用户在 2026-11-12 对话中粘贴的串口片段。开头缺失，保留监视器分段。
+
+very result=0
+19:31:22
+RX
+[pet:VO
+19:31:22
+RX
+ICE] scan mode=3
+19:31:28
+RX
+[pet:BLE:STATUS] 15s version=0.2
+19:31:28
+RX
+0.1 tick=16370 stage=advertising result=0
+[pet:BLE:STATUS] call
+19:31:28
+RX
+backs=7 power=1 queued=2 handled
+19:31:28
+RX
+=2 loops=136
+[pet:BLE:STATUS] l
+19:31:28
+RX
+ast_cb=0x002E last_handled=0xF10
+19:31:28
+RX
+0 recv=-2 adv_events=1 adv_result=0 fault=0
+[pet:CTS] query sta
+19:31:28
+RX
+ge=idle reason=idle sdk=0 conn=2
+19:31:28
+RX
+55 requested=0 encrypted=0
+
+用户补充：“iphone 已配对 就是不显示voice”
+用户澄清：“我确定就是说现在那个800是ble模式 然后的话那个voice是热点 的现在跟800没关系啊”
+
+串口确认 v0.20.1 与扫描模式 3。没有收到本地名称确认行、经典蓝牙配对成功或 PAN 联网日志。用户确认该 iPhone 仍搜不到语音设备。

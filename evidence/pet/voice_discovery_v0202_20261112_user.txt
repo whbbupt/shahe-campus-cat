@@ -1,0 +1,16 @@
+来源：用户在 2026-11-12 发来的 20:01:34 串口片段。以下摘录将监视器分割的同行拼接，省略时间和 RX 标记。
+
+[16475337] I/btapp_ge bts: << Local device name changed!
+[pet:VOICE] requested classic name=ShaheCat Talk
+[16475489] I/btapp_ge bts: << Local device name: ShaheCat Talk
+[16475564] I/btapp_ge bts: << Write eir data success!
+[16475927] I/btapp_ge bts: << Scan mode: 3
+[16475944] I/btapp_ge bts: <<            Inquiry scan enbd.
+<<            Page scan enbd.
+[pet:VOICE] request discovery result=0
+[pet:VOICE] scan mode=3
+[pet:VOICE] scan mode=3
+
+控制器读回新名称，扩展查询响应写入成功，查询和寻呼扫描均已启用。本段没有 iPhone 搜索结果、配对成功或 PAN 联网证据。
+
+后续对话：问 iPhone「其他设备」里是否出现 `ShaheCat Talk`，用户回复「no」。同一台 iPhone 仍未发现；第二台手机结果未提供。

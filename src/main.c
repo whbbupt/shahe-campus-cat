@@ -2,10 +2,15 @@
  * Display init follows SDK example/multimedia/lvgl/lvgl_v9_demos (Apache-2.0).
  */
 #include "rtthread.h"
+#include "rtdevice.h"
+#include "bf0_hal.h"
+#include "drv_io.h"
 #include "littlevgl2rtt.h"
 #include "pet_app.h"
 #include "pet_ble.h"
+#include "pet_voice.h"
 #include "pet_ui.h"
+#include "pet_key2.h"
 
 #include "pet_version.h"
 #define APP_VERSION PET_FIRMWARE_VERSION
@@ -27,12 +32,26 @@ int main(void)
     result = pet_app_start();
     if (result != RT_EOK)
         return result;
+    pet_voice_start();
     result = pet_ble_start();
     if (result != RT_EOK)
         rt_kprintf("[pet:BLE] worker start failed=%d; pet continues\n", result);
+    /* Yellow board KEY2, as in the verified peripheral lab. */
+    HAL_PIN_Set(PAD_PA43, GPIO_A43, PIN_NOPULL, 1);
+    rt_pin_mode(BSP_KEY2_PIN, PIN_MODE_INPUT);
+    pet_key2_t key2;
+    pet_key2_init(&key2, rt_pin_read(BSP_KEY2_PIN) == BSP_KEY2_ACTIVE_HIGH, lv_tick_get());
+    bool key2_ok = pet_key2_selftest();
+    rt_kprintf("[pet:KEY2] selftest %s\n", key2_ok ? "PASS" : "FAIL");
     while (1)
     {
         pet_app_poll();
+        if (key2_ok)
+        {
+            pet_key2_event_t key = pet_key2_sample(&key2,
+                rt_pin_read(BSP_KEY2_PIN) == BSP_KEY2_ACTIVE_HIGH, lv_tick_get());
+            if (key != PET_KEY2_NONE) pet_ui_key2(key);
+        }
         pet_ble_poll();
         pet_time_request_t request;
         if(pet_ble_take_time_request(&request)) {

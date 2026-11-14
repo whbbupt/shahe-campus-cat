@@ -1,5 +1,6 @@
 /* Room views and continuous campus camera. Model owns movement and settlement. */
 #include "pet_ui.h"
+#include "pet_voice.h"
 #include "lvgl.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
@@ -44,8 +45,12 @@ enum
     TAG_BADMINTON_CLOSE,
     TAG_LIBRARY_SHELF = 360,
     TAG_BOOK_FIRST,
+    TAG_VOICE = 370,
+    TAG_VOICE_BACK,
+    TAG_VOICE_ACTION,
     TAG_SPORTS_ACTION = 350,
     TAG_SPORTS_CLOSE,
+    TAG_SPORTS_RIGHT,
     TAG_COLLEGE_FIRST = 340,
     TAG_FOOD_FIRST = 320
 };
@@ -62,6 +67,11 @@ static struct
     lv_obj_t *tone, *lamplight, *clock_text, *clock_date;
     int light_scene, light_band;
     lv_obj_t *layer, *food, *mood, *food_fill, *mood_fill, *state, *save_note;
+    lv_obj_t *voice_entry, *voice_page, *voice_status, *voice_detail;
+    lv_obj_t *voice_mic, *voice_action, *voice_action_text, *voice_wave[7];
+    lv_obj_t *voice_volume_panel, *voice_volume_text, *voice_volume_bar[PV_VOLUME_COUNT];
+    uint64_t voice_volume_until;
+    bool voice_open;
     lv_obj_t *status_button, *bubble_text, *decor, *phone, *bag;
     lv_obj_t *audio_label, *audio_note, *volume_text, *link_detail, *link_name;
     lv_obj_t *status_dialog, *order_dialog, *order_note, *order_save, *order_button;
@@ -77,23 +87,30 @@ static struct
     lv_obj_t *menu_name[PE_MENU_COUNT], *menu_image[PE_MENU_COUNT];
     lv_obj_t *blackboard, *memory_dialog, *memory_note, *memory_round, *memory_tile[4], *memory_footer;
     lv_obj_t *memory_title, *memory_symbol[4], *game_entry_label, *life_hit;
-    lv_obj_t *challenge_track, *challenge_cursor;
-    lv_obj_t *teaching_controls, *projection_pattern, *puzzle_tile[PG_GRID_CELLS], *puzzle_label[PG_GRID_CELLS];
+    lv_obj_t *memory_icon[4], *projection_icon[PG_PROJECTION_STEPS];
+    lv_obj_t *find_icon[4], *meal_icon[4];
+    lv_obj_t *challenge_track, *challenge_cursor, *rhythm_beats[6];
+    lv_obj_t *teaching_controls, *projection_pattern, *puzzle_tile[PG_GRID_CELLS], *puzzle_icon[PG_GRID_CELLS];
     lv_obj_t *circuit_wire[PG_CIRCUIT_LINKS], *circuit_trace;
+    lv_point_precise_t circuit_points[PG_CIRCUIT_LINKS][2];
     lv_obj_t *album_button, *album_dialog, *album_note, *album_footer, *album_list;
     lv_obj_t *album_row[12], *album_name[12], *album_status[12], *album_image[12];
     lv_obj_t *activity_dialog, *work_button, *canteen_order, *context_button, *context_label;
     lv_obj_t *sports_dialog, *sports_game_dialog, *sports_run_layer, *sports_pull_layer, *sports_sit_layer;
-    lv_obj_t *sports_action, *sports_action_label, *sports_score_label, *sports_timer, *sports_prompt, *sports_marker, *sports_runner;
+    lv_obj_t *sports_action, *sports_right, *sports_score_label, *sports_timer, *sports_prompt, *sports_marker;
+    lv_obj_t *sports_cat[3];
     bool sports_active, sports_finished;
-    unsigned sports_mode, sports_score, sports_target, sports_distance;
-    uint32_t sports_until, sports_next;
+    unsigned sports_mode, sports_score, sports_target, sports_distance, sports_last_cycle;
+    uint64_t sports_started, sports_until, sports_feedback;
     lv_obj_t *badminton_dialog, *badminton_score, *badminton_timer, *badminton_hit, *badminton_note;
+    lv_obj_t *badminton_zone, *badminton_shuttle, *badminton_action, *badminton_racket, *badminton_rival_racket;
     lv_obj_t *library_shelf, *library_panel, *library_book_name[5], *library_book_button[5];
     uint8_t library_borrowed;
-    bool badminton_active, badminton_finished;
-    uint32_t badminton_next, badminton_until, badminton_shuttle_until, badminton_seed;
-    unsigned badminton_player, badminton_rival, badminton_rallies;
+    struct {
+        uint64_t started, ends, early_until;
+        unsigned phase, travel, player, rival;
+        int impact_x, impact_y;
+    } badminton;
     uint8_t building_id;
     unsigned pending_window;
 } ui;
@@ -183,144 +200,319 @@ static void visible(lv_obj_t *o, bool show)
     else
         lv_obj_add_flag(o, LV_OBJ_FLAG_HIDDEN);
 }
-static void badminton_scores(void)
+
+static void game_icon(lv_obj_t *icon, unsigned shape, uint32_t color)
 {
-    set_label_fmt(ui.badminton_score, "你 %u : %u 对手", ui.badminton_player, ui.badminton_rival);
-    set_label_fmt(ui.badminton_timer, "第 %u/10 球 · 剩余 %u 秒", ui.badminton_rallies,
-                  (unsigned)((ui.badminton_until > ui.world.now ? ui.badminton_until - ui.world.now : 0) / 1000));
-}
-static void badminton_start(void)
-{
-    ui.badminton_active = true; ui.badminton_finished = false; ui.panel = PANEL_BADMINTON;
-    ui.badminton_player = ui.badminton_rival = ui.badminton_rallies = 0;
-    ui.badminton_until = ui.world.now + 30000;
-    ui.badminton_next = ui.world.now + 800;
-    ui.badminton_shuttle_until = 0;
-    ui.badminton_seed = (uint32_t)(ui.world.now * 2654435761u + 1u);
-    badminton_scores();
-    set_label(ui.badminton_note, "第一人称 · 点中飞来的羽毛球");
-    visible(ui.badminton_hit, false);
-}
-static void badminton_hit_event(void)
-{
-    if (!ui.badminton_active || !ui.badminton_shuttle_until) return;
-    ui.badminton_player++; ui.badminton_rallies++;
-    ui.badminton_shuttle_until = 0; ui.badminton_next = ui.world.now + 650;
-    visible(ui.badminton_hit, false); badminton_scores();
-}
-static void badminton_tick(void)
-{
-    if (!ui.badminton_active) return;
-    uint64_t now = ui.world.now;
-    if (now >= ui.badminton_until || ui.badminton_rallies >= 10)
-    {
-        ui.badminton_active = false; ui.badminton_finished = true;
-        visible(ui.badminton_hit, false);
-        set_label_fmt(ui.badminton_note, "结束：你 %u : %u 对手", ui.badminton_player, ui.badminton_rival);
-        badminton_scores();
-        return;
-    }
-    if (ui.badminton_shuttle_until && now > ui.badminton_shuttle_until)
-    {
-        ui.badminton_rival++; ui.badminton_rallies++;
-        ui.badminton_shuttle_until = 0; ui.badminton_next = now + 700;
-        visible(ui.badminton_hit, false); badminton_scores();
-        return;
-    }
-    if (!ui.badminton_shuttle_until && now >= ui.badminton_next)
-    {
-        ui.badminton_seed = ui.badminton_seed * 1664525u + 1013904223u;
-        lv_obj_set_pos(ui.badminton_hit, 45 + (int)((ui.badminton_seed >> 16) % 260), 68);
-        visible(ui.badminton_hit, true);
-        ui.badminton_shuttle_until = now + 1200;
-    }
-    if (ui.badminton_shuttle_until)
-    {
-        uint64_t started = ui.badminton_shuttle_until - 1200;
-        int y = 68 + (int)((now - started) * 132 / 1200);
-        lv_obj_set_y(ui.badminton_hit, y);
-    }
+    lv_obj_set_style_radius(icon, shape == 0 || shape == 3 ? LV_RADIUS_CIRCLE : 3, 0);
+    lv_obj_set_style_transform_rotation(icon, shape == 2 ? 450 : 0, 0);
+    lv_obj_set_style_bg_color(icon, lv_color_hex(color), 0);
+    lv_obj_set_style_bg_opa(icon, shape == 3 ? LV_OPA_TRANSP : LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(icon, shape == 3 ? 3 : 0, 0);
+    lv_obj_set_style_border_color(icon, lv_color_hex(color), 0);
 }
 
-static void sports_scores(void)
+static lv_obj_t *new_game_icon(lv_obj_t *parent, int size)
 {
-    set_label_fmt(ui.sports_score_label, "%s  %u", ui.sports_mode == 1 ? "跑道" : ui.sports_mode == 2 ? "引体" : "仰卧",
-                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
-    set_label_fmt(ui.sports_timer, "剩余 %u 秒", (unsigned)((ui.sports_until > ui.world.now ? ui.sports_until - ui.world.now : 0) / 1000));
+    lv_obj_t *icon = box(parent, 0, 0, size, size, INK, 3);
+    lv_obj_set_style_transform_pivot_x(icon, size / 2, 0);
+    lv_obj_set_style_transform_pivot_y(icon, size / 2, 0);
+    lv_obj_center(icon);
+    return icon;
 }
-static void sports_show(unsigned mode)
+
+static const uint32_t game_colors[] = {0xBC5149, 0x3D65A2, 0x287A6A, 0x956629};
+static const unsigned challenge_dishes[] = {0, 3, 4, 5};
+
+static lv_obj_t *find_object(lv_obj_t *parent, unsigned kind)
 {
-    visible(ui.sports_run_layer, mode == 1);
-    visible(ui.sports_pull_layer, mode == 2);
-    visible(ui.sports_sit_layer, mode == 3);
-    set_label(ui.sports_action_label, mode == 1 ? "加速跑" : mode == 2 ? "向上拉" : "起身");
-}
-static void sports_start(int cmd)
-{
-    if (!ui.action || ui.action((pw_command_t)cmd) != PW_OK) return;
-    ui.sports_active = true; ui.sports_finished = false; ui.panel = PANEL_SPORTS_GAME;
-    ui.sports_mode = cmd == PW_RUN ? 1 : cmd == PW_PULLUP ? 2 : 3;
-    ui.sports_score = 0; ui.sports_target = 1; ui.sports_distance = 0;
-    ui.sports_until = ui.world.now + 20000; ui.sports_next = ui.world.now + 700;
-    sports_show(ui.sports_mode);
-    lv_obj_set_pos(ui.sports_runner, 38, 246);
-    set_label(ui.sports_prompt, ui.sports_mode == 1 ? "快速点击，跑到 100 米" : ui.sports_mode == 2 ? "在绿区点击向上拉" : "看字：起 / 卧");
-    sports_scores();
-}
-static void sports_end(void)
-{
-    ui.sports_active = false; ui.sports_finished = true;
-    set_label_fmt(ui.sports_prompt, "结束：%s %u", ui.sports_mode == 1 ? "跑了" : ui.sports_mode == 2 ? "拉了" : "做了",
-                  ui.sports_mode == 1 ? ui.sports_distance : ui.sports_score);
-    set_label(ui.sports_action_label, "关闭");
-    sports_scores();
-}
-static void sports_tick(void)
-{
-    if (!ui.sports_active) return;
-    uint64_t now = ui.world.now;
-    if (now >= ui.sports_until) { sports_end(); return; }
-    if (ui.sports_mode == 2)
+    lv_obj_t *icon = box(parent, 0, 0, 52, 52, PAPER, 0);
+    lv_obj_set_style_bg_opa(icon, LV_OPA_TRANSP, 0);
+    if (kind == 0)
     {
-        int y = 90 + (int)((now / 28) % 150);
-        lv_obj_set_y(ui.sports_marker, y);
+        box(icon, 12, 12, 24, 30, 0x397A93, 6);
+        box(icon, 33, 16, 10, 15, 0x397A93, 4);
+        box(icon, 35, 19, 5, 8, 0xDCEAF3, 2);
+        box(icon, 16, 15, 16, 4, 0xA6D6DF, 2);
     }
-    else if (ui.sports_mode == 3 && now >= ui.sports_next)
+    else if (kind == 1)
     {
-        ui.sports_target ^= 1;
-        ui.sports_next = now + 800;
-        set_label(ui.sports_prompt, ui.sports_target ? "起！" : "卧！");
+        box(icon, 9, 11, 34, 31, 0xAD5C46, 4);
+        box(icon, 14, 11, 12, 25, 0xF6E7C5, 2);
+        box(icon, 27, 11, 12, 25, 0xFFF3D7, 2);
     }
-}
-static void sports_hit(void)
-{
-    if (!ui.sports_active)
+    else if (kind == 2)
     {
-        if (ui.sports_finished) { ui.sports_finished = false; ui.panel = PANEL_NONE; }
-        return;
-    }
-    if (ui.sports_finished) return;
-    if (ui.sports_mode == 1)
-    {
-        ui.sports_distance += 7;
-        if (ui.sports_distance > 100) ui.sports_distance = 100;
-        lv_obj_set_x(ui.sports_runner, 38 + (int)ui.sports_distance * 3);
-        if (ui.sports_distance >= 100) sports_end();
-    }
-    else if (ui.sports_mode == 2)
-    {
-        int y = lv_obj_get_y(ui.sports_marker);
-        if (y >= 120 && y <= 190) ui.sports_score++;
-        if (ui.sports_score >= 10) sports_end();
+        box(icon, 7, 12, 23, 23, 0xAA742A, LV_RADIUS_CIRCLE);
+        box(icon, 12, 17, 13, 13, 0xDCEAF3, LV_RADIUS_CIRCLE);
+        box(icon, 24, 21, 21, 7, 0xAA742A, 3);
+        box(icon, 38, 27, 7, 10, 0xAA742A, 2);
     }
     else
     {
-        if (ui.sports_target) ui.sports_score++;
-        ui.sports_target ^= 1;
-        ui.sports_next = ui.world.now + 800;
-        if (ui.sports_score >= 12) sports_end();
+        box(icon, 9, 9, 34, 31, 0x39516D, 12);
+        box(icon, 14, 15, 24, 28, 0xDCEAF3, 8);
+        box(icon, 9, 24, 10, 17, 0x39516D, 4);
+        box(icon, 33, 24, 10, 17, 0x39516D, 4);
     }
-    sports_scores();
+    return icon;
+}
+enum { BD_OFF, BD_SERVE, BD_INCOMING, BD_RETURN, BD_MISS, BD_DONE };
+
+static bool badminton_can_hit(void)
+{
+    uint64_t elapsed = ui.world.now - ui.badminton.started;
+    return ui.badminton.phase == BD_INCOMING && elapsed + 480 >= ui.badminton.travel &&
+           elapsed < ui.badminton.travel && ui.world.now < ui.badminton.ends;
+}
+
+static void badminton_start(void)
+{
+    memset(&ui.badminton, 0, sizeof(ui.badminton));
+    ui.badminton.phase = BD_SERVE;
+    ui.badminton.started = ui.world.now;
+    ui.badminton.ends = ui.world.now + 30000;
+    ui.panel = PANEL_BADMINTON;
+}
+
+static void badminton_close(void)
+{
+    ui.badminton.phase = BD_OFF;
+    if (ui.panel == PANEL_BADMINTON) ui.panel = PANEL_NONE;
+    visible(ui.badminton_shuttle, false);
+}
+
+static void badminton_incoming(unsigned elapsed, int *x, int *y)
+{
+    unsigned t = elapsed < ui.badminton.travel ? elapsed * 100 / ui.badminton.travel : 100;
+    *x = 303 - (int)(233 * t / 100);
+    *y = 246 - (int)(120 * 4 * t * (100 - t) / 10000);
+}
+
+static void badminton_hit_event(void)
+{
+    if (ui.panel != PANEL_BADMINTON || ui.badminton.phase != BD_INCOMING) return;
+    if (!badminton_can_hit())
+    {
+        ui.badminton.early_until = ui.world.now + 350;
+        return;
+    }
+    badminton_incoming((unsigned)(ui.world.now - ui.badminton.started),
+                       &ui.badminton.impact_x, &ui.badminton.impact_y);
+    ui.badminton.player++;
+    ui.badminton.phase = BD_RETURN;
+    ui.badminton.started = ui.world.now;
+}
+
+static void badminton_tick(void)
+{
+    if (ui.panel != PANEL_BADMINTON || ui.badminton.phase == BD_OFF || ui.badminton.phase == BD_DONE) return;
+    uint64_t now = ui.world.now, elapsed = now - ui.badminton.started;
+    if (now >= ui.badminton.ends)
+    {
+        ui.badminton.phase = BD_DONE;
+        return;
+    }
+    if (ui.badminton.phase == BD_SERVE && elapsed >= 550)
+    {
+        static const unsigned pace[] = {1650, 1430, 1570};
+        ui.badminton.travel = pace[(ui.badminton.player + ui.badminton.rival) % 3];
+        ui.badminton.phase = BD_INCOMING;
+        ui.badminton.started = now;
+    }
+    else if (ui.badminton.phase == BD_INCOMING && elapsed >= ui.badminton.travel)
+    {
+        ui.badminton.rival++;
+        ui.badminton.phase = BD_MISS;
+        ui.badminton.started = now;
+    }
+    else if ((ui.badminton.phase == BD_RETURN || ui.badminton.phase == BD_MISS) && elapsed >= 650)
+    {
+        ui.badminton.phase = ui.badminton.player + ui.badminton.rival >= 10 ? BD_DONE : BD_SERVE;
+        ui.badminton.started = now;
+    }
+}
+
+static void paint_badminton(void)
+{
+    unsigned phase = ui.badminton.phase;
+    uint64_t now = ui.world.now;
+    unsigned elapsed = (unsigned)(now - ui.badminton.started);
+    bool can_hit = badminton_can_hit();
+    bool incoming = phase == BD_INCOMING;
+    bool flying = incoming || phase == BD_RETURN;
+    if (flying)
+    {
+        int x, y;
+        if (incoming) badminton_incoming(elapsed, &x, &y);
+        else
+        {
+            int t = elapsed < 650 ? (int)(elapsed * 100 / 650) : 100;
+            x = (ui.badminton.impact_x * (100 - t) + 303 * t) / 100;
+            y = (ui.badminton.impact_y * (100 - t) + 246 * t) / 100 - 95 * 4 * t * (100 - t) / 10000;
+        }
+        lv_obj_set_pos(ui.badminton_shuttle, x - 12, y - 8);
+        lv_obj_set_style_transform_rotation(ui.badminton_shuttle, incoming ? -160 : 160, 0);
+    }
+    visible(ui.badminton_shuttle, flying);
+    visible(ui.badminton_hit, phase != BD_DONE);
+    lv_obj_set_style_bg_color(ui.badminton_hit, lv_color_hex(can_hit ? 0xEEC16C : 0x294E43), 0);
+    lv_obj_set_style_text_color(ui.badminton_action, lv_color_hex(can_hit ? 0x23352E : 0xFFF1D5), 0);
+    lv_obj_set_style_bg_opa(ui.badminton_zone, can_hit ? LV_OPA_40 : LV_OPA_10, 0);
+    lv_obj_set_style_border_opa(ui.badminton_zone, can_hit ? LV_OPA_100 : LV_OPA_50, 0);
+    lv_obj_set_style_transform_rotation(ui.badminton_racket, phase == BD_RETURN && elapsed < 220 ? -520 : -120, 0);
+    lv_obj_set_style_transform_rotation(ui.badminton_rival_racket, phase == BD_SERVE ? 220 : 140, 0);
+    set_label_fmt(ui.badminton_score, "你  %u  :  %u  对手", ui.badminton.player, ui.badminton.rival);
+    unsigned remaining = now < ui.badminton.ends ? (unsigned)((ui.badminton.ends - now + 999) / 1000) : 0;
+    set_label_fmt(ui.badminton_timer, "%u / 10 球   %u 秒", ui.badminton.player + ui.badminton.rival, remaining);
+    lv_obj_align(ui.badminton_score, LV_ALIGN_TOP_MID, 0, 12);
+    lv_obj_align(ui.badminton_timer, LV_ALIGN_TOP_MID, 0, 42);
+    const char *note = "看球，等击球区亮起";
+    if (phase == BD_DONE)
+        note = ui.badminton.player > ui.badminton.rival ? "比赛结束 · 你赢了" :
+               ui.badminton.player == ui.badminton.rival ? "比赛结束 · 平局" : "比赛结束 · 对手赢了";
+    else if (phase == BD_RETURN) note = "打回去了！";
+    else if (phase == BD_MISS) note = "漏球 · 对手得分";
+    else if (can_hit) note = "现在挥拍！点亮区";
+    else if (incoming && now < ui.badminton.early_until) note = "早了，再等一下";
+    set_label(ui.badminton_note, note);
+    lv_obj_align(ui.badminton_note, LV_ALIGN_TOP_MID, 0, 351);
+}
+
+static void sports_paint(void)
+{
+    unsigned mode = ui.sports_mode;
+    unsigned elapsed = (unsigned)(ui.world.now - ui.sports_started);
+    unsigned left = ui.world.now < ui.sports_until
+        ? (unsigned)((ui.sports_until - ui.world.now + 999) / 1000) : 0;
+    bool hit = ui.world.now < ui.sports_feedback;
+    const uint32_t ready = 0xEEC16C, waiting = 0x527566;
+    bool window = mode == 1 ? ui.sports_target == 0 :
+        mode == 2 ? (elapsed % 1400 >= 450 && elapsed % 1400 < 950) :
+        elapsed % 1600 >= 800 && elapsed % 1600 < 1400;
+    const unsigned target = mode == 1 ? 100 : mode == 2 ? 10 : 12;
+    const unsigned score = mode == 1 ? ui.sports_distance : ui.sports_score;
+    const char *title = mode == 1 ? "跑步" : mode == 2 ? "引体向上" : "仰卧起坐";
+    set_label_fmt(ui.sports_score_label, "%s  %u / %u", title, score, target);
+    set_label_fmt(ui.sports_timer, "剩余 %u 秒", left);
+    visible(ui.sports_action, ui.sports_active);
+    visible(ui.sports_right, ui.sports_active && mode == 1);
+    lv_obj_set_style_bg_color(ui.sports_action, lv_color_hex(window ? ready : waiting), 0);
+    lv_obj_set_style_bg_color(ui.sports_right, lv_color_hex(window ? waiting : ready), 0);
+    const char *hint = mode == 1 ? "左右依次点" :
+        mode == 2 ? "指针到绿区时点小猫" : "小猫起身时点一下";
+    set_label(ui.sports_prompt, ui.sports_finished ? (score == target ? "挑战完成" : "时间到") : hint);
+    if (mode == 1)
+    {
+        set_image(ui.sports_cat[0], pw_frames[12 + (hit && ui.sports_target)]);
+        lv_obj_set_pos(ui.sports_cat[0], 16 + (int)score * 282 / 100, 171 - (hit ? 5 : 0));
+    }
+    else if (mode == 2)
+    {
+        lv_obj_set_y(ui.sports_marker, 84 + (int)(elapsed % 1400) * 162 / 1400);
+        set_image(ui.sports_cat[1], shahe_sports_poses[hit ? 1 : 0]);
+        lv_obj_set_y(ui.sports_cat[1], hit ? 84 : 102);
+    }
+    else
+    {
+        set_image(ui.sports_cat[2], shahe_sports_poses[window || hit ? 3 : 2]);
+        lv_obj_set_y(ui.sports_cat[2], 146);
+    }
+}
+
+static void sports_start(int cmd)
+{
+    if (!ui.action || ui.action((pw_command_t)cmd) != PW_OK) return;
+    ui.sports_active = true;
+    ui.sports_finished = false;
+    ui.panel = PANEL_SPORTS_GAME;
+    ui.sports_mode = cmd == PW_RUN ? 1 : cmd == PW_PULLUP ? 2 : 3;
+    ui.sports_score = ui.sports_target = ui.sports_distance = 0;
+    ui.sports_last_cycle = UINT32_MAX;
+    ui.sports_started = ui.world.now;
+    ui.sports_until = ui.world.now + 20000;
+    ui.sports_feedback = 0;
+    visible(ui.sports_run_layer, ui.sports_mode == 1);
+    visible(ui.sports_pull_layer, ui.sports_mode == 2);
+    visible(ui.sports_sit_layer, ui.sports_mode == 3);
+    lv_obj_set_pos(ui.sports_action, ui.sports_mode == 1 ? 45 : 126,
+                   ui.sports_mode == 1 ? 382 : ui.sports_mode == 2 ? 148 : 202);
+    lv_obj_set_size(ui.sports_action, ui.sports_mode == 1 ? 132 : 126,
+                    ui.sports_mode == 1 ? 52 : ui.sports_mode == 2 ? 156 : 118);
+    lv_obj_set_style_bg_opa(ui.sports_action, ui.sports_mode == 1 ? LV_OPA_COVER : LV_OPA_10, 0);
+    lv_obj_set_style_border_width(ui.sports_action, ui.sports_mode == 1 ? 0 : 2, 0);
+    lv_obj_set_style_border_color(ui.sports_action, lv_color_hex(0xEEC16C), 0);
+    visible(lv_obj_get_child(ui.sports_action, 0), ui.sports_mode == 1);
+    sports_paint();
+}
+
+static void sports_end(void)
+{
+    ui.sports_active = false;
+    ui.sports_finished = true;
+}
+
+static void sports_tick(void)
+{
+    if (ui.panel != PANEL_SPORTS_GAME) return;
+    if (ui.sports_active && ui.world.now >= ui.sports_until) sports_end();
+    sports_paint();
+}
+
+static void sports_hit(bool right)
+{
+    if (!ui.sports_active || ui.panel != PANEL_SPORTS_GAME) return;
+    if (ui.world.now >= ui.sports_until) { sports_end(); return; }
+    unsigned elapsed = (unsigned)(ui.world.now - ui.sports_started);
+    if (ui.sports_mode == 1)
+    {
+        if (right != ui.sports_target) return;
+        ui.sports_target ^= 1;
+        ui.sports_distance += 7;
+        if (ui.sports_distance >= 100) { ui.sports_distance = 100; sports_end(); }
+    }
+    else
+    {
+        unsigned period = ui.sports_mode == 2 ? 1400 : 1600;
+        unsigned phase = elapsed % period, cycle = elapsed / period;
+        unsigned from = ui.sports_mode == 2 ? 450 : 800;
+        unsigned to = ui.sports_mode == 2 ? 950 : 1400;
+        if (right || cycle == ui.sports_last_cycle || phase < from || phase >= to) return;
+        ui.sports_last_cycle = cycle;
+        if (++ui.sports_score == (ui.sports_mode == 2 ? 10U : 12U)) sports_end();
+    }
+    ui.sports_feedback = ui.world.now + 200;
+    sports_paint();
+}
+
+static void set_voice_page(bool open)
+{
+    ui.voice_open = open;
+    ui.voice_volume_until = 0;
+    pet_voice_page(open);
+    paint();
+}
+
+static bool can_open_voice(void)
+{
+    return !ui.voice_open && ui.panel == PANEL_NONE && ui.world.phase != PW_MINIGAME;
+}
+
+void pet_ui_key2(pet_key2_event_t event)
+{
+    if (event == PET_KEY2_LONG && can_open_voice())
+        set_voice_page(true);
+    else if (event == PET_KEY2_SHORT && ui.voice_open)
+    {
+        pet_voice_volume_t setting = pet_voice_cycle_volume();
+        unsigned volume = setting == PV_VOLUME_MUTE ? 0 : setting + 1;
+        ui.voice_volume_until = ui.world.now + 2000;
+        set_label_fmt(ui.voice_volume_text, "%u/3", volume);
+        lv_obj_align(ui.voice_volume_text, LV_ALIGN_TOP_MID, 0, 144);
+        for (unsigned i = 0; i < PV_VOLUME_COUNT; i++)
+            lv_obj_set_style_bg_color(ui.voice_volume_bar[i],
+                lv_color_hex(i < volume ? 0xEAB07B : 0x567487), 0);
+        visible(ui.voice_volume_panel, true);
+    }
 }
 
 static void click(lv_event_t *e)
@@ -329,6 +521,19 @@ static void click(lv_event_t *e)
     if (lv_obj_has_state(o, LV_STATE_DISABLED))
         return;
     int cmd = (int)(uintptr_t)lv_event_get_user_data(e);
+    if (cmd == TAG_VOICE || cmd == TAG_VOICE_BACK)
+    {
+        if (cmd == TAG_VOICE_BACK || can_open_voice()) set_voice_page(cmd == TAG_VOICE);
+        return;
+    }
+    if (cmd == TAG_VOICE_ACTION)
+    {
+        pet_voice_state_t state = pet_voice_view().state;
+        if (state == PV_PAIR) pet_voice_pair();
+        else if (state == PV_WAITING || state == PV_PLAYING) pet_voice_cancel();
+        else if (state == PV_ACTIVATE || state == PV_ERROR) pet_voice_retry();
+        return;
+    }
     if (cmd == TAG_MEMORY_CLOSE || (cmd == TAG_CLOSE && ui.world.phase == PW_MINIGAME))
     {
         if (ui.action) ui.action(PW_MEMORY_CANCEL);
@@ -407,7 +612,9 @@ static void click(lv_event_t *e)
     {
         if (cmd == PW_BADMINTON)
         {
-            if (ui.action && ui.action(PW_BADMINTON) == PW_OK) badminton_start();
+            if (ui.action && ui.action(PW_BADMINTON) == PW_OK &&
+                ui.world.scene == PW_CAMPUS && ui.panel == PANEL_ACTIVITY)
+                badminton_start();
             paint(); return;
         }
         if (ui.action && ui.action((pw_command_t)cmd) == PW_OK) ui.panel = PANEL_NONE;
@@ -431,7 +638,8 @@ static void click(lv_event_t *e)
         sports_start(cmd);
         paint(); return;
     }
-    if (cmd == TAG_SPORTS_ACTION) { sports_hit(); paint(); return; }
+    if (cmd == TAG_SPORTS_ACTION || cmd == TAG_SPORTS_RIGHT)
+    { sports_hit(cmd == TAG_SPORTS_RIGHT); paint(); return; }
     if (cmd == TAG_SPORTS_CLOSE)
     {
         ui.sports_active = false; ui.sports_finished = false;
@@ -462,8 +670,8 @@ static void click(lv_event_t *e)
     if (cmd == TAG_BADMINTON_HIT) { badminton_hit_event(); paint(); return; }
     if (cmd == TAG_BADMINTON_CLOSE)
     {
-        ui.badminton_active = false; ui.badminton_finished = false;
-        ui.panel = PANEL_NONE; visible(ui.badminton_hit, false); paint(); return;
+        badminton_close();
+        paint(); return;
     }
     if (cmd == TAG_CLOSE)
     {
@@ -525,23 +733,8 @@ static void image(lv_obj_t *parent, const lv_image_dsc_t *src, int x, int y)
 }
 static const lv_image_dsc_t *const campus_building[] = {
     &shahe_building_0, &shahe_building_1, &shahe_building_2};
-static const char *const campus_names[] = {"雁北园", "教综楼", "学生餐厅"};
-static const pw_scene_t campus_rooms[] = {PW_DORM, PW_CLASSROOM, PW_CANTEEN};
-enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477 };
-
-static void campus_label(lv_obj_t *parent, int x, int y, int width, const char *name)
-{
-    lv_obj_t *label = text(parent, name, x, y, &pet_font_16, HUD_INK);
-    lv_obj_set_width(label, width);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_bg_color(label, lv_color_hex(HUD_PAPER), 0);
-    lv_obj_set_style_bg_opa(label, LV_OPA_70, 0);
-    lv_obj_set_style_radius(label, 5, 0);
-    lv_obj_set_style_pad_ver(label, 2, 0);
-    lv_obj_set_style_border_width(label, 1, 0);
-    lv_obj_set_style_border_color(label, lv_color_hex(HUD_EDGE), 0);
-    lv_obj_set_style_border_opa(label, LV_OPA_50, 0);
-}
+enum { CENTER_X = 665, CENTER_Y = 558, LIBRARY_X = 907, LIBRARY_Y = 477,
+       WISDOM_X = 1044, WISDOM_Y = 1120 };
 
 /* Yellow construction overlay: labels are visible, the area is not a walkable door. */
 static void construction(lv_obj_t *parent, int x, int y, int w, int h, const char *name)
@@ -614,7 +807,7 @@ static void build_campus(lv_obj_t *screen)
     image(ui.campus, &shahe_center, CENTER_X, CENTER_Y);
     image(ui.campus, &shahe_lecture, 617, 751);
     image(ui.campus, &shahe_lecture, 1215, 750);
-    image(ui.campus, &shahe_lecture, 1213, 1084);
+    image(ui.campus, &shahe_lecture, WISDOM_X, WISDOM_Y);
     image(ui.campus, &shahe_building_0, 401, 792);
     image(ui.campus, &shahe_gate, 12, 629);
     image(ui.campus, &shahe_gate, 328, 1175);
@@ -644,60 +837,37 @@ static void build_campus(lv_obj_t *screen)
     lv_obj_set_style_border_color(ui.goal, lv_color_hex(BLUE), 0);
 }
 
-static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag);
 static void build_gates(lv_obj_t *screen)
 {
     ui.gates = box(screen, 0, 0, PW_CAMPUS_WIDTH, PW_CAMPUS_HEIGHT, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.gates, LV_OPA_TRANSP, 0);
-    for (unsigned room = 0; room < sizeof(campus_rooms) / sizeof(campus_rooms[0]); room++)
+    /* Coordinates are on the building side of the road. Only each sign takes taps. */
+    static const struct
     {
-        pw_point_t door = pw_node(PW_CAMPUS, pw_campus_door(campus_rooms[room]));
-        int y = (int)door.y - (room == PW_DORM ? 66 : 44);
-        int tag = PW_ENTER_DORM + room;
-        int w = 96;
-        lv_obj_t *gate = button(ui.gates, (int)door.x - w / 2, y, w, 70, tag, PAPER, 5);
-        lv_obj_set_style_bg_opa(gate, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_bg_opa(gate, LV_OPA_20, LV_STATE_PRESSED);
-        scene_tag(gate, campus_names[room], LV_ALIGN_TOP_MID, 0, 3);
-    }
-    building_hit(ui.gates, 380, 430, 190, 190, PW_ENTER_DORM);
-    building_hit(ui.gates, 930, 630, 200, 180, PW_ENTER_CLASSROOM);
-    building_hit(ui.gates, 520, 980, 200, 200, PW_ENTER_CANTEEN);
-    lv_obj_t *center = button(ui.gates, CENTER_X, CENTER_Y, shahe_center.header.w,
-                              shahe_center.header.h, TAG_ACTIVITY, PAPER, 6);
-    lv_obj_set_style_bg_opa(center, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(center, LV_OPA_20, LV_STATE_PRESSED);
-    scene_tag(center, "学生活动中心", LV_ALIGN_TOP_MID, 0, 3);
-}
-static void building_hit(lv_obj_t *parent, int x, int y, int w, int h, int tag)
-{
-    lv_obj_t *b = button(parent, x, y, w, h, tag, PAPER, 6);
-    lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(b, LV_OPA_10, LV_STATE_PRESSED);
-}
-
-static void build_buildings(void)
-{
-    pw_point_t door = pw_node(PW_CAMPUS, PW_LIBRARY_DOOR);
-    building_hit(ui.gates, LIBRARY_X, LIBRARY_Y, shahe_library.header.w,
-                 shahe_library.header.h, TAG_LIBRARY);
-    lv_obj_t *library_door = button(ui.gates, (int)door.x - 24, (int)door.y - 28,
-                                    76, 48, TAG_LIBRARY, PAPER, 6);
-    lv_obj_set_style_bg_opa(library_door, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_bg_opa(library_door, LV_OPA_20, LV_STATE_PRESSED);
-    scene_tag(library_door, "图书馆", LV_ALIGN_TOP_MID, 0, 27);
-    static const struct { int x, y, w, tag, label; const char *name; } entries[] = {
-        {540, 730, 180, TAG_PUBLIC, 1, "公共教学楼"},
-        {1110, 720, 210, TAG_LAB, 1, "教学实验综合楼"},
-        {1110, 1040, 200, TAG_WISDOM, 1, "智慧教学楼"},
-        {130, 560, 120, TAG_SPORTS, 1, "运动场"}};
-    for (unsigned i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+        int x, y, width, tag;
+        const char *name;
+    } signs[] = {
+        {455, 555, 72, PW_ENTER_DORM, "雁北园"},
+        {1020, 781, 72, PW_ENTER_CLASSROOM, "教综楼"},
+        {625, 1135, 82, PW_ENTER_CANTEEN, "学生餐厅"},
+        {715, 584, 74, TAG_ACTIVITY, "学生\n活动中心"},
+        {950, 500, 72, TAG_LIBRARY, "图书馆"},
+        {1103, 1118, 74, TAG_WISDOM, "智慧\n教学楼"},
+        {673, 775, 74, TAG_PUBLIC, "公共\n教学楼"},
+        {1270, 756, 82, TAG_LAB, "教学实验\n综合楼"},
+        {188, 605, 72, TAG_SPORTS, "运动场"}
+    };
+    for (unsigned i = 0; i < sizeof(signs) / sizeof(signs[0]); i++)
     {
-        lv_obj_t *b = button(ui.gates, entries[i].x, entries[i].y, entries[i].w, 64,
-                             entries[i].tag, PAPER, 6);
-        lv_obj_set_style_bg_opa(b, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_bg_opa(b, LV_OPA_20, LV_STATE_PRESSED);
-        if (entries[i].label) scene_tag(b, entries[i].name, LV_ALIGN_TOP_MID, 0, 3);
+        int width = signs[i].width;
+        lv_obj_t *sign = button(ui.gates, signs[i].x - width / 2, signs[i].y - 22,
+                                width, 44, signs[i].tag, HUD_PAPER, 6);
+        lv_obj_set_style_bg_opa(sign, LV_OPA_90, 0);
+        lv_obj_set_style_border_width(sign, 1, 0);
+        lv_obj_set_style_border_color(sign, lv_color_hex(HUD_EDGE), 0);
+        lv_obj_t *label = text(sign, signs[i].name, 0, 0, &pet_font_16, HUD_INK);
+        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_center(label);
     }
 }
 
@@ -762,6 +932,21 @@ static void build_hotspots(void)
         lv_obj_move_to_index(o, lv_obj_get_index(ui.door));
     }
 }
+static lv_obj_t *badminton_racket(lv_obj_t *parent, int x, int y, uint32_t color)
+{
+    lv_obj_t *racket = box(parent, x, y, 27, 64, 0, 0);
+    lv_obj_set_style_bg_opa(racket, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_transform_pivot_x(racket, 13, 0);
+    lv_obj_set_style_transform_pivot_y(racket, 53, 0);
+    box(racket, 2, 0, 23, 32, color, 12);
+    box(racket, 5, 3, 17, 26, 0xD6DCC5, 9);
+    for (int i = 1; i <= 3; i++) box(racket, 7, 5 + i * 5, 13, 1, 0x9CA492, 0);
+    box(racket, 12, 6, 2, 19, 0x9CA492, 0);
+    box(racket, 11, 31, 5, 22, color, 2);
+    box(racket, 9, 47, 9, 15, 0x5A3D2B, 4);
+    return racket;
+}
+
 static void build_panel(lv_obj_t *screen)
 {
     ui.layer = box(screen, 0, 0, 390, 450, PAPER, 0);
@@ -823,7 +1008,7 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(ui.menu_tab[i], window_names[i], 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
-    ui.menu_list = box(ui.order_dialog, 12, 118, 322, 214, PAPER, 0);
+    ui.menu_list = box(ui.order_dialog, 12, 118, 322, 202, PAPER, 0);
     lv_obj_add_flag(ui.menu_list, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scroll_dir(ui.menu_list, LV_DIR_VER);
     lv_obj_set_scrollbar_mode(ui.menu_list, LV_SCROLLBAR_MODE_AUTO);
@@ -839,9 +1024,9 @@ static void build_panel(lv_obj_t *screen)
     }
     ui.menu_tracking = text(ui.order_dialog, "", 22, 128, &pet_font_20, INK);
     lv_obj_set_width(ui.menu_tracking, 302);
-    ui.order_save = text(ui.order_dialog, "", 18, 342, &pet_font_16, BLUE);
-    ui.order_button = button(ui.order_dialog, 18, 362, 310, 44, TAG_CONFIRM, 0xBCD4BC, 10);
-    ui.menu_confirm_text = text(ui.order_button, "", 0, 0, &pet_font_16, INK);
+    ui.order_save = text(ui.order_dialog, "", 18, 324, &pet_font_16, BLUE);
+    ui.order_button = button(ui.order_dialog, 12, 346, 322, 60, TAG_CONFIRM, 0xBCD4BC, 10);
+    ui.menu_confirm_text = text(ui.order_button, "", 0, 0, &pet_font_20, INK);
     ui.shop_dialog = box(ui.layer, 28, 40, 334, 374, PAPER, 18);
     text(ui.shop_dialog, "布置宿舍", 18, 10, &pet_font_20, INK);
     lv_obj_t *decor_close = button(ui.shop_dialog, 282, 2, 44, 44, TAG_CLOSE, PAPER, 12);
@@ -911,70 +1096,84 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_t *label = text(b, sports[i].name, 0, 0, &pet_font_16, INK);
         lv_obj_center(label);
     }
-    /* First-person cat view: green court underfoot, net in the middle. */
-    ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
+    ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x254D40, 0);
     ui.sports_run_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xB85C3C, 0);
-    box(ui.sports_run_layer, 0, 30, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 120, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 210, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 0, 300, 390, 3, 0xE8F0E3, 0);
-    box(ui.sports_run_layer, 360, 0, 4, 300, 0xE8F0E3, 0);
-    ui.sports_runner = box(ui.sports_run_layer, 38, 246, 24, 28, 0xF0D3A8, 10);
-    text(ui.sports_run_layer, "100m", 300, 268, &pet_font_16, 0xFFF1D6);
     ui.sports_pull_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xBFD9D2, 0);
-    box(ui.sports_pull_layer, 50, 60, 290, 8, 0x6D4C36, 4);
-    box(ui.sports_pull_layer, 58, 60, 8, 210, 0x6D4C36, 2);
-    box(ui.sports_pull_layer, 324, 60, 8, 210, 0x6D4C36, 2);
-    box(ui.sports_pull_layer, 180, 92, 34, 110, 0xF0D3A8, 12);
-    box(ui.sports_pull_layer, 250, 120, 30, 70, 0x6E8B73, 8);
-    ui.sports_marker = box(ui.sports_pull_layer, 256, 90, 18, 18, 0x456B77, 9);
-    text(ui.sports_pull_layer, "绿区", 250, 195, &pet_font_16, INK);
     ui.sports_sit_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xDCE6CB, 0);
-    box(ui.sports_sit_layer, 55, 230, 280, 62, 0x8D6548, 12);
-    box(ui.sports_sit_layer, 170, 130, 50, 100, 0xF0D3A8, 18);
-    ui.sports_score_label = text(ui.sports_game_dialog, "", 14, 8, &pet_font_20, 0xFFF1D6);
-    ui.sports_timer = text(ui.sports_game_dialog, "", 14, 32, &pet_font_16, 0xF2E5C8);
-    lv_obj_t *sports_game_close = button(ui.sports_game_dialog, 336, 6, 44, 44, TAG_SPORTS_CLOSE, 0x1D3B30, 10);
-    lv_obj_t *sports_game_x = text(sports_game_close, "×", 0, 0, &pet_font_20, 0xFFF1D6); lv_obj_center(sports_game_x);
-    ui.sports_prompt = text(ui.sports_game_dialog, "", 16, 360, &pet_font_20, 0xFFF1D6);
-    ui.sports_action = button(ui.sports_game_dialog, 80, 392, 230, 46, TAG_SPORTS_ACTION, 0xDCE6CB, 12);
-    ui.sports_action_label = text(ui.sports_action, "开始", 0, 0, &pet_font_20, INK);
-    lv_obj_center(ui.sports_action_label);
+    lv_obj_t *courts[] = {ui.sports_run_layer, ui.sports_pull_layer, ui.sports_sit_layer};
+    for (unsigned i = 0; i < 3; i++)
+    {
+        image(courts[i], shahe_sports_courts[i], 0, 0);
+        ui.sports_cat[i] = lv_image_create(courts[i]);
+        lv_obj_remove_flag(ui.sports_cat[i], LV_OBJ_FLAG_CLICKABLE);
+        set_image(ui.sports_cat[i], i == 0 ? pw_frames[12] : shahe_sports_poses[(i - 1) * 2]);
+        lv_obj_set_pos(ui.sports_cat[i], 152, 129);
+    }
+    box(ui.sports_run_layer, 356, 184, 4, 74, 0xFFF1D6, 1);
+    text(ui.sports_run_layer, "100m", 322, 262, &pet_font_16, 0xFFF1D6);
+    box(ui.sports_pull_layer, 288, 84, 25, 180, 0x213E34, 10);
+    box(ui.sports_pull_layer, 288, 145, 25, 59, 0x74C290, 8);
+    ui.sports_marker = box(ui.sports_pull_layer, 291, 84, 19, 19, 0xFFF1D6, 10);
+    ui.sports_score_label = text(ui.sports_game_dialog, "", 14, 4, &pet_font_20, 0xFFF1D6);
+    ui.sports_timer = text(ui.sports_game_dialog, "", 14, 29, &pet_font_16, 0xF2E5C8);
+    lv_obj_t *sports_game_close = button(ui.sports_game_dialog, 336, 6, 44, 44, TAG_SPORTS_CLOSE, 0x183932, 10);
+    lv_obj_center(text(sports_game_close, "×", 0, 0, &pet_font_20, 0xFFF1D6));
+    ui.sports_prompt = text(ui.sports_game_dialog, "", 16, 354, &pet_font_16, 0xFFF1D6);
+    ui.sports_action = button(ui.sports_game_dialog, 45, 382, 132, 52, TAG_SPORTS_ACTION, 0xEEC16C, 16);
+    ui.sports_right = button(ui.sports_game_dialog, 213, 382, 132, 52, TAG_SPORTS_RIGHT, 0x527566, 16);
+    for (unsigned i = 0; i < 2; i++)
+    {
+        lv_obj_t *pad = i ? ui.sports_right : ui.sports_action;
+        lv_obj_t *foot = box(pad, 0, 0, 20, 28, 0xFFF1D6, LV_RADIUS_CIRCLE);
+        lv_obj_set_style_transform_pivot_x(foot, 10, 0);
+        lv_obj_set_style_transform_pivot_y(foot, 14, 0);
+        lv_obj_set_style_transform_rotation(foot, i ? 240 : -240, 0);
+        lv_obj_center(foot);
+        box(foot, 4, -4, 12, 8, 0xFFF1D6, LV_RADIUS_CIRCLE);
+    }
     visible(ui.sports_game_dialog, false);
-    visible(ui.sports_run_layer, false); visible(ui.sports_pull_layer, false); visible(ui.sports_sit_layer, false);
 
-    ui.badminton_dialog = box(ui.layer, 0, 0, 390, 450, 0x2E6B4F, 0);
-    box(ui.badminton_dialog, 0, 0, 390, 58, 0x1D3B30, 0);
-    box(ui.badminton_dialog, 0, 58, 390, 170, 0x3F7D5A, 0);       /* far court */
-    box(ui.badminton_dialog, 0, 228, 390, 222, 0x2C5D45, 0);      /* near court */
-    box(ui.badminton_dialog, 16, 72, 3, 150, 0xE8F0E3, 0);
-    box(ui.badminton_dialog, 371, 72, 3, 150, 0xE8F0E3, 0);
-    box(ui.badminton_dialog, 16, 72, 358, 3, 0xE8F0E3, 0);
-    box(ui.badminton_dialog, 16, 218, 358, 3, 0xE8F0E3, 0);
-    box(ui.badminton_dialog, 16, 72, 3, 150, 0xE8F0E3, 0);
-    /* Net across the middle, at the cat's eye line. */
-    box(ui.badminton_dialog, 0, 218, 390, 7, 0x14211B, 0);
-    for (unsigned i = 0; i < 14; i++)
-        box(ui.badminton_dialog, 14 + (int)i * 26, 200, 2, 44, 0xDDE8DA, 0);
-    box(ui.badminton_dialog, 6, 196, 6, 56, 0x14211B, 0);
-    box(ui.badminton_dialog, 378, 196, 6, 56, 0x14211B, 0);
-    /* Cat paws at the bottom of the first-person view. */
-    box(ui.badminton_dialog, 34, 392, 82, 42, 0xE8C79A, 20);
-    box(ui.badminton_dialog, 274, 392, 82, 42, 0xE8C79A, 20);
-    box(ui.badminton_dialog, 48, 402, 54, 6, 0xB88A5E, 3);
-    box(ui.badminton_dialog, 288, 402, 54, 6, 0xB88A5E, 3);
-    ui.badminton_score = text(ui.badminton_dialog, "", 14, 8, &pet_font_20, 0xFFF1D6);
-    ui.badminton_timer = text(ui.badminton_dialog, "", 14, 32, &pet_font_16, 0xF2E5C8);
-    lv_obj_t *bad_close = button(ui.badminton_dialog, 336, 6, 44, 44, TAG_BADMINTON_CLOSE, 0x1D3B30, 10);
-    lv_obj_t *bad_x = text(bad_close, "×", 0, 0, &pet_font_20, 0xFFF1D6); lv_obj_center(bad_x);
-    ui.badminton_note = text(ui.badminton_dialog, "第一人称 · 点中飞来的羽毛球", 20, 414, &pet_font_16, 0xFFF1D6);
-    ui.badminton_hit = button(ui.badminton_dialog, 70, 80, 48, 48, TAG_BADMINTON_HIT, 0xE9D8A8, 0);
-    lv_obj_set_style_bg_opa(ui.badminton_hit, LV_OPA_TRANSP, 0);
-    box(ui.badminton_hit, 14, 28, 20, 14, 0xF4E3C3, 7);            /* cork */
-    box(ui.badminton_hit, 18, 2, 4, 28, 0xF8F3DF, 1);              /* feathers */
-    box(ui.badminton_hit, 25, 0, 4, 30, 0xF8F3DF, 1);
-    box(ui.badminton_hit, 32, 2, 4, 28, 0xF8F3DF, 1);
-    visible(ui.badminton_hit, false);
+    ui.badminton_dialog = box(ui.layer, 0, 0, 390, 450, 0x2D574C, 0);
+    lv_obj_add_flag(ui.badminton_dialog, LV_OBJ_FLAG_CLICKABLE);
+    image(ui.badminton_dialog, &shahe_badminton_room, 0, 0);
+    lv_obj_t *head = box(ui.badminton_dialog, 16, 8, 358, 66, 0x183932, 15);
+    lv_obj_set_style_bg_opa(head, LV_OPA_90, 0);
+    ui.badminton_score = text(ui.badminton_dialog, "", 0, 0, &pet_font_20, 0xFFF1D5);
+    ui.badminton_timer = text(ui.badminton_dialog, "", 0, 0, &pet_font_16, 0xEADABC);
+    lv_obj_t *court_close = button(ui.badminton_dialog, 318, 15, 48, 48, TAG_BADMINTON_CLOSE, 0x40665B, 10);
+    lv_obj_center(text(court_close, "×", 0, 0, &pet_font_20, 0xFFF1D5));
+
+    ui.badminton_zone = button(ui.badminton_dialog, 32, 135, 126, 134,
+                               TAG_BADMINTON_HIT, 0xEEC16C, 13);
+    lv_obj_set_style_border_width(ui.badminton_zone, 2, 0);
+    lv_obj_set_style_border_color(ui.badminton_zone, lv_color_hex(0xEEC16C), 0);
+    lv_obj_t *own_shadow = box(ui.badminton_dialog, 41, 325, 67, 11, 0x354138, 8);
+    lv_obj_t *other_shadow = box(ui.badminton_dialog, 287, 325, 67, 11, 0x354138, 8);
+    lv_obj_set_style_bg_opa(own_shadow, LV_OPA_40, 0);
+    lv_obj_set_style_bg_opa(other_shadow, LV_OPA_40, 0);
+    image(ui.badminton_dialog, pw_frames[12], 39, 259);
+    lv_obj_t *rival = lv_image_create(ui.badminton_dialog);
+    set_image(rival, pw_frames[4]);
+    lv_obj_set_pos(rival, 282, 259);
+    lv_obj_set_style_image_recolor(rival, lv_color_hex(0x596770), 0);
+    lv_obj_set_style_image_recolor_opa(rival, LV_OPA_50, 0);
+    lv_obj_remove_flag(rival, LV_OBJ_FLAG_CLICKABLE);
+    ui.badminton_racket = badminton_racket(ui.badminton_dialog, 92, 261, 0xAA552F);
+    ui.badminton_rival_racket = badminton_racket(ui.badminton_dialog, 268, 261, 0x306477);
+
+    ui.badminton_shuttle = box(ui.badminton_dialog, 0, 0, 28, 18, 0, 0);
+    lv_obj_set_style_bg_opa(ui.badminton_shuttle, LV_OPA_TRANSP, 0);
+    box(ui.badminton_shuttle, 1, 2, 14, 3, 0xFFF4D9, 1);
+    box(ui.badminton_shuttle, 2, 7, 16, 3, 0xFFF4D9, 1);
+    box(ui.badminton_shuttle, 1, 12, 14, 3, 0xFFF4D9, 1);
+    box(ui.badminton_shuttle, 15, 4, 11, 10, 0xF3BC68, 5);
+    visible(ui.badminton_shuttle, false);
+
+    box(ui.badminton_dialog, 16, 343, 358, 92, 0x183932, 15);
+    ui.badminton_note = text(ui.badminton_dialog, "", 0, 0, &pet_font_16, 0xFFF1D5);
+    ui.badminton_hit = button(ui.badminton_dialog, 46, 378, 298, 47, TAG_BADMINTON_HIT, 0x294E43, 12);
+    ui.badminton_action = text(ui.badminton_hit, "挥拍", 0, 0, &pet_font_20, 0xFFF1D5);
+    lv_obj_center(ui.badminton_action);
     ui.library_panel = box(ui.layer, 24, 38, 342, 374, PAPER, 18);
     text(ui.library_panel, "图书馆 · 借还书", 18, 12, &pet_font_20, INK);
     lv_obj_t *lib_close = button(ui.library_panel, 290, 2, 44, 44, TAG_CLOSE, PAPER, 12);
@@ -1004,27 +1203,29 @@ static void build_panel(lv_obj_t *screen)
     lv_obj_center(memory_x);
     ui.memory_note = text(ui.memory_dialog, "", 18, 50, &pet_font_20, INK);
     ui.memory_round = text(ui.memory_dialog, "", 18, 80, &pet_font_16, BLUE);
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     for (unsigned i = 0; i < 4; i++)
     {
         ui.memory_tile[i] = button(ui.memory_dialog, 20 + (i % 2) * 152,
                                    111 + (i / 2) * 83, 140, 72, PW_MEMORY_0 + i, 0xE7E4CF, 13);
-        ui.memory_symbol[i] = text(ui.memory_tile[i], symbols[i], 0, 0, &pet_font_20, INK);
+        ui.memory_symbol[i] = text(ui.memory_tile[i], "", 0, 0, &pet_font_20, INK);
         lv_obj_center(ui.memory_symbol[i]);
+        ui.memory_icon[i] = new_game_icon(ui.memory_tile[i], 26);
     }
     ui.memory_footer = text(ui.memory_dialog, "", 20, 281, &pet_font_16, BLUE);
     ui.teaching_controls = box(ui.memory_dialog, 0, 0, 332, 312, PAPER, 0);
     lv_obj_set_style_bg_opa(ui.teaching_controls, LV_OPA_TRANSP, 0);
-    ui.projection_pattern = text(ui.teaching_controls, "", 24, 119, &pet_font_20, INK);
-    static const lv_point_precise_t wire_points[PG_CIRCUIT_LINKS][2] = {
-        {{126, 130}, {126, 183}}, {{206, 183}, {126, 236}}, {{206, 236}, {206, 130}}
-    };
+    ui.projection_pattern = box(ui.teaching_controls, 20, 111, 292, 40, 0xEAE6D6, 8);
+    for (unsigned i = 0; i < PG_PROJECTION_STEPS; i++)
+    {
+        ui.projection_icon[i] = new_game_icon(ui.projection_pattern, 18);
+        lv_obj_align(ui.projection_icon[i], LV_ALIGN_LEFT_MID, 15 + (int)i * 40, 0);
+    }
+    text(ui.projection_pattern, "?", 256, 6, &pet_font_20, INK);
     for (unsigned i = 0; i < PG_CIRCUIT_LINKS; i++)
     {
         ui.circuit_wire[i] = lv_line_create(ui.teaching_controls);
-        lv_line_set_points(ui.circuit_wire[i], wire_points[i], 2);
-        lv_obj_set_style_line_width(ui.circuit_wire[i], 3, 0);
-        lv_obj_set_style_line_color(ui.circuit_wire[i], lv_color_hex(0x367467), 0);
+        lv_obj_set_style_line_width(ui.circuit_wire[i], 4, 0);
+        lv_obj_set_style_line_color(ui.circuit_wire[i], lv_color_hex(game_colors[i]), 0);
     }
     static const lv_point_precise_t trace[] = {{117, 271}, {139, 271}, {147, 265},
         {157, 274}, {167, 265}, {177, 274}, {185, 271}, {213, 271}};
@@ -1035,13 +1236,25 @@ static void build_panel(lv_obj_t *screen)
     for (unsigned i = 0; i < PG_GRID_CELLS; i++)
     {
         ui.puzzle_tile[i] = button(ui.teaching_controls, 0, 0, 92, 44, PW_GRID_FIRST + (int)i, 0xDCEAF3, 8);
-        ui.puzzle_label[i] = text(ui.puzzle_tile[i], "", 0, 0, &pet_font_16, INK);
-        lv_obj_center(ui.puzzle_label[i]);
+        ui.puzzle_icon[i] = new_game_icon(ui.puzzle_tile[i], 20);
     }
     visible(ui.teaching_controls, false);
     ui.challenge_track = box(ui.memory_dialog, 20, 126, 292, 20, 0xDCEAF3, 10);
     box(ui.challenge_track, 107, 0, 78, 20, 0x88AA92, 10);
     ui.challenge_cursor = box(ui.challenge_track, 0, 0, 5, 20, INK, 2);
+    for (unsigned i = 0; i < 6; i++)
+        ui.rhythm_beats[i] = box(ui.challenge_track, 12 + (int)i * 49, 5, 10, 10, 0xB4C4BE, LV_RADIUS_CIRCLE);
+    for (unsigned i = 0; i < 4; i++)
+    {
+        ui.find_icon[i] = find_object(ui.memory_dialog, i);
+        lv_obj_t *crop = box(ui.memory_tile[i], 0, 0, 64, 64, PAPER, 8);
+        lv_obj_center(crop);
+        ui.meal_icon[i] = crop;
+        unsigned tile = challenge_dishes[i];
+        image(crop, &pet_food_atlas, -(int)(tile % 3) * 64, -(int)(tile / 3) * 64);
+        visible(crop, false);
+        visible(ui.find_icon[i], false);
+    }
     visible(ui.challenge_track, false);
     visible(ui.layer, false);
 }
@@ -1080,6 +1293,107 @@ static void build_furniture(lv_obj_t *screen)
         ui.furniture[i] = prop;
     }
 }
+static void voice_mic_event(lv_event_t *event)
+{
+    lv_event_code_t code = lv_event_get_code(event);
+    if (code == LV_EVENT_PRESSED) pet_voice_hold(true);
+    else if (code == LV_EVENT_RELEASED) pet_voice_hold(false);
+    else if (code == LV_EVENT_PRESS_LOST)
+    {
+        pet_voice_hold(false);
+        pet_voice_cancel();
+    }
+}
+
+static void build_voice(lv_obj_t *screen)
+{
+    ui.voice_entry = button(screen, 24, 94, 76, 44, TAG_VOICE, HUD_PAPER, 8);
+    lv_obj_set_style_bg_opa(ui.voice_entry, LV_OPA_90, 0);
+    lv_obj_center(text(ui.voice_entry, "语音", 0, 0, &pet_font_16, HUD_INK));
+
+    ui.voice_page = box(screen, 0, 0, 390, 450, 0x192B3C, 0);
+    lv_obj_add_flag(ui.voice_page, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_t *back = button(ui.voice_page, 22, 23, 64, 44, TAG_VOICE_BACK, 0x2B4357, 12);
+    lv_obj_center(text(back, "返回", 0, 0, &pet_font_16, 0xFCF1DA));
+    lv_obj_align(text(ui.voice_page, "和小猫说话", 0, 0, &pet_font_20, 0xFCF1DA),
+                 LV_ALIGN_TOP_MID, 0, 36);
+
+    lv_obj_t *cat = lv_image_create(ui.voice_page);
+    set_image(cat, pw_frames[0]);
+    lv_obj_remove_flag(cat, LV_OBJ_FLAG_CLICKABLE);
+    lv_image_set_pivot(cat, 36, 38);
+    lv_image_set_scale(cat, 384);
+    lv_obj_align(cat, LV_ALIGN_CENTER, 0, -12);
+
+    const uint8_t heights[] = {4, 7, 11, 16, 11, 7, 4};
+    for (unsigned i = 0; i < sizeof(heights); i++)
+        ui.voice_wave[i] = box(ui.voice_page, 148 + 15 * i, 283 - heights[i] / 2,
+            5, heights[i], 0xEAB07B, 3);
+
+    ui.voice_status = text(ui.voice_page, "", 0, 0, &pet_font_20, 0xFCF1DA);
+    ui.voice_detail = text(ui.voice_page, "", 0, 0, &pet_font_16, 0xD2E2E9);
+    ui.voice_mic = button(ui.voice_page, 108, 374, 174, 52, 0, 0xEAB07B, 26);
+    lv_obj_remove_event_cb(ui.voice_mic, click);
+    lv_obj_add_event_cb(ui.voice_mic, voice_mic_event, LV_EVENT_ALL, NULL);
+    lv_obj_center(text(ui.voice_mic, "按住说话", 0, 0, &pet_font_20, 0x192B3C));
+    ui.voice_action = button(ui.voice_page, 108, 374, 174, 52, TAG_VOICE_ACTION, 0xEAB07B, 26);
+    ui.voice_action_text = text(ui.voice_action, "", 0, 0, &pet_font_20, 0x192B3C);
+    ui.voice_volume_panel = box(ui.voice_page, 322, 127, 48, 174, 0x2B4357, 20);
+    lv_obj_set_style_bg_opa(ui.voice_volume_panel, LV_OPA_90, 0);
+    text(ui.voice_volume_panel, "音量", 8, 8, &pet_font_16, 0xD2E2E9);
+    for (unsigned i = 0; i < PV_VOLUME_COUNT; i++)
+        ui.voice_volume_bar[i] = box(ui.voice_volume_panel, 13, 109 - 36 * (int)i, 22, 29, 0x567487, 9);
+    ui.voice_volume_text = text(ui.voice_volume_panel, "", 0, 0, &pet_font_16, 0xFCF1DA);
+    visible(ui.voice_volume_panel, false);
+    visible(ui.voice_page, false);
+}
+
+static void paint_voice(void)
+{
+    visible(ui.voice_volume_panel, ui.world.now < ui.voice_volume_until);
+    pet_voice_view_t v = pet_voice_view();
+    static const char *titles[] = {
+        "语音服务未连接", "等待手机共享网络", "核对手机配对码", "正在连接小智", "绑定小智设备",
+        "我在听", "正在录音", "小猫在想", "小猫在说", "语音连接失败"
+    };
+    set_label(ui.voice_status, titles[v.state]);
+    lv_obj_align(ui.voice_status, LV_ALIGN_TOP_MID, 0, 310);
+    const char *detail = "";
+    const char *action = "";
+    switch (v.state)
+    {
+    case PV_NETWORK: detail = "蓝牙中选择 " PET_VOICE_BT_NAME; break;
+    case PV_PAIR: detail = v.code; action = "配对码相同"; break;
+    case PV_ACTIVATE: detail = v.code; action = "已绑定，重试"; break;
+    case PV_RECORDING: detail = "松手发送"; break;
+    case PV_WAITING:
+    case PV_PLAYING: action = "停止"; break;
+    case PV_ERROR: detail = "检查共享网络后重试"; action = "重试"; break;
+    default: break;
+    }
+    set_label(ui.voice_detail, detail);
+    lv_obj_align(ui.voice_detail, LV_ALIGN_TOP_MID, 0, 343);
+    bool mic_visible = v.state == PV_READY || v.state == PV_RECORDING;
+    visible(ui.voice_mic, mic_visible);
+    visible(ui.voice_action, *action != 0);
+    if (*action)
+    {
+        set_label(ui.voice_action_text, action);
+        lv_obj_center(ui.voice_action_text);
+    }
+    for (unsigned i = 0; i < 7; i++)
+    {
+        unsigned distance = i > 3 ? i - 3 : 3 - i;
+        unsigned height = 4 + (3 - distance) * 3;
+        if (v.state == PV_RECORDING || v.state == PV_PLAYING)
+            height += v.level * (4 - distance) / 4000;
+        else if (v.state == PV_WAITING || v.state == PV_CONNECTING)
+            height += (unsigned)((ui.world.now / 100 + i) % 7);
+        lv_obj_set_height(ui.voice_wave[i], (int)height);
+        lv_obj_set_y(ui.voice_wave[i], 283 - (int)height / 2);
+    }
+}
+
 void pet_ui_create(pet_ui_action_fn callback)
 {
     /* No UI-owned model or animation timer: recreation cannot duplicate settlement. */
@@ -1121,7 +1435,6 @@ void pet_ui_create(pet_ui_action_fn callback)
     lv_obj_set_style_bg_opa(ui.door, LV_OPA_TRANSP, LV_STATE_PRESSED);
     scene_tag(ui.door, "出门", LV_ALIGN_BOTTOM_MID, 0, -7);
     build_gates(screen);
-    build_buildings();
     ui.blackboard = button(screen, 147, 108, 145, 71, PW_MEMORY_START, PAPER, 7);
     lv_obj_set_style_bg_opa(ui.blackboard, LV_OPA_TRANSP, 0);
     ui.game_entry_label = scene_tag(ui.blackboard, "记忆题", LV_ALIGN_TOP_RIGHT, -3, 3);
@@ -1179,6 +1492,7 @@ void pet_ui_create(pet_ui_action_fn callback)
     ui.album_button = button(screen, 296, 94, 62, 44, TAG_ALBUM, HUD_PAPER, 8);
     lv_obj_set_style_bg_opa(ui.album_button, LV_OPA_80, 0);
     text(ui.album_button, "图鉴", 15, 11, &pet_font_16, HUD_INK);
+    build_voice(screen);
 }
 static int limit(int x, int lo, int hi)
 {
@@ -1255,8 +1569,9 @@ static void paint_order(void)
     set_label(ui.menu_title, ui.delivery ? "宿舍外卖" : "学生餐厅 · 选窗口");
     visible(ui.menu_list, !active); visible(ui.menu_tracking, active);
     for (unsigned i = 0; i < 4; i++) visible(ui.menu_tab[i], canteen && !active);
-    lv_obj_set_pos(ui.menu_list, 12, canteen ? 118 : 78);
-    lv_obj_set_height(ui.menu_list, canteen ? 214 : 250);
+    int list_top = canteen ? 118 : 78;
+    lv_obj_set_pos(ui.menu_list, 12, list_top);
+    lv_obj_set_height(ui.menu_list, 320 - list_top);
     if (active)
     {
         set_label(ui.order_note, "订单进行中 · 菜品列表已收起");
@@ -1338,13 +1653,14 @@ static void paint_memory(void)
     set_label(ui.memory_title, "课堂记忆题");
     visible(ui.teaching_controls, false);
     visible(ui.challenge_track, false);
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     for (unsigned i = 0; i < 4; i++)
     {
         visible(ui.memory_tile[i], true);
         lv_obj_set_pos(ui.memory_tile[i], 20 + (i % 2) * 152, 111 + (i / 2) * 83);
         lv_obj_set_size(ui.memory_tile[i], 140, 72);
-        set_label(ui.memory_symbol[i], symbols[i]); lv_obj_center(ui.memory_symbol[i]);
+        visible(ui.memory_symbol[i], false);
+        visible(ui.memory_icon[i], true);
+        game_icon(ui.memory_icon[i], i, game_colors[i]);
     }
     const pm_game_t *game = &ui.world.memory;
     const char *note = game->phase == PM_SHOW ? "先记住亮起的顺序"
@@ -1382,13 +1698,12 @@ static void paint_teaching_game(const pg_game_t *g)
     visible(ui.challenge_track, false);
     visible(ui.projection_pattern, projection);
     set_label(ui.memory_title, projection ? "投影抢答" : circuit ? "修电路" : "互动屏校准");
-    const char *instruction = projection ? "按规律选下一个" : circuit ? "依次点两个端点" : "本格和上下左右一起翻转";
+    const char *instruction = projection ? "按规律选下一个" : circuit ? "点两个同色图案" : "本格和上下左右一起翻转";
     set_label(ui.memory_note, won ? (circuit ? "灯亮了，通电成功" : "挑战完成") :
                               lost ? "差一点，下次再试" : instruction);
 
     if (projection)
     {
-        static const char *const symbols[] = {"花", "叶", "月", "星"};
         uint8_t pattern[PG_PROJECTION_STEPS], options[3];
         pg_projection(g, pattern, options);
         if (active)
@@ -1396,15 +1711,15 @@ static void paint_teaching_game(const pg_game_t *g)
         else
             set_label_fmt(ui.memory_round, "答对 %u / 3", g->score);
         visible(ui.projection_pattern, active);
-        set_label_fmt(ui.projection_pattern, "%s  %s  %s  %s  %s  %s  ?",
-                      symbols[pattern[0]], symbols[pattern[1]], symbols[pattern[2]],
-                      symbols[pattern[3]], symbols[pattern[4]], symbols[pattern[5]]);
+        for (unsigned i = 0; i < PG_PROJECTION_STEPS; i++)
+            game_icon(ui.projection_icon[i], pattern[i], game_colors[pattern[i]]);
         for (unsigned i = 0; i < 3; i++)
         {
             lv_obj_set_pos(ui.memory_tile[i], 20 + (int)i * 100, 166);
             lv_obj_set_size(ui.memory_tile[i], 92, 74);
-            set_label(ui.memory_symbol[i], symbols[options[i]]);
-            lv_obj_center(ui.memory_symbol[i]);
+            visible(ui.memory_symbol[i], false);
+            visible(ui.memory_icon[i], true);
+            game_icon(ui.memory_icon[i], options[i], game_colors[options[i]]);
             lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(0xF3DFB3), 0);
             lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
         }
@@ -1423,16 +1738,20 @@ static void paint_teaching_game(const pg_game_t *g)
     for (unsigned i = 0; i < 4; i++)
         visible(ui.memory_tile[i], projection && active && i < 3);
 
-    unsigned connected = 0;
     for (unsigned i = 0; i < PG_CIRCUIT_LINKS; i++)
     {
         bool show = circuit && (g->links & (1U << i));
         visible(ui.circuit_wire[i], show);
         if (show)
-            connected |= (1U << pg_circuit_links[i][0]) | (1U << pg_circuit_links[i][1]);
+        {
+            unsigned right = 0;
+            while (pg_circuit_color(g, right + PG_CIRCUIT_LINKS) != i) right++;
+            ui.circuit_points[i][0] = (lv_point_precise_t){90, 130 + (int)i * 53};
+            ui.circuit_points[i][1] = (lv_point_precise_t){242, 130 + (int)right * 53};
+            lv_line_set_points(ui.circuit_wire[i], ui.circuit_points[i], 2);
+        }
     }
     visible(ui.circuit_trace, circuit && won);
-    static const char *const ports[] = {"电源 +", "电源 -", "开关入", "开关出", "灯泡入", "灯泡出"};
     for (unsigned i = 0; i < PG_GRID_CELLS; i++)
     {
         visible(ui.puzzle_tile[i], !projection && (!circuit || i < PG_CIRCUIT_PORTS));
@@ -1441,20 +1760,20 @@ static void paint_teaching_game(const pg_game_t *g)
         uint32_t color;
         if (circuit)
         {
-            lv_obj_set_pos(tile, i % 2 ? 206 : 20, 108 + (int)(i / 2) * 53);
-            lv_obj_set_size(tile, 106, 44);
-            set_label(ui.puzzle_label[i], ports[i]);
-            color = g->selected == i || (won && i >= 4) ? 0xF4D382 :
-                    (connected & (1U << i)) ? 0xC2DFC9 : 0xEBECE2;
-            lv_obj_set_style_border_width(tile, g->selected == i ? 2 : 0, 0);
-            lv_obj_set_style_border_color(tile, lv_color_hex(0x745720), 0);
+            unsigned match = pg_circuit_color(g, i);
+            lv_obj_set_pos(tile, i < PG_CIRCUIT_LINKS ? 20 : 242, 108 + (int)(i % PG_CIRCUIT_LINKS) * 53);
+            lv_obj_set_size(tile, 70, 44);
+            game_icon(ui.puzzle_icon[i], match, game_colors[match]);
+            color = g->selected == i ? 0xF4D382 : 0xEBECE2;
+            lv_obj_set_style_border_width(tile, g->selected == i || (g->links & (1U << match)) ? 2 : 0, 0);
+            lv_obj_set_style_border_color(tile, lv_color_hex(game_colors[match]), 0);
         }
         else
         {
             bool on = (g->grid & (1U << i)) != 0;
             lv_obj_set_pos(tile, 20 + (int)(i % 3) * 100, 106 + (int)(i / 3) * 54);
             lv_obj_set_size(tile, 92, 48);
-            set_label(ui.puzzle_label[i], on ? "亮" : "暗");
+            game_icon(ui.puzzle_icon[i], on ? 0 : 3, on ? 0x287A6A : 0x75818A);
             color = on ? 0x9EDDED : 0xDBE3EC;
             lv_obj_set_style_border_width(tile, 0, 0);
         }
@@ -1462,7 +1781,7 @@ static void paint_teaching_game(const pg_game_t *g)
     }
     if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
     else if (lost) set_label_fmt(ui.memory_footer, "参与奖励 +%d 金币", ui.world.coin_gain);
-    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "电源 > 开关 > 灯泡 > 电源" : "让九格全部点亮");
+    else set_label(ui.memory_footer, projection ? "答对两题即过关" : circuit ? "接通三个图案" : "让九格全部点亮");
 }
 
 static void paint_challenge(void)
@@ -1476,29 +1795,40 @@ static void paint_challenge(void)
     visible(ui.teaching_controls, false);
     bool rhythm = g->kind == PG_RHYTHM;
     bool won = g->phase == PG_WON, lost = g->phase == PG_LOST;
-    static const char *food[] = {"米饭", "青菜", "鸡蛋", "热汤"};
     static const char *objects[] = {"水杯", "书本", "钥匙", "耳机"};
-    static const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     set_label(ui.memory_title, rhythm ? "健身节奏" : g->kind == PG_FIND ? "宿舍找物" : "食堂配餐");
     if (won || lost) set_label(ui.memory_note, won ? "答对啦，完成挑战" : "差一点，下次再试");
     else if (rhythm) set_label(ui.memory_note, pg_window(g) ? "绿色时间，点一下！" : "等指针走到绿色");
     else if (g->phase == PG_SHOW) set_label(ui.memory_note, "先记住物品的位置");
     else set_label_fmt(ui.memory_note, "%s：%s", g->kind == PG_FIND ? "找一找" : "订单", 
-        g->kind == PG_FIND ? objects[g->targets[g->round]] : food[g->targets[g->round]]);
+        g->kind == PG_FIND ? objects[g->targets[g->round]] : pe_menu(false, challenge_dishes[g->targets[g->round]])->name);
     if (rhythm) set_label_fmt(ui.memory_round, "第 %u / 6 拍 · 命中 %u", g->round < 6 ? g->round + 1 : 6, g->score);
     else if (won || lost) set_label_fmt(ui.memory_round, "完成 %u / 3", g->score);
     else set_label_fmt(ui.memory_round, "%u / 3 · 剩余 %u 秒", g->score, g->total < 30000 ? (30000 - g->total + 999) / 1000 : 0);
     visible(ui.challenge_track, rhythm);
     lv_obj_set_x(ui.challenge_cursor, (int)(g->elapsed % 3000 * 287U / 3000));
+    for (unsigned i = 0; i < 6; i++)
+        lv_obj_set_style_bg_color(ui.rhythm_beats[i], lv_color_hex(i < g->round ? 0x49685A : 0xB4C4BE), 0);
     for (unsigned i = 0; i < 4; i++)
     {
         visible(ui.memory_tile[i], !rhythm || i == 0);
-        lv_obj_set_pos(ui.memory_tile[i], rhythm ? 20 : 20 + (i % 2) * 152, rhythm ? 165 : 111 + (i / 2) * 83);
+        visible(ui.memory_symbol[i], false);
+        visible(ui.meal_icon[i], g->kind == PG_MEAL);
+        bool reveal = g->kind == PG_FIND && g->phase == PG_SHOW;
+        visible(ui.find_icon[i], reveal);
+        if (reveal)
+        {
+            unsigned slot = 0;
+            while (g->cards[slot] != i) slot++;
+            lv_obj_set_pos(ui.find_icon[i], 64 + (int)(slot % 2) * 152, 121 + (int)(slot / 2) * 83);
+        }
+        bool beat = rhythm && pg_window(g) && !g->pressed;
+        visible(ui.memory_icon[i], !reveal && g->kind != PG_MEAL && (!rhythm || i == 0));
+        game_icon(ui.memory_icon[i], beat ? 0 : 3, beat ? 0xF4CF75 : 0x51768C);
+        lv_obj_set_pos(ui.memory_tile[i], rhythm ? 20 : 20 + (i % 2) * 152,
+                       rhythm ? 165 : 111 + (i / 2) * 83);
         lv_obj_set_size(ui.memory_tile[i], rhythm ? 292 : 140, rhythm ? 88 : 72);
-        set_label(ui.memory_symbol[i], rhythm ? g->pressed ? "这一拍已点" : "跟上节拍" : g->kind == PG_MEAL ? food[i]
-            : g->phase == PG_SHOW ? objects[g->cards[i]] : slots[i]);
-        lv_obj_center(ui.memory_symbol[i]);
-        lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(rhythm && pg_window(g) ? 0x88AA92 : 0xDCEAF3), 0);
+        lv_obj_set_style_bg_color(ui.memory_tile[i], lv_color_hex(beat ? 0x557F68 : 0xDCEAF3), 0);
         lv_obj_set_style_border_width(ui.memory_tile[i], 0, 0);
     }
     if (won) set_label_fmt(ui.memory_footer, "金币 +%d · 心情 %+d", ui.world.coin_gain, ui.world.mood_gain);
@@ -1560,10 +1890,18 @@ static void paint(void)
             if (ui.scene == PW_CLASSROOM && building == PW_PUBLIC_BUILDING) game = "投影抢答";
             if (ui.scene == PW_CLASSROOM && building == PW_SMART_BUILDING) game = "互动屏校准";
             set_label(ui.game_entry_label, game);
+            bool room_game = ui.scene != PW_CLASSROOM;
+            lv_obj_set_pos(ui.blackboard, room_game ? 143 : 147, room_game ? 96 : 108);
+            lv_obj_set_size(ui.blackboard, room_game ? 104 : 145, room_game ? 44 : 71);
+            lv_obj_set_style_bg_opa(ui.blackboard, room_game ? LV_OPA_80 : LV_OPA_TRANSP, 0);
+            lv_obj_set_style_bg_opa(ui.game_entry_label, room_game ? LV_OPA_TRANSP : LV_OPA_80, 0);
+            lv_obj_set_style_border_opa(ui.game_entry_label, room_game ? LV_OPA_TRANSP : LV_OPA_60, 0);
+            lv_obj_align(ui.game_entry_label, room_game ? LV_ALIGN_CENTER : LV_ALIGN_TOP_RIGHT,
+                         room_game ? 0 : -3, room_game ? 0 : 3);
             lv_obj_remove_event_cb(ui.context_button, click);
             lv_obj_add_event_cb(ui.context_button, click, LV_EVENT_CLICKED,
                 (void *)(uintptr_t)(ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING ? PW_MEMORY_START : PW_STUDY));
-            static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 296}, {0, 0}, {280, 290}};
+            static const int life_pos[][2] = {{10, 346}, {303, 307}, {308, 350}, {0, 0}, {280, 290}};
             lv_obj_set_pos(ui.life_hit, life_pos[ui.scene][0], alternate ? 354 : life_pos[ui.scene][1]);
             lv_obj_set_height(ui.life_hit, 44);
             if (ui.scene == PW_CLASSROOM && building == PW_LAB_BUILDING)
@@ -1598,7 +1936,9 @@ static void paint(void)
         visible(ui.furniture[i], ui.world.scene == PW_DORM && (ui.world.wallet.equipped & (1U << i)));
     visible(ui.phone, ui.world.scene == PW_DORM);
     visible(ui.decor_entry, ui.world.scene == PW_DORM);
-    visible(ui.blackboard, !campus && (ui.world.building_id == 1 || ui.world.building_id == 3 || ui.world.building_id == 5));
+    bool room_game = ui.scene == PW_DORM || ui.scene == PW_CANTEEN || ui.scene == PW_GYM;
+    visible(ui.blackboard, !campus && (room_game || ui.world.building_id == 1 ||
+                                      ui.world.building_id == 3 || ui.world.building_id == 5));
     visible(ui.life_hit, !campus && !library);
     bool college_lab = ui.world.building_id == 10 || ui.world.building_id == 11 || ui.world.building_id == 12 ||
                        ui.world.building_id == 17 || ui.world.building_id == 18;
@@ -1610,7 +1950,9 @@ static void paint(void)
     visible(ui.status_button, ui.world.phase != PW_MINIGAME);
     visible(ui.location, ui.world.phase != PW_MINIGAME);
     visible(ui.bag, ui.world.scene == PW_DORM && ui.world.order == PW_ORDER_READY &&
-                    ui.world.action != PW_TAKEOUT);
+                    ui.world.action != PW_TAKEOUT &&
+                    !(ui.world.phase == PW_WALK && ui.world.target == PW_TAKEOUT &&
+                      ui.world.purpose != PW_WALK_TO_TAKEOUT_BAG));
     visible(ui.door, !campus);
     if (!campus)
         set_label(ui.location_text, room_title(&ui.world));
@@ -1638,8 +1980,12 @@ static void paint(void)
     pw_visual(&ui.world, &v);
     v.x -= left;
     v.y -= top;
-    set_image(ui.sprite, pw_frames[v.frame]);
-    lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(v.y) - 64);
+    bool reading = library && ui.world.phase == PW_ACTION && ui.world.action == PW_STUDY;
+    int anchor_y = reading ? 94 : 64;
+    float sprite_y = ui.world.phase == PW_WALK ? v.y - v.lift : v.y;
+    set_image(ui.sprite, reading ? &pw_library_reading : pw_frames[v.frame]);
+    lv_image_set_pivot(ui.sprite, 36, anchor_y);
+    lv_obj_set_pos(ui.sprite, (int)lroundf(v.x) - 36, (int)lroundf(sprite_y) - anchor_y);
     lv_image_set_scale(ui.sprite, (uint32_t)lroundf(v.scale * 256));
     lv_obj_set_pos(ui.cat_hit, limit((int)v.x - 32, 0, 326), limit((int)v.y - 64, 0, 382));
     int rx = v.sleeping ? 22 : 12;
@@ -1681,6 +2027,12 @@ static void paint(void)
     lv_obj_center(ui.audio_label);
     set_label(ui.audio_note, audio_available ? "调至零档无声 · 自动记住" : "声音暂不可用，切换重试");
     bool memory = ui.world.phase == PW_MINIGAME;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        visible(ui.find_icon[i], false);
+        visible(ui.meal_icon[i], false);
+    }
+
     visible(ui.layer, memory || ui.panel != PANEL_NONE);
     if (memory || ui.panel != PANEL_NONE) lv_obj_move_foreground(ui.layer);
     visible(ui.status_dialog, !memory && ui.panel == PANEL_STATUS);
@@ -1693,7 +2045,8 @@ static void paint(void)
     visible(ui.library_shelf, library && ui.world.phase != PW_MINIGAME);
     visible(ui.library_panel, !memory && ui.panel == PANEL_LIBRARY);
     visible(ui.sports_game_dialog, !memory && ui.panel == PANEL_SPORTS_GAME);
-    visible(ui.badminton_dialog, !memory && (ui.panel == PANEL_BADMINTON || ui.badminton_active));
+    visible(ui.badminton_dialog, !memory && ui.panel == PANEL_BADMINTON);
+    if (ui.panel == PANEL_BADMINTON) paint_badminton();
     visible(ui.album_button, ui.world.phase != PW_MINIGAME);
     paint_checkin();
     set_label_fmt(ui.wallet_text, "%u", ui.world.wallet.coins);
@@ -1719,10 +2072,27 @@ static void paint(void)
     else
         set_label(ui.bubble_text, msg);
     visible(ui.bubble_text, gains || *msg || ui.world.now < ui.world.coin_until);
+    visible(ui.voice_entry, can_open_voice());
+    visible(ui.voice_page, ui.voice_open);
+    if (ui.voice_open)
+    {
+        lv_obj_move_foreground(ui.voice_page);
+        paint_voice();
+    }
 }
 void pet_ui_update(const pet_world_t *world)
 {
-    if (world->curfew_events != ui.world.curfew_events) ui.panel = PANEL_CURFEW;
+    bool curfew = world->curfew_events != ui.world.curfew_events;
+    if (ui.panel == PANEL_BADMINTON &&
+        (curfew || world->scene != PW_CAMPUS || world->phase == PW_MINIGAME))
+        badminton_close();
+    if (ui.panel == PANEL_SPORTS_GAME &&
+        (curfew || world->scene != PW_CAMPUS || world->phase == PW_MINIGAME))
+    {
+        ui.sports_active = ui.sports_finished = false;
+        ui.panel = PANEL_NONE;
+    }
+    if (curfew) ui.panel = PANEL_CURFEW;
     else if (world->phase == PW_MINIGAME && ui.panel == PANEL_ALBUM) ui.panel = PANEL_NONE;
     else if (world->phase == PW_MINIGAME && ui.panel == PANEL_ACTIVITY) ui.panel = PANEL_NONE;
     else if (world->scene != PW_CAMPUS && ui.panel == PANEL_ACTIVITY) ui.panel = PANEL_NONE;

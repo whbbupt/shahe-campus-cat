@@ -1,0 +1,13 @@
+2026-11-12 / v0.20.1
+
+[host:PAN] 旧 a476e7c 的失败模拟退出 134
+Assertion `disconnects==1 && !pet_voice_pan_pairing(&code)` failed.
+[host:PAN] actual PAN logic: rejection, pending/confirmed timeout, rediscovery and exit PASS
+[host:badminton] scoring, return, miss, close, curfew and scene change PASS
+[host:voice-ui] navigation, unavailable, pairing, activation, press/release and stop PASS
+[host:world-ui] library and activity entrances PASS
+[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS
+
+主机第一轮羽毛球用例没有把镜头放到实际活动中心入口，control 断言失败，按真实入口坐标重测通过。对照渲染时将击球区与实际判定窗口对齐、使回球从实际击球点起飞并修正两只猫朝向，最终实渲染见 previews/badminton-v0.20.1/badminton-hit-window.png。
+球馆 LZ4 RGB565 351000 -> 194418 字节，回解逐字节一致。生成方式、提示词和素材哈希见 assets/pet-shahe/badminton-court.json。
+黄山派构建退出 0。main.bin 6,241,692 B，ROM 6,372,214 B / 8,388,608 B，静态 SRAM 273,120 B。ZIP CRC、逐文件字节及下载地址均核对。旧存档、BLE 区和存档代码保持一致。新版未烧录。TC-307 真机仍待同一手机复测。

@@ -1,0 +1,9 @@
+{
+  "asset": "assets/pet-shahe/badminton-court.png",
+  "generator": "Built-in ImageGen",
+  "prompt": "Generate a clean illustrated background plate for a 390x450 portrait smart watch game, approximately 13:15 aspect ratio, full bleed. Chinese university campus cozy storybook painting, carefully crafted watercolor gouache textures, warm maple court pale ivory lines, desaturated pine-green skirting, dusk sky blue high rectangular sports hall windows, very subtle warm light. Perfect straight level 2D side-on platform-game viewing angle, both sides of a badminton court visible along the horizontal axis, a short clearly readable badminton net exactly in the middle, with net top at 56% image height and floor at 75% height. Two broad empty flat playing spaces left and right of net at ground height. Upper 40% quiet muted wall and windows so a moving bright shuttlecock is readable; simple quieter top 18% and bottom 16% for a HUD added later. A few folded benches and timber wall details in background only, less saturated than game targets. Illustration for a campus cat game, charming but restrained professional game environment. No people, no cats, no rackets, no shuttlecock, no letters, no words, no icons, no screen frame, no UI or scoreboard. Floor extends all the way down. No perspective vanishing corridor, no outdoor environment.",
+  "rgb565_bytes": 351000,
+  "lz4_bytes": 194418,
+  "lz4_roundtrip": true,
+  "sha256": "ba9e293385b5474e066b5bd087ad44284b67f8329fada1a5907dd593322037fd"
+}

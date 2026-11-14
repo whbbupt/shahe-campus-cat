@@ -1,4 +1,5 @@
 import os
+import building
 from building import *
 
 cwd = GetCurrentDir()
@@ -8,6 +9,11 @@ list = os.listdir(cwd)
 # Add SDK
 Import('SIFLI_SDK')
 objs.extend(SConscript(os.path.join(SIFLI_SDK, 'SConscript'), variant_dir="sifli_sdk", duplicate=0))
+
+# Allow the TLS library to allocate from the application voice PSRAM pool.
+for group in building.Projects:
+    if group['name'] == 'mbedtls':
+        group.setdefault('LOCAL_CPPDEFINES', []).append('MBEDTLS_PLATFORM_MEMORY')
 
 # Add application source code
 objs.extend(SConscript(cwd+'/../src/SConscript', variant_dir="src", duplicate=0))

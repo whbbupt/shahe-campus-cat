@@ -1,0 +1,23 @@
+2026-11-13（Asia/Shanghai），Codex 从 COM7（1000000 baud）读取 v0.20.4 实机串口。以下为按观察顺序摘出的原始行。省略无关日志及对端设备地址。
+
+[pet] v0.20.4 boot ok
+[139790] I/btapp_ge bts: << Local device name: SifliDemo-d1-c-80-52-fd-5c
+[pet:VOICE] classic Bluetooth ready
+[pet:VOICE] scan mode=3
+
+[pet:VOICE] scan mode=0
+[1903553] I/btapp_pan pet_voic: >> PAN connect
+[1908352] D/btapp_pan bts: SDP service search finish successfully
+[1912648] D/btapp_pan bts: >> PAN connect successfully, running_flag = 0
+[2122129] D/BT.lwip bts: rt_bt_lwip_protocol_recv netif 20050d1c
+[pet:VOICE] session ready, downlink 24000 Hz
+[2287171] D/btapp_pan bts:  BTS2MU_PAN_STS_IND
+[pet:VOICE] record sent frames=2
+[2666512] D/btapp_pan bts:  BTS2MU_PAN_STS_IND
+[pet:VOICE] HTTPS discovery or verified WebSocket failed
+[2710767] D/BT.lwip bts: rt_bt_lwip_protocol_recv netif 20050d1c
+[3209766] D/btapp_pan bts:  BTS2MU_PAN_STS_IND
+[pet:VOICE] HTTPS discovery or verified WebSocket failed
+[3282895] D/BT.lwip bts: rt_bt_lwip_protocol_recv netif 20050d1c
+
+结论：本次曾连通 PAN 和小智会话，发出两帧录音。后续两次云端连接报通用错误，截取窗口仍有蓝牙网口收包，未见明确 TLS 错误码或崩溃输出。没有听到实机播报的反馈。错误无法区分 DNS、TCP、TLS、OTA HTTP/响应解析或 WebSocket 握手。本次属于 TC-304 / TC-310 部分验证。

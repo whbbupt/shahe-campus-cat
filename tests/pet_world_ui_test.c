@@ -1,6 +1,7 @@
 /* Real production LVGL and UI, simulated pointer and clock; not physical evidence. */
 #include "lvgl.h"
 #include "pet_ui.h"
+#include "pet_voice.h"
 #include "pet_version.h"
 #include "pet_world_assets.h"
 #include "pet_shahe_assets.h"
@@ -22,6 +23,21 @@
             exit(1);                                                                                         \
         }                                                                                                    \
     } while (0)
+static pet_voice_view_t voice;
+static pet_voice_volume_t voice_volume = PV_VOLUME_MEDIUM;
+static bool holding, cancel_voice, retry_voice, accept_pair;
+void pet_voice_page(bool open) { if (!open) holding = false; }
+void pet_voice_hold(bool down) { holding = down; }
+void pet_voice_cancel(void) { cancel_voice = true; }
+void pet_voice_retry(void) { retry_voice = true; }
+void pet_voice_pair(void) { accept_pair = true; }
+pet_voice_volume_t pet_voice_cycle_volume(void)
+{
+    voice_volume = (voice_volume + 1) % PV_VOLUME_COUNT;
+    return voice_volume;
+}
+pet_voice_view_t pet_voice_view(void) { return voice; }
+
 static pet_world_t world;
 static pw_result_t result;
 static unsigned char frame[450][390][3], draw_buffer[390 * 50 * 3];
@@ -147,6 +163,7 @@ static lv_obj_t *label_with(lv_obj_t *p, const char *name)
 static lv_obj_t *control(const char *name)
 {
     lv_obj_t *l = label_with(lv_screen_active(), name);
+    if (!l) fprintf(stderr, "Missing control: %s\n", name);
     assert(l);
     lv_obj_t *p = lv_obj_get_parent(l);
     while (p && !lv_obj_check_type(p, &lv_button_class))
@@ -467,16 +484,15 @@ static void check_campus_tiles(void)
 }
 static void memory_demo(void)
 {
-    static const char *symbols[] = {"花", "叶", "月", "星"};
     press("记忆题");
     for (unsigned i = 0; i < 1000 && world.phase == PW_WALK; i++) step(20);
     assert(world.phase == PW_MINIGAME && world.memory.phase == PM_SHOW);
     screenshot("shahe-memory-show.ppm");
-    press("花");
+    tap(119, 222);
     assert(world.memory.phase == PM_SHOW && world.memory.input_at == 0);
     step(pm_remaining(&world.memory));
     unsigned wrong = (world.memory.sequence[0] + 1) % 4;
-    press(symbols[wrong]);
+    tap(119 + (int)(wrong % 2) * 152, 222 + (int)(wrong / 2) * 83);
     assert(world.memory.phase == PM_LOST && world.memory_wins == 0);
     assert(label_with(lv_screen_active(), "参与奖励 +0 金币"));
     screenshot("shahe-memory-retry.ppm");
@@ -491,7 +507,10 @@ static void memory_demo(void)
         screenshot("shahe-memory-input.ppm");
         unsigned length = world.memory.length;
         for (unsigned i = 0; i < length; i++)
-            press(symbols[world.memory.sequence[i]]);
+        {
+            unsigned choice = world.memory.sequence[i];
+            tap(119 + (int)(choice % 2) * 152, 222 + (int)(choice / 2) * 83);
+        }
     }
     assert(world.memory.phase == PM_WON && world.memory_wins == 1);
     screenshot("shahe-memory-won.ppm");
@@ -645,6 +664,10 @@ static void dorm_takeout(void)
     press("取餐");
     until_action(PW_TAKEOUT);
     assert(world.food == food && world.order == PW_ORDER_READY);
+    step(550);
+    lv_obj_t *seat = image_with(lv_screen_active(), &shahe_seat_0);
+    assert(seat && shown(seat) && !label_with(lv_screen_active(), "取餐"));
+    screenshot("shahe-takeout-at-desk.ppm");
     step((uint32_t)(world.action_end - world.now));
     assert(world.food == food + 12 && world.order == PW_ORDER_NONE && world.settlements[PW_TAKEOUT] == 1);
     assert(label_with(lv_screen_active(), "饱食 +12 · 心情 +1"));
@@ -753,8 +776,6 @@ static void new_life_and_challenges(void)
 {
     const pw_scene_t rooms[] = {PW_CANTEEN, PW_GYM, PW_DORM};
     const char *entries[] = {"配餐", "节奏", "找物"};
-    const char *food[] = {"米饭", "青菜", "鸡蛋", "热汤"};
-    const char *slots[] = {"位置一", "位置二", "位置三", "位置四"};
     for (unsigned k = 0; k < 3; k++)
     {
         reset(); world.scene = rooms[k];
@@ -772,7 +793,7 @@ static void new_life_and_challenges(void)
                 unsigned at = world.challenge.elapsed % 3000;
                 assert(at < 1500); step(1500 - at);
                 if (n == 0) screenshot("shahe-rhythm-green.ppm");
-                press("跟上节拍");
+                tap(190, 280);
                 assert(world.challenge.score == n + 1);
                 step(3000 - world.challenge.elapsed % 3000);
             }
@@ -782,7 +803,7 @@ static void new_life_and_challenges(void)
             unsigned pick = world.challenge.targets[n];
             if (k == 2) for (unsigned j = 0; j < 4; j++)
                 if (world.challenge.cards[j] == world.challenge.targets[n]) pick = j;
-            press(k == 0 ? food[pick] : slots[pick]);
+            tap(119 + (int)(pick % 2) * 152, 222 + (int)(pick / 2) * 83);
         }
         assert(world.challenge.phase == PG_WON && world.memory_wins == 1 && world.mood == 63);
         assert(label_with(lv_screen_active(), "金币 +10 · 心情 +3"));
@@ -807,11 +828,27 @@ static void new_life_and_challenges(void)
         reset(); world.scene = scene;
         pw_point_t p = pw_node(scene, 3); world.x = p.x; world.y = p.y;
         pet_ui_update(&world); step(40);
+        if (scene == PW_CANTEEN)
+        {
+            lv_area_t life, order;
+            lv_obj_get_coords(control("看看"), &life);
+            lv_obj_get_coords(control("点餐"), &order);
+            assert(life.y1 > order.y2);
+        }
         press("看看"); assert(result == PW_OK);
         for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
         assert(world.phase == PW_ACTION && world.mood == 60);
         char name[64]; snprintf(name, sizeof(name), "shahe-life-%u.ppm", scene); screenshot(name);
         step(4000); assert(world.phase == PW_IDLE && world.mood == 62 && !world.memory_wins);
+        if (scene == PW_CANTEEN)
+        {
+            unsigned coins = world.wallet.coins;
+            press("点餐");
+            for (unsigned n = 0; n < 500 && world.phase == PW_WALK; n++) step(40);
+            step(550);
+            assert(world.phase == PW_SEATED && world.wallet.coins == coins);
+            assert(label_with(lv_screen_active(), "风味"));
+        }
     }
     for (unsigned mask = 0; mask < 8; mask++)
     {
@@ -891,12 +928,16 @@ static void scroll_menus_and_curfew(void)
     tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
     assert(world.phase==PW_SEATED && world.wallet.coins==100 && world.food==40);step(550);
     assert(label_with(lv_screen_active(),"学生餐厅 · 选窗口"));screenshot("shahe-meal-menu-top.ppm");
-    tap(60,220);assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
+    press("香菇鸡肉饭");assert(label_with(lv_screen_active(),"确认用餐 · 7金币") && world.wallet.coins==100);
     swipe_up();swipe_up();
     lv_obj_t *last=control("红豆小点心");lv_area_t a;lv_obj_get_coords(last,&a);
     assert(a.y1>=118 && a.y2<346);screenshot("shahe-meal-menu-bottom.ppm");
     press("红豆小点心");assert(world.wallet.coins==100 && world.food==40);
-    press("确认用餐 · 3金币");assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
+    lv_obj_t *confirm = control("确认用餐 · 3金币");
+    lv_obj_get_coords(confirm, &a);
+    assert(lv_area_get_height(&a) == 60);
+    tap(a.x1 + 8, a.y1 + 5);
+    assert(world.wallet.coins==97 && world.food==50 && world.mood==61 && world.settlements[PW_EAT]==1);
     step(6500);tap(87,252);for(unsigned i=0;i<1000&&world.phase==PW_WALK;i++)step(20);
     assert(world.phase==PW_SEATED);step(550);press("×");assert(world.phase==PW_IDLE && world.wallet.coins==97);
     reset();world.wallet.coins=100;world.food=40;pet_ui_update(&world);press("外卖");
@@ -918,7 +959,7 @@ static void activity_workstudy_windows(void)
     reset(); world.scene = PW_CAMPUS; world.phase = PW_IDLE; world.mood = 50;
     pet_ui_update(&world);
     screenshot("v019-campus.ppm");
-    press("学生活动中心");
+    press("学生\n活动中心");
     screenshot("v019-activity.ppm");
     assert(label_with(lv_screen_active(), "去健身房"));
     assert(label_with(lv_screen_active(), "跳舞"));
@@ -990,7 +1031,11 @@ static void library_and_activity(void)
     press("看书");
     until_action(PW_STUDY);
     assert(pw_in_library(&world));
+    lv_obj_t *reading = image_with(lv_screen_active(), &pw_library_reading);
+    assert(reading && shown(reading));
+    screenshot("library-cat-reading.ppm");
     step(8500);
+    assert(!image_with(lv_screen_active(), &pw_library_reading));
     press("出门");
     assert(pw_in_library(&world) && world.purpose == 2);
     while (world.scene == PW_CLASSROOM && world.phase != PW_IDLE)
@@ -1000,7 +1045,7 @@ static void library_and_activity(void)
     }
     idle(PW_CAMPUS);
     assert(world.node == PW_LIBRARY_DOOR);
-    tap_campus_point(735, 590);
+    tap_campus_point(715, 584);
     assert(label_with(lv_screen_active(), "去健身房"));
     puts("[host:world-ui] library and activity entrances PASS");
 }
@@ -1042,10 +1087,17 @@ static void finish_teaching_game(unsigned building)
     }
     else
     {
-        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "依次点两个端点"));
+        assert(game->kind == PG_CIRCUIT && label_with(lv_screen_active(), "点两个同色图案"));
         screenshot("circuit-game.ppm");
-        static const char *const wiring[] = {"电源 +", "开关入", "开关出", "灯泡入", "灯泡出", "电源 -"};
-        for (unsigned i = 0; i < sizeof(wiring) / sizeof(wiring[0]); i++) press(wiring[i]);
+        tap(84, 205);
+        tap(84, 258);
+        assert(game->mistakes == 1 && game->score == 0);
+        for (unsigned right = 0; right < PG_CIRCUIT_LINKS; right++)
+        {
+            unsigned match = pg_circuit_color(game, right + PG_CIRCUIT_LINKS);
+            tap(84, 205 + (int)match * 53);
+            tap(306, 205 + (int)right * 53);
+        }
         assert(label_with(lv_screen_active(), "灯亮了，通电成功"));
         screenshot("circuit-won.ppm");
     }
@@ -1062,11 +1114,11 @@ static void teaching_buildings(void)
         const char *entry, *title, *day, *night;
         const lv_image_dsc_t *plate;
     } cases[] = {
-        {PW_SMART_BUILDING, 24, "智慧教学楼", "智慧教学楼 · 自习",
+        {PW_SMART_BUILDING, 24, "智慧\n教学楼", "智慧教学楼 · 自习",
          "smart-classroom-day.ppm", "smart-classroom-night.ppm", &shahe_smart_room},
-        {PW_LAB_BUILDING, 16, "教学实验综合楼", "教学实验综合楼·实验室",
+        {PW_LAB_BUILDING, 16, "教学实验\n综合楼", "教学实验综合楼·实验室",
          "teaching-lab-day.ppm", "teaching-lab-night.ppm", &shahe_lab_room},
-        {PW_PUBLIC_BUILDING, 54, "公共教学楼", "公共教学楼 · 教室",
+        {PW_PUBLIC_BUILDING, 54, "公共\n教学楼", "公共教学楼 · 教室",
          "public-classroom-day.ppm", "public-classroom-night.ppm", &shahe_public_room}
     };
     for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
@@ -1078,6 +1130,21 @@ static void teaching_buildings(void)
         world.x = gate.x;
         world.y = gate.y;
         step(40);
+        if (cases[i].id == PW_LAB_BUILDING)
+        {
+            tap_campus_point(1200, 735);
+            assert(world.scene == PW_CAMPUS && world.phase == PW_WALK && world.purpose == 3);
+            idle(PW_CAMPUS);
+            screenshot("shahe-lab-entrance.ppm");
+        }
+        if (cases[i].id == PW_SMART_BUILDING)
+        {
+            screenshot("shahe-smart-entrance.ppm");
+            tap_campus_point((int)gate.x + 72, (int)gate.y);
+            assert(world.scene == PW_CAMPUS && world.phase == PW_WALK);
+            assert(world.point_edge_a == 24 && world.point_edge_b == 25);
+            idle(PW_CAMPUS);
+        }
         press(cases[i].entry);
         assert(result == PW_OK);
         idle(PW_CLASSROOM);
@@ -1136,6 +1203,111 @@ static void teaching_buildings(void)
     puts("[host:world-ui] four teaching games through real pointer, cancel, payouts and original exits PASS");
 }
 
+static void start_badminton(void)
+{
+    reset();
+    world.scene = PW_CAMPUS;
+    world.phase = PW_IDLE;
+    world.mood = 50;
+    world.x = 790;
+    world.y = 590;
+    pet_ui_update(&world);
+    step(40);
+    tap_campus_point(715, 584);
+    press("打羽毛球");
+    assert(world.mood == 54);
+    assert(label_with(lv_screen_active(), "挥拍"));
+}
+
+static void badminton_game(void)
+{
+    start_badminton();
+    step(550);
+    press("挥拍");
+    assert(label_with(lv_screen_active(), "早了，再等一下"));
+    assert(label_with(lv_screen_active(), "你  0  :  0  对手"));
+    step(1050);
+    assert(label_with(lv_screen_active(), "现在挥拍！点亮区"));
+    screenshot("badminton-hit-window.ppm");
+    tap(94, 200);
+    assert(label_with(lv_screen_active(), "打回去了！"));
+    assert(label_with(lv_screen_active(), "你  1  :  0  对手"));
+    press("挥拍");
+    assert(label_with(lv_screen_active(), "你  1  :  0  对手"));
+    step(650); step(550); step(1500);
+    assert(label_with(lv_screen_active(), "漏球 · 对手得分"));
+    assert(label_with(lv_screen_active(), "你  1  :  1  对手"));
+    press("×");
+    assert(!label_with(lv_screen_active(), "挥拍") && world.scene == PW_CAMPUS);
+    assert(label_with(lv_screen_active(), "学生\n活动中心"));
+
+    start_badminton();
+    step(700);
+    world.scene = PW_DORM;
+    world.curfew_events++;
+    step(40);
+    assert(!label_with(lv_screen_active(), "挥拍"));
+    assert(label_with(lv_screen_active(), "留在宿舍"));
+    press("留在宿舍");
+    assert(world.scene == PW_DORM && label_with(lv_screen_active(), "状态"));
+
+    start_badminton();
+    world.scene = PW_CLASSROOM;
+    step(40);
+    assert(!label_with(lv_screen_active(), "挥拍"));
+    press("状态");
+    assert(label_with(lv_screen_active(), "小猫状态"));
+    puts("[host:badminton] scoring, return, miss, close, curfew and scene change PASS");
+}
+
+static void start_sport(const char *name)
+{
+    reset();
+    world.scene = PW_CAMPUS;
+    world.node = 7;
+    world.x = 220;
+    world.y = 690;
+    step(40);
+    press("运动场");
+    press(name);
+    assert(result == PW_OK);
+}
+
+static void sports_games(void)
+{
+    start_sport("跑步");
+    tap(270, 407);
+    assert(label_with(lv_screen_active(), "跑步  0 / 100"));
+    tap(105, 407);
+    tap(105, 407);
+    assert(label_with(lv_screen_active(), "跑步  7 / 100"));
+    screenshot("sports-run.ppm");
+    for (unsigned i = 1; i < 15; i++) tap(i % 2 ? 270 : 105, 407);
+    assert(label_with(lv_screen_active(), "跑步  100 / 100"));
+    press("×");
+
+    start_sport("引体向上");
+    step(510);
+    tap(190, 225);
+    tap(190, 225);
+    assert(label_with(lv_screen_active(), "引体向上  1 / 10"));
+    screenshot("sports-pull.ppm");
+    step(20000);
+    assert(label_with(lv_screen_active(), "时间到"));
+    press("×");
+
+    start_sport("仰卧起坐");
+    step(810);
+    tap(190, 269);
+    tap(190, 269);
+    assert(label_with(lv_screen_active(), "仰卧起坐  1 / 12"));
+    screenshot("sports-sit.ppm");
+    world.scene = PW_DORM;
+    step(40);
+    assert(!label_with(lv_screen_active(), "仰卧起坐  1 / 12"));
+    puts("[host:sports] alternate steps, timing, duplicate hits, timeout and scene exit PASS");
+}
+
 int main(int argc, char **argv)
 {
     lv_init();
@@ -1147,6 +1319,111 @@ int main(int argc, char **argv)
     lv_indev_t *input = lv_indev_create();
     lv_indev_set_type(input, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(input, read_pointer);
+    if (argc > 1 && !strcmp(argv[1], "--sports"))
+    {
+        sports_games();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--life-games"))
+    {
+        new_life_and_challenges();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--badminton"))
+    {
+        badminton_game();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--voice"))
+    {
+        reset();
+        pw_scene_t scene = world.scene;
+        for (unsigned round = 0; round < 3; round++)
+        {
+            press("语音");
+            assert(label_with(lv_screen_active(), "和小猫说话"));
+            assert(label_with(lv_screen_active(), "语音服务未连接"));
+            tap(195, 396);
+            assert(world.scene == scene && world.phase == PW_IDLE);
+            if (round == 0) screenshot("voice-page.ppm");
+            press("返回");
+            assert(!label_with(lv_screen_active(), "和小猫说话"));
+            assert(world.scene == scene && label_with(lv_screen_active(), "语音"));
+        }
+        voice.state = PV_NETWORK;
+        assert(pet_key2_selftest());
+        pet_key2_t key;
+        pet_key2_init(&key, false, 0);
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(!label_with(lv_screen_active(), "和小猫说话"));
+        pet_ui_key2(pet_key2_sample(&key, true, 100));
+        pet_ui_key2(pet_key2_sample(&key, true, 130));
+        assert(!label_with(lv_screen_active(), "和小猫说话"));
+        pet_ui_key2(pet_key2_sample(&key, true, 800));
+        pet_ui_key2(pet_key2_sample(&key, false, 900));
+        pet_ui_key2(pet_key2_sample(&key, false, 930));
+        assert(label_with(lv_screen_active(), "等待手机共享网络"));
+        assert(!label_with(lv_screen_active(), "音量") && voice_volume == PV_VOLUME_MEDIUM);
+        assert(label_with(lv_screen_active(), "蓝牙中选择 " PET_VOICE_BT_NAME));
+        voice.state = PV_PAIR;
+        strcpy(voice.code, "123456");
+        step(40);
+        assert(label_with(lv_screen_active(), "123456"));
+        press("配对码相同");
+        assert(accept_pair);
+        voice.state = PV_ACTIVATE;
+        step(40);
+        press("已绑定，重试");
+        assert(retry_voice);
+        voice.state = PV_READY;
+        step(40);
+        pointer.x = 195;
+        pointer.y = 398;
+        pointer_state = LV_INDEV_STATE_PRESSED;
+        step(40);
+        step(40);
+        assert(holding);
+        voice.state = PV_RECORDING;
+        voice.level = 4000;
+        step(40);
+        assert(label_with(lv_screen_active(), "正在录音"));
+        pointer_state = LV_INDEV_STATE_RELEASED;
+        step(40);
+        step(40);
+        assert(!holding);
+        voice.state = PV_PLAYING;
+        step(40);
+        unsigned game_volume = world.volume;
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "3/3"));
+        screenshot("voice-volume.ppm");
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "0/3") && voice_volume == PV_VOLUME_MUTE);
+        screenshot("voice-muted.ppm");
+        pet_ui_key2(PET_KEY2_SHORT);
+        assert(label_with(lv_screen_active(), "2/3"));
+        step(1990);
+        assert(label_with(lv_screen_active(), "2/3"));
+        step(10);
+        assert(!label_with(lv_screen_active(), "音量") && world.volume == game_volume);
+        press("停止");
+        assert(cancel_voice);
+        press("返回");
+        assert(world.scene == scene);
+        puts("[host:voice-ui] touch, KEY2 long/short, overlay timeout, pairing, recording and stop PASS");
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--meal"))
+    {
+        scroll_menus_and_curfew();
+        return 0;
+    }
+    if (argc > 1 && !strcmp(argv[1], "--takeout"))
+    {
+        reset();
+        dorm_takeout();
+        return 0;
+    }
     bool measure=argc>1 && !strcmp(argv[1],"--measure");
     render_profile(!measure);
     if(measure)return 0;

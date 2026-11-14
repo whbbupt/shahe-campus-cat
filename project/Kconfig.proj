@@ -3,3 +3,10 @@ config CUSTOM_MEM_MAP
     bool 
 	select custom_mem_map
 	default y    
+
+
+# Same SDK pairing switch as peripheral_lab. The app confirms the phone code.
+config BT_USING_PAIRING_CONFIRMATION
+    bool "Confirm classic Bluetooth pairing"
+    default y
+    depends on CFG_PAN
