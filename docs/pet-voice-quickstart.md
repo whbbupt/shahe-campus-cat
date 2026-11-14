@@ -1,9 +1,9 @@
-# 沙河校园小猫 v0.20.12 语音试用
+# 沙河校园小猫 v0.20.13 语音试用
 
 ## 下载
 
 1. 用 USB 连黄山派的 USB-to-UART 口。打开小猫工程的 `project`，在 CodeKit 选 `sf32lb52-lchspi-ulp` 并点 **Download**。使用常规下载，关闭全片擦除选项。
-2. 下载后串口波特率用 `1000000`。确认启动行出现 `[pet] v0.20.12 boot ok`、`[pet:VOICE] worker ready stack=40960 bytes` 和 `[pet:KEY2] selftest PASS`。
+2. 下载后串口波特率用 `1000000`。确认启动行出现 `[pet] v0.20.13 boot ok`、`[pet:VOICE] worker ready stack=40960 bytes` 和 `[pet:KEY2] selftest PASS`。
 
 ## 试聊
 

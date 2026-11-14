@@ -1290,6 +1290,8 @@ static void sports_games(void)
     assert(label_with(lv_screen_active(), "引体向上  0 / 10"));
 
     start_sport("跑步");
+    tap(190, 205);
+    assert(label_with(lv_screen_active(), "跑步  0 / 100"));
     tap(270, 407);
     assert(label_with(lv_screen_active(), "跑步  0 / 100"));
     tap(105, 407);
@@ -1301,6 +1303,8 @@ static void sports_games(void)
     press("×");
 
     start_sport("引体向上");
+    tap(100, 33);
+    assert(label_with(lv_screen_active(), "引体向上  0 / 10"));
     step(510);
     tap(190, 225);
     tap(190, 225);
@@ -1308,10 +1312,14 @@ static void sports_games(void)
     screenshot("sports-pull.ppm");
     step(20000);
     assert(label_with(lv_screen_active(), "时间到"));
+    tap(190, 225);
+    assert(label_with(lv_screen_active(), "时间到"));
     press("×");
 
     start_sport("仰卧起坐");
-    step(810);
+    tap(43, 267);
+    assert(label_with(lv_screen_active(), "仰卧起坐  0 / 12"));
+    step(650);
     tap(190, 269);
     tap(190, 269);
     assert(label_with(lv_screen_active(), "仰卧起坐  1 / 12"));

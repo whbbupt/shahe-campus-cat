@@ -1097,6 +1097,8 @@ static void build_panel(lv_obj_t *screen)
         lv_obj_center(label);
     }
     ui.sports_game_dialog = box(ui.layer, 0, 0, 390, 450, 0x254D40, 0);
+    /* Keep background taps inside the game, above the modal dismiss button. */
+    lv_obj_add_flag(ui.sports_game_dialog, LV_OBJ_FLAG_CLICKABLE);
     ui.sports_run_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xB85C3C, 0);
     ui.sports_pull_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xBFD9D2, 0);
     ui.sports_sit_layer = box(ui.sports_game_dialog, 0, 54, 390, 300, 0xDCE6CB, 0);
